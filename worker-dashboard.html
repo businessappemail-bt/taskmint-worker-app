@@ -275,82 +275,101 @@
 </div>
 
 <div class="loading" id="loading">Checking worker access...</div>
-
+  
 <script>
   const SUPABASE_URL = "https://dbcthtjmtlumidpbucrc.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
 
-  const supabaseClient = supabase.createClient(https://dbcthtjmtlumidpbucrc.supabase.co, sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ
-);
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let currentUser = null;
   let workerProfile = null;
   let workerApplication = null;
 
+  function showError(message) {
+    document.getElementById("loading").innerHTML = `
+      <div style="padding:20px; color:#b00020; font-weight:bold;">
+        ${message}
+      </div>
+    `;
+  }
+
   async function loadDashboard() {
-    const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+    try {
+      const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
 
-    if (sessionError || !sessionData.session) {
-      window.location.href = "login.html";
-      return;
-    }
-
-    currentUser = sessionData.session.user;
-
-    const { data: application, error: appError } = await supabaseClient
-      .from("worker_applications")
-      .select("*")
-      .eq("worker_id", currentUser.id)
-      .maybeSingle();
-
-    if (appError) {
-      alert("Error checking worker application.");
-      console.log(appError);
-      return;
-    }
-
-    if (!application) {
-      window.location.href = "worker-application.html";
-      return;
-    }
-
-    workerApplication = application;
-
-    if (application.is_approved !== true) {
-      window.location.href = "application-submitted.html";
-      return;
-    }
-
-    const { data: profile, error: profileError } = await supabaseClient
-      .from("worker_profiles")
-      .select("*")
-      .eq("id", currentUser.id)
-      .maybeSingle();
-
-    if (!profileError && profile) {
-      workerProfile = profile;
-      document.getElementById("workerName").innerText =
-        profile.full_name || application.full_name || "Worker Profile";
-
-      if (profile.profile_photo_url) {
-        document.getElementById("profilePic").src = profile.profile_photo_url;
+      if (sessionError) {
+        showError("Session error: " + sessionError.message);
+        return;
       }
 
-      document.getElementById("ratingScore").innerText =
-        profile.rating ? Number(profile.rating).toFixed(1) : "0.0";
+      if (!sessionData.session) {
+        window.location.href = "login.html";
+        return;
+      }
 
-      document.getElementById("completedTasks").innerText =
-        profile.total_jobs || 0;
-    } else {
-      document.getElementById("workerName").innerText =
-        application.full_name || "Worker Profile";
+      currentUser = sessionData.session.user;
+
+      const { data: application, error: appError } = await supabaseClient
+        .from("worker_applications")
+        .select("*")
+        .eq("worker_id", currentUser.id)
+        .maybeSingle();
+
+      if (appError) {
+        showError("Worker application error: " + appError.message);
+        return;
+      }
+
+      if (!application) {
+        window.location.href = "worker-application.html";
+        return;
+      }
+
+      workerApplication = application;
+
+      if (application.is_approved !== true) {
+        window.location.href = "application-submitted.html";
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabaseClient
+        .from("worker_profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .maybeSingle();
+
+      if (profileError) {
+        showError("Worker profile error: " + profileError.message);
+        return;
+      }
+
+      workerProfile = profile;
+
+      if (profile) {
+        document.getElementById("workerName").innerText =
+          profile.full_name || application.full_name || "Worker Profile";
+
+        if (profile.profile_photo_url) {
+          document.getElementById("profilePic").src = profile.profile_photo_url;
+        }
+
+        document.getElementById("ratingScore").innerText =
+          profile.rating ? Number(profile.rating).toFixed(1) : "0.0";
+
+        document.getElementById("completedTasks").innerText =
+          profile.total_jobs || 0;
+      }
+
+      checkProfileCompletion();
+      await loadWorkerStats();
+
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
+
+    } catch (err) {
+      showError("Page error: " + err.message);
     }
-
-    checkProfileCompletion();
-    await loadWorkerStats();
-
-    document.getElementById("loading").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
   }
 
   function checkProfileCompletion() {
@@ -363,7 +382,7 @@
     if (!hasPhoto || !hasExperience) {
       approvalBox.innerHTML = `
         <div class="warning">
-          Your worker profile is approved, but it is not complete. 
+          Your worker profile is approved, but it is not complete.
           Add a profile picture and experience before sending quotes.
         </div>
       `;
@@ -382,30 +401,16 @@
   }
 
   async function loadWorkerStats() {
-    const { data: quotes, error: quoteError } = await supabaseClient
+    const { data: quotes } = await supabaseClient
       .from("worker_quotes")
       .select("*")
       .eq("worker_id", currentUser.id)
       .eq("status", "pending");
 
-    if (!quoteError && quotes) {
+    if (quotes) {
       document.getElementById("pendingQuotes").innerText = quotes.length;
     }
 
-    const { data: assignments, error: assignmentError } = await supabaseClient
-      .from("task_assignments")
-      .select("*")
-      .eq("worker_user_id", currentUser.id)
-      .eq("assignment_status", "completed");
-
-    if (!assignmentError && assignments) {
-      document.getElementById("completedTasks").innerText = assignments.length;
-    }
-
-    /*
-      Money earned will be fully connected after we confirm your payments table columns.
-      For now, this dashboard keeps the earnings card visible without breaking the page.
-    */
     document.getElementById("earningsAmount").innerText = "$0";
   }
 

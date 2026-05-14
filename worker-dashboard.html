@@ -10,62 +10,126 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      background: #f4f4f4;
       color: #111;
-      padding-bottom: 40px;
+      padding-bottom: 80px;
     }
 
     .container {
       max-width: 420px;
       margin: 0 auto;
+      background: white;
+      min-height: 100vh;
       padding: 20px;
+      box-sizing: border-box;
     }
 
-    h1 {
+    .header {
       text-align: center;
-      margin-bottom: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #0b7a28;
+      margin-bottom: 18px;
     }
 
     .card {
       background: white;
-      border-radius: 14px;
+      border-radius: 16px;
       padding: 18px;
-      margin-bottom: 18px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      border: 1px solid #eee;
     }
 
     .profile-row {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 14px;
     }
 
     .profile-pic {
-      width: 75px;
-      height: 75px;
+      width: 78px;
+      height: 78px;
       border-radius: 50%;
       background: #ddd;
       object-fit: cover;
+      border: 3px solid #0b7a28;
     }
 
-    .section-title {
+    .worker-name {
       font-size: 18px;
       font-weight: bold;
-      margin-bottom: 12px;
     }
 
     .small-text {
       color: #666;
       font-size: 14px;
       margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .warning {
+      background: #fff7e6;
+      border: 1px solid #ffd27a;
+      color: #7a4b00;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      margin-top: 14px;
+      line-height: 1.4;
+    }
+
+    .approved {
+      background: #eaf7ee;
+      border: 1px solid #bde5c8;
+      color: #0b7a28;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      margin-top: 14px;
+      line-height: 1.4;
+      font-weight: bold;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #111;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-box {
+      background: #f7f7f7;
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+      border: 1px solid #e5e5e5;
+    }
+
+    .stat-number {
+      font-size: 22px;
+      font-weight: bold;
+      color: #0b7a28;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: #555;
     }
 
     button {
       width: 100%;
-      padding: 14px;
+      padding: 15px;
       margin: 7px 0;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       background: #0b7a28;
       color: white;
       font-size: 15px;
@@ -83,140 +147,275 @@
       background: #b00020;
     }
 
+    .button-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .button-row button {
+      flex: 1;
+    }
+
     .loading {
       text-align: center;
-      margin-top: 80px;
+      margin-top: 100px;
       color: #555;
+      font-size: 16px;
     }
   </style>
 </head>
 
 <body>
-  <div class="container" id="dashboard" style="display:none;">
-    <h1>Worker Dashboard</h1>
 
-    <div class="card">
-      <div class="profile-row">
-        <img class="profile-pic" id="profilePic" src="" alt="Profile Picture">
-        <div>
-          <strong id="workerName">Worker Profile</strong>
-          <p class="small-text">Manage the profile customers see before hiring you.</p>
+<div class="container" id="dashboard" style="display:none;">
+
+  <div class="header">Worker Dashboard</div>
+
+  <div class="card">
+    <div class="profile-row">
+      <img class="profile-pic" id="profilePic" src="Taskmintlogo.png" alt="Profile Picture">
+
+      <div>
+        <div class="worker-name" id="workerName">Worker Profile</div>
+        <div class="small-text" id="profileStatusText">
+          Manage your public worker profile.
         </div>
       </div>
-
-      <button class="secondary" onclick="window.location.href='worker-profile-edit.html'">
-        Edit Public Worker Profile
-      </button>
-
-      <button class="secondary" onclick="window.location.href='worker-settings.html'">
-        Account Settings
-      </button>
     </div>
 
-    <div class="card">
-      <div class="section-title">Main</div>
+    <div id="approvalBox"></div>
 
-      <button onclick="window.location.href='worker-open-task.html'">
-        View Open Tasks
-      </button>
+    <button class="secondary" onclick="window.location.href='worker-profile-edit.html'">
+      Edit Worker Profile
+    </button>
+  </div>
 
-      <button onclick="window.location.href='my-jobs.html'">
-        My Jobs
-      </button>
+  <div class="card">
+    <div class="section-title">Overview</div>
 
-      <button onclick="window.location.href='message-center.html'">
-        Messages
-      </button>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-number" id="earningsAmount">$0</div>
+        <div class="stat-label">Money Earned</div>
+      </div>
 
-      <button onclick="window.location.href='worker-reviews.html'">
-        Ratings & Reviews
-      </button>
+      <div class="stat-box">
+        <div class="stat-number" id="completedTasks">0</div>
+        <div class="stat-label">Completed Tasks</div>
+      </div>
 
-      <button onclick="window.location.href='worker-disputes.html'">
-        Dispute Center
-      </button>
+      <div class="stat-box">
+        <div class="stat-number" id="ratingScore">0.0</div>
+        <div class="stat-label">Rating</div>
+      </div>
 
-      <button onclick="window.location.href='worker-earnings.html'">
-        Earnings
-      </button>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Account</div>
-
-      <button class="logout" onclick="logout()">
-        Log Out
-      </button>
+      <div class="stat-box">
+        <div class="stat-number" id="pendingQuotes">0</div>
+        <div class="stat-label">Pending Quotes</div>
+      </div>
     </div>
   </div>
 
-  <div class="loading" id="loading">Checking worker access...</div>
+  <div class="card">
+    <div class="section-title">Find Work</div>
 
-  <script>
-    const SUPABASE_URL = "PASTE YOUR SUPABASE URL HERE";
-    const SUPABASE_ANON_KEY = "PASTE YOUR SUPABASE ANON KEY HERE";
+    <button onclick="window.location.href='worker-open-task.html'">
+      View Open Tasks
+    </button>
 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <button class="secondary" onclick="window.location.href='my-jobs.html'">
+      My Jobs
+    </button>
 
-    async function checkWorkerAccess() {
-      const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+    <button class="secondary" onclick="window.location.href='worker-calendar.html'">
+      Schedule / Calendar
+    </button>
+  </div>
 
-      if (sessionError || !sessionData.session) {
-        window.location.href = "login.html";
-        return;
-      }
+  <div class="card">
+    <div class="section-title">Worker Tools</div>
 
-      const user = sessionData.session.user;
+    <button class="secondary" onclick="window.location.href='message-center.html'">
+      Messages
+    </button>
 
-      const { data: application, error: appError } = await supabaseClient
-        .from("worker_applications")
-        .select("*")
-        .eq("worker_id", user.id)
-        .maybeSingle();
+    <button class="secondary" onclick="window.location.href='worker-earnings.html'">
+      Earnings
+    </button>
 
-      if (appError) {
-        alert("Error checking worker application.");
-        console.log(appError);
-        return;
-      }
+    <button class="secondary" onclick="window.location.href='worker-payout-info.html'">
+      Payout Information
+    </button>
 
-      if (!application) {
-        window.location.href = "worker-application.html";
-        return;
-      }
+    <button class="secondary" onclick="window.location.href='worker-tax-center.html'">
+      Tax Center
+    </button>
 
-      if (application.is_approved !== true) {
-        window.location.href = "application-submitted.html";
-        return;
-      }
+    <button class="secondary" onclick="window.location.href='worker-reviews.html'">
+      Ratings & Reviews
+    </button>
 
-      const { data: profile, error: profileError } = await supabaseClient
-        .from("worker_profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
+    <button class="secondary" onclick="window.location.href='worker-disputes.html'">
+      Dispute Center
+    </button>
+  </div>
 
-      if (!profileError && profile) {
-        document.getElementById("workerName").innerText = profile.full_name || application.full_name || "Worker Profile";
+  <div class="card">
+    <div class="section-title">Account</div>
 
-        if (profile.profile_photo_url) {
-          document.getElementById("profilePic").src = profile.profile_photo_url;
-        }
-      } else {
-        document.getElementById("workerName").innerText = application.full_name || "Worker Profile";
-      }
+    <button class="secondary" onclick="window.location.href='worker-settings.html'">
+      Settings
+    </button>
 
-      document.getElementById("loading").style.display = "none";
-      document.getElementById("dashboard").style.display = "block";
+    <button class="logout" onclick="logout()">
+      Log Out
+    </button>
+  </div>
+
+</div>
+
+<div class="loading" id="loading">Checking worker access...</div>
+
+<script>
+  const SUPABASE_URL = "PASTE YOUR SUPABASE URL HERE";
+  const SUPABASE_ANON_KEY = "PASTE YOUR SUPABASE ANON KEY HERE";
+
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
+  let workerProfile = null;
+  let workerApplication = null;
+
+  async function loadDashboard() {
+    const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+
+    if (sessionError || !sessionData.session) {
+      window.location.href = "login.html";
+      return;
     }
 
-    async function logout() {
-      await supabaseClient.auth.signOut();
-      localStorage.clear();
-      window.location.href = "index.html";
+    currentUser = sessionData.session.user;
+
+    const { data: application, error: appError } = await supabaseClient
+      .from("worker_applications")
+      .select("*")
+      .eq("worker_id", currentUser.id)
+      .maybeSingle();
+
+    if (appError) {
+      alert("Error checking worker application.");
+      console.log(appError);
+      return;
     }
 
-    checkWorkerAccess();
-  </script>
+    if (!application) {
+      window.location.href = "worker-application.html";
+      return;
+    }
+
+    workerApplication = application;
+
+    if (application.is_approved !== true) {
+      window.location.href = "application-submitted.html";
+      return;
+    }
+
+    const { data: profile, error: profileError } = await supabaseClient
+      .from("worker_profiles")
+      .select("*")
+      .eq("id", currentUser.id)
+      .maybeSingle();
+
+    if (!profileError && profile) {
+      workerProfile = profile;
+      document.getElementById("workerName").innerText =
+        profile.full_name || application.full_name || "Worker Profile";
+
+      if (profile.profile_photo_url) {
+        document.getElementById("profilePic").src = profile.profile_photo_url;
+      }
+
+      document.getElementById("ratingScore").innerText =
+        profile.rating ? Number(profile.rating).toFixed(1) : "0.0";
+
+      document.getElementById("completedTasks").innerText =
+        profile.total_jobs || 0;
+    } else {
+      document.getElementById("workerName").innerText =
+        application.full_name || "Worker Profile";
+    }
+
+    checkProfileCompletion();
+    await loadWorkerStats();
+
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+  }
+
+  function checkProfileCompletion() {
+    const approvalBox = document.getElementById("approvalBox");
+    const profileStatusText = document.getElementById("profileStatusText");
+
+    const hasPhoto = workerProfile && workerProfile.profile_photo_url;
+    const hasExperience = workerProfile && workerProfile.experience && workerProfile.experience.trim() !== "";
+
+    if (!hasPhoto || !hasExperience) {
+      approvalBox.innerHTML = `
+        <div class="warning">
+          Your worker profile is approved, but it is not complete. 
+          Add a profile picture and experience before sending quotes.
+        </div>
+      `;
+
+      profileStatusText.innerText = "Profile incomplete. Add photo and experience.";
+      return;
+    }
+
+    approvalBox.innerHTML = `
+      <div class="approved">
+        Approved worker profile. You can send quotes.
+      </div>
+    `;
+
+    profileStatusText.innerText = "Approved and ready to accept work.";
+  }
+
+  async function loadWorkerStats() {
+    const { data: quotes, error: quoteError } = await supabaseClient
+      .from("worker_quotes")
+      .select("*")
+      .eq("worker_id", currentUser.id)
+      .eq("status", "pending");
+
+    if (!quoteError && quotes) {
+      document.getElementById("pendingQuotes").innerText = quotes.length;
+    }
+
+    const { data: assignments, error: assignmentError } = await supabaseClient
+      .from("task_assignments")
+      .select("*")
+      .eq("worker_user_id", currentUser.id)
+      .eq("assignment_status", "completed");
+
+    if (!assignmentError && assignments) {
+      document.getElementById("completedTasks").innerText = assignments.length;
+    }
+
+    /*
+      Money earned will be fully connected after we confirm your payments table columns.
+      For now, this dashboard keeps the earnings card visible without breaking the page.
+    */
+    document.getElementById("earningsAmount").innerText = "$0";
+  }
+
+  async function logout() {
+    await supabaseClient.auth.signOut();
+    localStorage.clear();
+    window.location.href = "index.html";
+  }
+
+  loadDashboard();
+</script>
+
 </body>
 </html>

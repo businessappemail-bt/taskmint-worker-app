@@ -132,12 +132,6 @@ if (profileError || !profile) {
   return;
 }
 
-if (profile.account_type === "customer") {
-  window.location.href = "customer-home.html";
-} else {
-  window.location.href = "tasks.html";
-}
-
     }
     window.onload = () => {
   const savedEmail = localStorage.getItem("taskmintEmail");

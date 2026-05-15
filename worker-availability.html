@@ -262,15 +262,25 @@
 
   <div class="card">
 
-    <div class="section-title">
-      Blocked Dates
-    </div>
+  <div class="section-title">
+    Blocked Dates
+  </div>
 
-    <input type="date">
+  <input type="date" id="blockedDateInput">
 
-    <div class="note">
-      Use blocked dates for vacations, personal appointments, or unavailable days.
-    </div>
+  <button type="button" onclick="addBlockedDate()">
+    Add Blocked Date
+  </button>
+
+  <div id="blockedDatesList" class="blocked-list">
+    No blocked dates added yet.
+  </div>
+
+  <div class="note">
+    Add multiple blocked dates for vacations, appointments, or days you are unavailable.
+  </div>
+
+</div>
 
   </div>
 

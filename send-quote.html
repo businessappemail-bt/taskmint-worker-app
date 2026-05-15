@@ -252,15 +252,7 @@ function submitQuote() {
   button.disabled = true;
   button.innerText = "Submitting Quote...";
 
-  setTimeout(() => {
-    alert("Quote submitted successfully.");
-
-document.getElementById("quoteAmount").value = "";
-document.getElementById("quoteMessage").value = "";
-document.getElementById("characterCount").innerText = "0 / 500";
-
-window.location.href = "worker-open-task.html";
-  }, 1200);
+  alert("Next step: we will save this quote into worker_quotes.");
 }
 
 const quoteMessage = document.getElementById("quoteMessage");

@@ -179,6 +179,22 @@
 
     <div class="card">
 
+  <div class="section-title">
+    Pending Quotes
+  </div>
+
+  <div id="pendingQuotesList">
+
+    <div class="small-text">
+      Loading pending quotes...
+    </div>
+
+  </div>
+
+</div>
+
+    <div class="card">
+
   <div class="section-title">Pending Quotes</div>
 
   <div id="pendingQuotesList" class="small-text">
@@ -321,6 +337,8 @@ async function loadDashboard() {
 
   const user = data.session.user;
 
+  loadPendingQuotes(user.id);
+
   const { data: profile } =
     await supabaseClient
       .from("worker_profiles")
@@ -382,6 +400,87 @@ async function logout() {
 
 }
 
+async function loadPendingQuotes(userId) {
+
+  const container =
+    document.getElementById("pendingQuotesList");
+
+  const { data: quotes, error } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("*")
+      .eq("worker_id", userId)
+      .eq("status", "pending");
+
+  if (error) {
+
+    container.innerHTML = `
+      <div class="small-text">
+        Error loading quotes
+      </div>
+    `;
+
+    return;
+  }
+
+  if (!quotes || quotes.length === 0) {
+
+    container.innerHTML = `
+      <div class="small-text">
+        No pending quotes yet.
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML = "";
+
+  quotes.forEach((quote) => {
+
+    container.innerHTML += `
+      <div class="card"
+      style="margin-top:12px;">
+
+        <div class="small-text">
+          Quote Amount
+        </div>
+
+        <div style="
+          font-size:20px;
+          font-weight:bold;
+          color:#0b7a28;
+          margin-top:4px;
+        ">
+          $${quote.quote_amount}
+        </div>
+
+        <div class="small-text"
+        style="margin-top:8px;">
+          Status: Pending
+        </div>
+
+        <button
+          class="secondary"
+          style="margin-top:12px;">
+          Edit Quote
+        </button>
+
+        <button
+          style="
+            background:#b00020;
+            margin-top:8px;
+          ">
+          Cancel Quote
+        </button>
+
+      </div>
+    `;
+
+  });
+
+}
+  
 loadDashboard();
 
 </script>

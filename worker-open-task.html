@@ -76,6 +76,18 @@ text-align: center;
 color: #666;
 padding: 25px;
 }
+
+  select,
+input {
+  width: 100%;
+  padding: 13px;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 15px;
+  box-sizing: border-box;
+  background: white;
+}
 </style>
 </head>
 
@@ -123,10 +135,22 @@ const supabaseClient = window.supabase.createClient(
 async function loadTasks() {
 const container = document.getElementById("tasksList");
 
-const { data: tasks, error } = await supabaseClient
-.from("tasks")
-.select("*")
-.eq("status", "open");
+  const selectedCategory =
+  document.getElementById("categoryFilter").value;
+
+const selectedCity =
+  document.getElementById("cityFilter").value.trim().toLowerCase();
+
+let query = supabaseClient
+  .from("tasks")
+  .select("*")
+  .eq("status", "open");
+
+if (selectedCategory) {
+  query = query.eq("category", selectedCategory);
+}
+
+const { data: tasks, error } = await query;
 
 if (error) {
 console.error(error);

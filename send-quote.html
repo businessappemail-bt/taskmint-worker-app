@@ -203,6 +203,8 @@ const supabaseClient = window.supabase.createClient(
 
 const selectedTaskId = localStorage.getItem("selectedQuoteTaskId");
 
+  let selectedTaskCustomerId = null;
+
 async function loadTask() {
   if (!selectedTaskId) {
     alert("No task selected.");
@@ -224,6 +226,8 @@ async function loadTask() {
   document.getElementById("taskDescription").innerText = task.description || "";
   document.getElementById("taskLocation").innerText = task.city || "Not specified";
   document.getElementById("taskDate").innerText = task.task_date || "Not specified";
+
+  selectedTaskCustomerId = task.customer_id;
 }
 
 function preventNegative(input) {
@@ -265,7 +269,7 @@ const { error } =
   {
     task_id: selectedTaskId,
     worker_id: workerUser.id,
-    customer_id: null,
+    customer_id: selectedTaskCustomerId,
     quote_amount: amount,
     message: cleanedMessage,
     status: "pending"

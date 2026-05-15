@@ -266,6 +266,66 @@
 
 <script>
 let blockedDates = [];
+
+  function addBlockedDate() {
+  const input = document.getElementById("blockedDateInput");
+  const date = input.value;
+
+  if (!date) {
+    alert("Choose a date to block.");
+    return;
+  }
+
+  if (!blockedDates.includes(date)) {
+    blockedDates.push(date);
+  }
+
+  input.value = "";
+  renderBlockedDates();
+}
+
+  function renderBlockedDates() {
+
+    function removeBlockedDate(index) {
+
+  blockedDates.splice(index, 1);
+
+  renderBlockedDates();
+
+}
+
+  const container =
+    document.getElementById("blockedDatesList");
+
+  if (blockedDates.length === 0) {
+
+    container.innerHTML =
+      "No blocked dates added yet.";
+
+    return;
+  }
+
+  container.innerHTML = "";
+
+  blockedDates.forEach((date, index) => {
+
+    container.innerHTML += `
+      <div class="blocked-date-item">
+
+        <span>${date}</span>
+
+        <button
+          type="button"
+          onclick="removeBlockedDate(${index})">
+          Remove
+        </button>
+
+      </div>
+    `;
+
+  });
+
+}
 </script>
   
 </body>

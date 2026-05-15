@@ -83,7 +83,29 @@ padding: 25px;
 <div class="container">
 <a class="back" href="worker-dashboard.html">← Back</a>
 
-<h1>View Open Tasks</h1>
+<h1>Browse Available Tasks</h1>
+
+<div class="card">
+  <div class="task-title">Filter Tasks</div>
+
+  <select id="categoryFilter" onchange="loadTasks()">
+    <option value="">All Categories</option>
+    <option value="Cleaning">Cleaning</option>
+    <option value="Moving">Moving</option>
+    <option value="Furniture Assembly">Furniture Assembly</option>
+    <option value="TV Mounting">TV Mounting</option>
+    <option value="Yard Work">Yard Work</option>
+    <option value="Delivery">Delivery</option>
+    <option value="Other">Other</option>
+  </select>
+
+  <input
+    type="text"
+    id="cityFilter"
+    placeholder="Filter by city"
+    oninput="loadTasks()"
+  >
+</div>
 
 <div id="tasksList" class="card empty">
 Loading open tasks...

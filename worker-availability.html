@@ -93,6 +93,32 @@
       line-height: 1.5;
       margin-top: 10px;
     }
+
+    .availability-row {
+  padding: 14px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.availability-row:last-child {
+  border-bottom: none;
+}
+
+.availability-row label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.day-times {
+  display: flex;
+  gap: 10px;
+}
+
+.day-times input {
+  flex: 1;
+}
   </style>
 </head>
 
@@ -106,48 +132,101 @@
 
   <h1>Set Availability</h1>
 
-  <div class="card">
+ <div class="card">
 
-    <div class="section-title">
-      Available Days
-    </div>
-
-    <div class="day-row">
-      <span>Monday</span>
-      <input type="checkbox">
-    </div>
-
-    <div class="day-row">
-      <span>Tuesday</span>
-      <input type="checkbox">
-    </div>
-
-    <div class="day-row">
-      <span>Wednesday</span>
-      <input type="checkbox">
-    </div>
-
-    <div class="day-row">
-      <span>Thursday</span>
-      <input type="checkbox">
-    </div>
-
-    <div class="day-row">
-      <span>Friday</span>
-      <input type="checkbox">
-    </div>
-
-    <div class="day-row">
-      <span>Saturday</span>
-      <input type="checkbox">
-    </div>
-
-    <div class="day-row">
-      <span>Sunday</span>
-      <input type="checkbox">
-    </div>
-
+  <div class="section-title">
+    Weekly Availability
   </div>
+
+  <div class="availability-row">
+    <label>
+      <input type="checkbox" id="mondayAvailable">
+      Monday
+    </label>
+
+    <div class="day-times">
+      <input type="time" id="mondayStart" step="3600">
+      <input type="time" id="mondayEnd" step="3600">
+    </div>
+  </div>
+
+  <div class="availability-row">
+    <label>
+      <input type="checkbox" id="tuesdayAvailable">
+      Tuesday
+    </label>
+
+    <div class="day-times">
+      <input type="time" id="tuesdayStart" step="3600">
+      <input type="time" id="tuesdayEnd" step="3600">
+    </div>
+  </div>
+
+  <div class="availability-row">
+    <label>
+      <input type="checkbox" id="wednesdayAvailable">
+      Wednesday
+    </label>
+
+    <div class="day-times">
+      <input type="time" id="wednesdayStart" step="3600">
+      <input type="time" id="wednesdayEnd" step="3600">
+    </div>
+  </div>
+
+  <div class="availability-row">
+    <label>
+      <input type="checkbox" id="thursdayAvailable">
+      Thursday
+    </label>
+
+    <div class="day-times">
+      <input type="time" id="thursdayStart" step="3600">
+      <input type="time" id="thursdayEnd" step="3600">
+    </div>
+  </div>
+
+  <div class="availability-row">
+    <label>
+      <input type="checkbox" id="fridayAvailable">
+      Friday
+    </label>
+
+    <div class="day-times">
+      <input type="time" id="fridayStart" step="3600">
+      <input type="time" id="fridayEnd" step="3600">
+    </div>
+  </div>
+
+  <div class="availability-row">
+    <label>
+      <input type="checkbox" id="saturdayAvailable">
+      Saturday
+    </label>
+
+    <div class="day-times">
+      <input type="time" id="saturdayStart" step="3600">
+      <input type="time" id="saturdayEnd" step="3600">
+    </div>
+  </div>
+
+  <div class="availability-row">
+    <label>
+      <input type="checkbox" id="sundayAvailable">
+      Sunday
+    </label>
+
+    <div class="day-times">
+      <input type="time" id="sundayStart" step="3600">
+      <input type="time" id="sundayEnd" step="3600">
+    </div>
+  </div>
+
+  <div class="note">
+    Set different available times for each day. Customers can request times only inside these windows.
+  </div>
+
+</div>
 
   <div class="card">
 

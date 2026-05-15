@@ -296,51 +296,48 @@
 <script>
 let blockedDates = [];
 
-  function addBlockedDate() {
-  const input = document.getElementById("blockedDateInput");
-  const date = input.value;
+function addBlockedDateRange() {
+  const startInput = document.getElementById("blockedStartDate");
+  const endInput = document.getElementById("blockedEndDate");
 
-  if (!date) {
-    alert("Choose a date to block.");
+  const startDate = startInput.value;
+  const endDate = endInput.value;
+
+  if (!startDate || !endDate) {
+    alert("Choose a start date and through date.");
     return;
   }
 
-  if (!blockedDates.includes(date)) {
-    blockedDates.push(date);
+  if (endDate < startDate) {
+    alert("Through date cannot be before the start date.");
+    return;
   }
 
-  input.value = "";
+  const rangeText = startDate + " through " + endDate;
+
+  if (!blockedDates.includes(rangeText)) {
+    blockedDates.push(rangeText);
+  }
+
+  startInput.value = "";
+  endInput.value = "";
+
   renderBlockedDates();
 }
 
-  function renderBlockedDates() {
-
-    function removeBlockedDate(index) {
-
-  blockedDates.splice(index, 1);
-
-  renderBlockedDates();
-
-}
-
-  const container =
-    document.getElementById("blockedDatesList");
+function renderBlockedDates() {
+  const container = document.getElementById("blockedDatesList");
 
   if (blockedDates.length === 0) {
-
-    container.innerHTML =
-      "No blocked dates added yet.";
-
+    container.innerHTML = "No blocked dates added yet.";
     return;
   }
 
   container.innerHTML = "";
 
   blockedDates.forEach((date, index) => {
-
     container.innerHTML += `
       <div class="blocked-date-item">
-
         <span>${date}</span>
 
         <button
@@ -348,12 +345,14 @@ let blockedDates = [];
           onclick="removeBlockedDate(${index})">
           Remove
         </button>
-
       </div>
     `;
-
   });
+}
 
+function removeBlockedDate(index) {
+  blockedDates.splice(index, 1);
+  renderBlockedDates();
 }
 </script>
   

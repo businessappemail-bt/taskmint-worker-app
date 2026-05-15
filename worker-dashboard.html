@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 <head>
   <title>Worker Dashboard - TaskMint</title>
@@ -101,24 +100,14 @@
     }
 
     .notice {
+      margin-top: 14px;
       padding: 12px;
       border-radius: 12px;
       font-size: 14px;
       line-height: 1.4;
-      margin-top: 14px;
-    }
-
-    .approved {
-      background: #eaf7ee;
-      color: #0b7a28;
-      border: 1px solid #bde5c8;
-      font-weight: bold;
-    }
-
-    .warning {
       background: #fff7e6;
-      color: #7a4b00;
       border: 1px solid #ffd27a;
+      color: #7a4b00;
     }
 
     button {
@@ -160,28 +149,36 @@
   <div class="header">Worker Dashboard</div>
 
   <div class="card">
+
     <div class="profile-row">
-      <img class="profile-pic" id="profilePic" src="Taskmintlogo.png" alt="Profile Picture">
+      <img class="profile-pic" id="profilePic" src="Taskmintlogo.png">
 
       <div>
-        <div class="worker-name" id="workerName">Worker Profile</div>
-        <div class="small-text" id="profileStatusText">
-          Manage your worker profile and job activity.
+        <div class="worker-name" id="workerName">
+          Worker Profile
+        </div>
+
+        <div class="small-text">
+          Manage your profile, jobs, payouts, and schedule.
         </div>
       </div>
     </div>
 
     <div id="profileNotice"></div>
 
-    <button class="secondary" onclick="window.location.href='worker-profile-edit.html'">
+    <button class="secondary"
+      onclick="window.location.href='worker-profile-edit.html'">
       Edit Worker Profile
     </button>
+
   </div>
 
   <div class="card">
+
     <div class="section-title">Overview</div>
 
     <div class="stats-grid">
+
       <div class="stat-box">
         <div class="stat-number" id="earningsAmount">$0</div>
         <div class="stat-label">Money Earned</div>
@@ -201,208 +198,177 @@
         <div class="stat-number" id="pendingQuotes">0</div>
         <div class="stat-label">Pending Quotes</div>
       </div>
+
     </div>
+
   </div>
 
   <div class="card">
+
     <div class="section-title">Find Work</div>
 
     <button onclick="window.location.href='worker-open-task.html'">
       View Open Tasks
     </button>
 
-    <button class="secondary" onclick="window.location.href='my-jobs.html'">
+    <button class="secondary"
+      onclick="window.location.href='my-jobs.html'">
       My Jobs
     </button>
 
-    <button class="secondary" onclick="window.location.href='worker-calendar.html'">
+    <button class="secondary"
+      onclick="window.location.href='worker-calendar.html'">
       Schedule / Calendar
     </button>
+
   </div>
 
   <div class="card">
+
     <div class="section-title">Worker Tools</div>
 
-    <button class="secondary" onclick="window.location.href='message-center.html'">
+    <button class="secondary"
+      onclick="window.location.href='message-center.html'">
       Messages
     </button>
 
-    <button class="secondary" onclick="window.location.href='worker-earnings.html'">
+    <button class="secondary"
+      onclick="window.location.href='worker-earnings.html'">
       Earnings
     </button>
 
-    <button class="secondary" onclick="window.location.href='worker-payout-info.html'">
+    <button class="secondary"
+      onclick="window.location.href='worker-payout-info.html'">
       Payout Information
     </button>
 
-    <button class="secondary" onclick="window.location.href='worker-tax-center.html'">
+    <button class="secondary"
+      onclick="window.location.href='worker-tax-center.html'">
       Tax Center
     </button>
 
-    <button class="secondary" onclick="window.location.href='worker-reviews.html'">
+    <button class="secondary"
+      onclick="window.location.href='worker-reviews.html'">
       Ratings & Reviews
     </button>
 
-    <button class="secondary" onclick="window.location.href='worker-disputes.html'">
+    <button class="secondary"
+      onclick="window.location.href='worker-disputes.html'">
       Dispute Center
     </button>
+
   </div>
 
   <div class="card">
+
     <div class="section-title">Account</div>
 
-    <button class="secondary" onclick="window.location.href='worker-settings.html'">
+    <button class="secondary"
+      onclick="window.location.href='worker-settings.html'">
       Settings
     </button>
 
     <button class="logout" onclick="logout()">
       Log Out
     </button>
+
   </div>
 
 </div>
 
-<div class="loading" id="loading">Loading worker dashboard...</div>
+<div class="loading" id="loading">
+  Loading worker dashboard...
+</div>
 
 <script>
-  const SUPABASE_URL = "https://dbcthtjmtlumidpbucrc.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
 
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL =
+"https://dbcthtjmtlumidpbucrc.supabase.co";
 
-  let currentUser = null;
-  let workerProfile = null;
-  let workerApplication = null;
+const SUPABASE_ANON_KEY =
+"sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
 
-  async function loadDashboard() {
-    const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+const supabaseClient =
+supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
-    if (sessionError || !sessionData.session) {
-      window.location.href = "login.html";
-      return;
-    }
+async function loadDashboard() {
 
-    currentUser = sessionData.session.user;
+  const { data, error } =
+    await supabaseClient.auth.getSession();
 
-    const { data: application, error: appError } = await supabaseClient
-      .from("worker_applications")
-      .select("*")
-      .eq("worker_id", currentUser.id)
-      .maybeSingle();
+  if (!data.session) {
+    window.location.href = "login.html";
+    return;
+  }
 
-    if (appError) {
-      document.getElementById("loading").innerText = "Error checking worker application.";
-      console.log(appError);
-      return;
-    }
+  const user = data.session.user;
 
-    if (!application) {
-      window.location.href = "worker-application.html";
-      return;
-    }
-
-    workerApplication = application;
-
-    const { data: profile, error: profileError } = await supabaseClient
+  const { data: profile } =
+    await supabaseClient
       .from("worker_profiles")
       .select("*")
-      .eq("id", currentUser.id)
+      .eq("id", user.id)
       .maybeSingle();
 
-    if (!profileError && profile) {
-      workerProfile = profile;
+  if (profile) {
 
-      document.getElementById("workerName").innerText =
-        profile.full_name || application.full_name || "Worker Profile";
+    document.getElementById("workerName").innerText =
+      profile.full_name || "Worker Profile";
 
-      if (profile.profile_photo_url) {
-        document.getElementById("profilePic").src = profile.profile_photo_url;
-      }
-
-      document.getElementById("ratingScore").innerText =
-        profile.rating ? Number(profile.rating).toFixed(1) : "0.0";
-
-      document.getElementById("completedTasks").innerText =
-        profile.total_jobs || 0;
-    } else {
-      document.getElementById("workerName").innerText =
-        application.full_name || "Worker Profile";
+    if (profile.profile_photo_url) {
+      document.getElementById("profilePic").src =
+        profile.profile_photo_url;
     }
 
-    checkProfileStatus();
-    await loadWorkerStats();
+    document.getElementById("ratingScore").innerText =
+      profile.rating || "0.0";
 
-    document.getElementById("loading").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
-  }
+    document.getElementById("completedTasks").innerText =
+      profile.total_jobs || 0;
 
-  function checkProfileStatus() {
-    const box = document.getElementById("profileNotice");
-    const statusText = document.getElementById("profileStatusText");
+    const hasPhoto =
+      profile.profile_photo_url;
 
-    const isApproved = workerApplication && workerApplication.is_approved === true;
-    const hasPhoto = workerProfile && workerProfile.profile_photo_url;
-    const hasExperience = workerProfile && workerProfile.experience && workerProfile.experience.trim() !== "";
-
-    if (!isApproved) {
-      box.innerHTML = `
-        <div class="notice warning">
-          Your worker application is still pending approval. You cannot send quotes yet.
-        </div>
-      `;
-      statusText.innerText = "Waiting for approval.";
-      return;
-    }
+    const hasExperience =
+      profile.experience &&
+      profile.experience.trim() !== "";
 
     if (!hasPhoto || !hasExperience) {
-      box.innerHTML = `
-        <div class="notice warning">
-          Your profile is approved, but it is not complete. Add a profile picture and experience before sending quotes.
+
+      document.getElementById("profileNotice").innerHTML = `
+        <div class="notice">
+          Complete your profile picture and experience
+          before sending quotes.
         </div>
       `;
-      statusText.innerText = "Profile incomplete.";
-      return;
+
     }
 
-    box.innerHTML = `
-      <div class="notice approved">
-        Approved and ready to send quotes.
-      </div>
-    `;
-    statusText.innerText = "Approved and ready to accept work.";
   }
 
-  async function loadWorkerStats() {
-    const { data: quotes } = await supabaseClient
-      .from("worker_quotes")
-      .select("*")
-      .eq("worker_id", currentUser.id)
-      .eq("status", "pending");
+  document.getElementById("loading").style.display =
+    "none";
 
-    if (quotes) {
-      document.getElementById("pendingQuotes").innerText = quotes.length;
-    }
+  document.getElementById("dashboard").style.display =
+    "block";
 
-    const { data: assignments } = await supabaseClient
-      .from("task_assignments")
-      .select("*")
-      .eq("worker_user_id", currentUser.id)
-      .eq("assignment_status", "completed");
+}
 
-    if (assignments) {
-      document.getElementById("completedTasks").innerText = assignments.length;
-    }
+async function logout() {
 
-    document.getElementById("earningsAmount").innerText = "$0";
-  }
+  await supabaseClient.auth.signOut();
 
-  async function logout() {
-    await supabaseClient.auth.signOut();
-    localStorage.clear();
-    window.location.href = "login.html";
-  }
+  localStorage.clear();
 
-  loadDashboard();
+  window.location.href = "login.html";
+
+}
+
+loadDashboard();
+
 </script>
 
 </body>

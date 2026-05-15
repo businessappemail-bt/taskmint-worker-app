@@ -254,8 +254,12 @@ function submitQuote() {
 
   setTimeout(() => {
     alert("Quote submitted successfully.");
-    button.disabled = false;
-    button.innerText = "Submit Quote";
+
+document.getElementById("quoteAmount").value = "";
+document.getElementById("quoteMessage").value = "";
+document.getElementById("characterCount").innerText = "0 / 500";
+
+window.location.href = "worker-open-task.html";
   }, 1200);
 }
 

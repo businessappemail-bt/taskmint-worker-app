@@ -257,16 +257,20 @@
 
 </div>
 
-  <div class="card">
+<div class="card">
 
   <div class="section-title">
     Blocked Dates
   </div>
 
-  <input type="date" id="blockedDateInput">
+  <label>From</label>
+  <input type="date" id="blockedStartDate">
 
-  <button type="button" onclick="addBlockedDate()">
-    Add Blocked Date
+  <label style="display:block; margin-top:12px;">Through</label>
+  <input type="date" id="blockedEndDate">
+
+  <button type="button" onclick="addBlockedDateRange()">
+    Add Blocked Date Range
   </button>
 
   <div id="blockedDatesList" class="blocked-list">
@@ -274,8 +278,10 @@
   </div>
 
   <div class="note">
-    Add multiple blocked dates for vacations, appointments, or days you are unavailable.
+    Use this to block multiple days at once for vacations, appointments, or unavailable periods.
   </div>
+
+</div>
 
 </div>
 

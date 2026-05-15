@@ -93,29 +93,30 @@
       line-height: 1.4;
     }
 
- .money-input-wrap {
-  display: flex;
-  align-items: stretch;
-  margin-top: 12px;
-  width: 100%;
-}
-.dollar-box {
-  background: #0b7a28;
-  color: white;
-  font-weight: bold;
-  width: 52px;
+.money-field {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 10px 0 0 10px;
-  font-size: 18px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  margin-top: 12px;
+  background: white;
+  overflow: hidden;
 }
 
-.money-input-wrap input {
-  flex: 1;
+.money-field span {
+  padding: 0 16px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #111;
+}
+
+.money-field input {
+  border: none;
   margin: 0;
-  border-radius: 0 10px 10px 0;
-  border-left: none;
+  flex: 1;
+  padding: 14px;
+  font-size: 15px;
+  outline: none;
 }
   </style>
 </head>
@@ -156,14 +157,15 @@
 
   <div class="card">
 
-  <div class="money-input-wrap">
-  <span class="dollar-sign">$</span>
+<div class="money-field">
+  <span>$</span>
   <input
     type="number"
     id="quoteAmount"
     placeholder="0.00"
     step="0.01"
-    min="0"
+    min="1"
+    oninput="preventNegative(this)"
   >
 </div>
 

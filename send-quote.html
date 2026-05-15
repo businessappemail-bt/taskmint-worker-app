@@ -271,7 +271,7 @@ function submitQuote() {
 }
 
   const button =
-  document.querySelector("button");
+  document.querySelector("button[onclick='submitQuote()']");
 
 button.disabled = true;
 button.innerText = "Submitting Quote...";

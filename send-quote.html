@@ -3,14 +3,220 @@
 <head>
   <title>Send Quote - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #111;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .back {
+      color: #0b7a28;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 15px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #0b7a28;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .task-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .task-info {
+      font-size: 14px;
+      color: #444;
+      margin: 8px 0;
+      line-height: 1.5;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 16px;
+      border: none;
+      border-radius: 12px;
+      background: #0b7a28;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .notice {
+      background: #fff7e6;
+      border: 1px solid #ffd27a;
+      color: #7a4b00;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+  </style>
 </head>
 
 <body>
-  <h1>Send Quote</h1>
-  <p>This page is connected from the open task quote button.</p>
 
-  <button onclick="window.location.href='worker-open-task.html'">
-    Back to Open Tasks
-  </button>
+<div class="container">
+
+  <a class="back" href="worker-open-task.html">
+    ← Back
+  </a>
+
+  <h1>Send Quote</h1>
+
+  <div class="notice">
+    Workers must complete their profile and be approved before quotes can be submitted.
+  </div>
+
+  <div class="card">
+
+    <div class="task-title" id="taskTitle">
+      Loading Task...
+    </div>
+
+    <div class="task-info" id="taskDescription"></div>
+
+    <div class="task-info">
+      <strong>Location:</strong>
+      <span id="taskLocation"></span>
+    </div>
+
+    <div class="task-info">
+      <strong>Date Needed:</strong>
+      <span id="taskDate"></span>
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <input
+      type="number"
+      id="quoteAmount"
+      placeholder="Enter your quote amount"
+    >
+
+    <textarea
+      id="quoteMessage"
+      placeholder="Describe your experience, timeline, or anything the customer should know..."
+    ></textarea>
+
+    <button onclick="submitQuote()">
+      Submit Quote
+    </button>
+
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+);
+
+const selectedTaskId =
+  localStorage.getItem("selectedQuoteTaskId");
+
+async function loadTask() {
+
+  if (!selectedTaskId) {
+    alert("No task selected.");
+    return;
+  }
+
+  const { data: task, error } =
+    await supabaseClient
+      .from("tasks")
+      .select("*")
+      .eq("id", selectedTaskId)
+      .maybeSingle();
+
+  if (error || !task) {
+    alert("Error loading task.");
+    return;
+  }
+
+  document.getElementById("taskTitle").innerText =
+    task.title || "Task";
+
+  document.getElementById("taskDescription").innerText =
+    task.description || "";
+
+  document.getElementById("taskLocation").innerText =
+    task.city || "Not specified";
+
+  document.getElementById("taskDate").innerText =
+    task.task_date || "Not specified";
+
+}
+
+function submitQuote() {
+
+  const amount =
+    document.getElementById("quoteAmount").value;
+
+  const message =
+    document.getElementById("quoteMessage").value;
+
+  if (!amount) {
+    alert("Enter a quote amount.");
+    return;
+  }
+
+  alert(
+    "Quote flow connected successfully. Database submission comes next."
+  );
+
+}
+
+loadTask();
+
+</script>
+
 </body>
 </html>

@@ -3,18 +3,407 @@
 <head>
   <title>Worker Dashboard - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #111;
+      padding-bottom: 80px;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      background: white;
+      min-height: 100vh;
+      padding: 18px;
+      box-sizing: border-box;
+    }
+
+    .header {
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #0b7a28;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      border: 1px solid #eee;
+    }
+
+    .profile-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .profile-pic {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #ddd;
+      border: 3px solid #0b7a28;
+    }
+
+    .worker-name {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .small-text {
+      color: #666;
+      font-size: 14px;
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-box {
+      background: #f7f7f7;
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+      border: 1px solid #e5e5e5;
+    }
+
+    .stat-number {
+      font-size: 22px;
+      font-weight: bold;
+      color: #0b7a28;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: #555;
+    }
+
+    .notice {
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.4;
+      margin-top: 14px;
+    }
+
+    .approved {
+      background: #eaf7ee;
+      color: #0b7a28;
+      border: 1px solid #bde5c8;
+      font-weight: bold;
+    }
+
+    .warning {
+      background: #fff7e6;
+      color: #7a4b00;
+      border: 1px solid #ffd27a;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin: 7px 0;
+      border: none;
+      border-radius: 12px;
+      background: #0b7a28;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: white;
+      color: #111;
+      border: 1px solid #ddd;
+    }
+
+    button.logout {
+      background: #b00020;
+    }
+
+    .loading {
+      text-align: center;
+      margin-top: 100px;
+      color: #555;
+      font-size: 16px;
+    }
+  </style>
 </head>
 
 <body>
-  <h1>Worker Dashboard</h1>
-  <p>This page is loading correctly.</p>
 
-  <button onclick="window.location.href='worker-open-task.html'">
-    View Open Tasks
-  </button>
+<div class="container" id="dashboard" style="display:none;">
 
-  <button onclick="window.location.href='login.html'">
-    Login
-  </button>
+  <div class="header">Worker Dashboard</div>
+
+  <div class="card">
+    <div class="profile-row">
+      <img class="profile-pic" id="profilePic" src="Taskmintlogo.png" alt="Profile Picture">
+
+      <div>
+        <div class="worker-name" id="workerName">Worker Profile</div>
+        <div class="small-text" id="profileStatusText">
+          Manage your worker profile and job activity.
+        </div>
+      </div>
+    </div>
+
+    <div id="profileNotice"></div>
+
+    <button class="secondary" onclick="window.location.href='worker-profile-edit.html'">
+      Edit Worker Profile
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Overview</div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-number" id="earningsAmount">$0</div>
+        <div class="stat-label">Money Earned</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-number" id="completedTasks">0</div>
+        <div class="stat-label">Completed Tasks</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-number" id="ratingScore">0.0</div>
+        <div class="stat-label">Rating</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-number" id="pendingQuotes">0</div>
+        <div class="stat-label">Pending Quotes</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Find Work</div>
+
+    <button onclick="window.location.href='worker-open-task.html'">
+      View Open Tasks
+    </button>
+
+    <button class="secondary" onclick="window.location.href='my-jobs.html'">
+      My Jobs
+    </button>
+
+    <button class="secondary" onclick="window.location.href='worker-calendar.html'">
+      Schedule / Calendar
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Worker Tools</div>
+
+    <button class="secondary" onclick="window.location.href='message-center.html'">
+      Messages
+    </button>
+
+    <button class="secondary" onclick="window.location.href='worker-earnings.html'">
+      Earnings
+    </button>
+
+    <button class="secondary" onclick="window.location.href='worker-payout-info.html'">
+      Payout Information
+    </button>
+
+    <button class="secondary" onclick="window.location.href='worker-tax-center.html'">
+      Tax Center
+    </button>
+
+    <button class="secondary" onclick="window.location.href='worker-reviews.html'">
+      Ratings & Reviews
+    </button>
+
+    <button class="secondary" onclick="window.location.href='worker-disputes.html'">
+      Dispute Center
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Account</div>
+
+    <button class="secondary" onclick="window.location.href='worker-settings.html'">
+      Settings
+    </button>
+
+    <button class="logout" onclick="logout()">
+      Log Out
+    </button>
+  </div>
+
+</div>
+
+<div class="loading" id="loading">Loading worker dashboard...</div>
+
+<script>
+  const SUPABASE_URL = "https://dbcthtjmtlumidpbucrc.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
+
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
+  let workerProfile = null;
+  let workerApplication = null;
+
+  async function loadDashboard() {
+    const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+
+    if (sessionError || !sessionData.session) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    currentUser = sessionData.session.user;
+
+    const { data: application, error: appError } = await supabaseClient
+      .from("worker_applications")
+      .select("*")
+      .eq("worker_id", currentUser.id)
+      .maybeSingle();
+
+    if (appError) {
+      document.getElementById("loading").innerText = "Error checking worker application.";
+      console.log(appError);
+      return;
+    }
+
+    if (!application) {
+      window.location.href = "worker-application.html";
+      return;
+    }
+
+    workerApplication = application;
+
+    const { data: profile, error: profileError } = await supabaseClient
+      .from("worker_profiles")
+      .select("*")
+      .eq("id", currentUser.id)
+      .maybeSingle();
+
+    if (!profileError && profile) {
+      workerProfile = profile;
+
+      document.getElementById("workerName").innerText =
+        profile.full_name || application.full_name || "Worker Profile";
+
+      if (profile.profile_photo_url) {
+        document.getElementById("profilePic").src = profile.profile_photo_url;
+      }
+
+      document.getElementById("ratingScore").innerText =
+        profile.rating ? Number(profile.rating).toFixed(1) : "0.0";
+
+      document.getElementById("completedTasks").innerText =
+        profile.total_jobs || 0;
+    } else {
+      document.getElementById("workerName").innerText =
+        application.full_name || "Worker Profile";
+    }
+
+    checkProfileStatus();
+    await loadWorkerStats();
+
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+  }
+
+  function checkProfileStatus() {
+    const box = document.getElementById("profileNotice");
+    const statusText = document.getElementById("profileStatusText");
+
+    const isApproved = workerApplication && workerApplication.is_approved === true;
+    const hasPhoto = workerProfile && workerProfile.profile_photo_url;
+    const hasExperience = workerProfile && workerProfile.experience && workerProfile.experience.trim() !== "";
+
+    if (!isApproved) {
+      box.innerHTML = `
+        <div class="notice warning">
+          Your worker application is still pending approval. You cannot send quotes yet.
+        </div>
+      `;
+      statusText.innerText = "Waiting for approval.";
+      return;
+    }
+
+    if (!hasPhoto || !hasExperience) {
+      box.innerHTML = `
+        <div class="notice warning">
+          Your profile is approved, but it is not complete. Add a profile picture and experience before sending quotes.
+        </div>
+      `;
+      statusText.innerText = "Profile incomplete.";
+      return;
+    }
+
+    box.innerHTML = `
+      <div class="notice approved">
+        Approved and ready to send quotes.
+      </div>
+    `;
+    statusText.innerText = "Approved and ready to accept work.";
+  }
+
+  async function loadWorkerStats() {
+    const { data: quotes } = await supabaseClient
+      .from("worker_quotes")
+      .select("*")
+      .eq("worker_id", currentUser.id)
+      .eq("status", "pending");
+
+    if (quotes) {
+      document.getElementById("pendingQuotes").innerText = quotes.length;
+    }
+
+    const { data: assignments } = await supabaseClient
+      .from("task_assignments")
+      .select("*")
+      .eq("worker_user_id", currentUser.id)
+      .eq("assignment_status", "completed");
+
+    if (assignments) {
+      document.getElementById("completedTasks").innerText = assignments.length;
+    }
+
+    document.getElementById("earningsAmount").innerText = "$0";
+  }
+
+  async function logout() {
+    await supabaseClient.auth.signOut();
+    localStorage.clear();
+    window.location.href = "login.html";
+  }
+
+  loadDashboard();
+</script>
+
 </body>
 </html>

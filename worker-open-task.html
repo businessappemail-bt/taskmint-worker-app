@@ -102,7 +102,7 @@ async function loadTasks() {
 const container = document.getElementById("tasksList");
 
 const { data: tasks, error } = await supabaseClient
-.from("task")
+.from("tasks")
 .select("*")
 .eq("status", "open");
 
@@ -126,8 +126,24 @@ div.className = "card";
 div.innerHTML = `
 <div class="task-title">${task.title}</div>
 <div class="task-info">${task.description || ""}</div>
-<div class="task-info"><strong>Location:</strong> ${task.city || "Not specified"}</div>
-<button onclick="viewTask('${task.id}')">View Task</button>
+<div class="task-info">
+<strong>Location:</strong>
+${task.city || "Not specified"}
+</div>
+
+<div class="task-info">
+<strong>Date Needed:</strong>
+${task.task_date || "Not specified"}
+</div>
+
+<button onclick="viewTask('${task.id}')">
+View Task
+</button>
+
+<button class="secondary"
+onclick="sendQuote('${task.id}')">
+Send Quote
+</button>
 `;
 
 container.appendChild(div);
@@ -137,6 +153,10 @@ container.appendChild(div);
 function viewTask(taskId) {
 localStorage.setItem("selectedJobId", taskId);
 window.location.href = "job-details.html";
+}
+  function sendQuote(taskId) {
+  localStorage.setItem("selectedQuoteTaskId", taskId);
+  window.location.href = "send-quote.html";
 }
 
 loadTasks();

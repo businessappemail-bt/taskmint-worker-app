@@ -252,7 +252,37 @@ function submitQuote() {
   button.disabled = true;
   button.innerText = "Submitting Quote...";
 
-  alert("Next step: we will save this quote into worker_quotes.");
+  const { data: sessionData } =
+  await supabaseClient.auth.getSession();
+
+const workerUser =
+  sessionData.session.user;
+
+const { error } =
+  await supabaseClient
+    .from("worker_quotes")
+    .insert([
+      {
+        task_id: selectedTaskId,
+        worker_id: workerUser.id,
+        quote_amount: amount,
+        message: cleanedMessage,
+        status: "pending"
+      }
+    ]);
+
+if (error) {
+  alert(error.message);
+  return;
+}
+
+  alert("Quote submitted successfully.");
+
+document.getElementById("quoteAmount").value = "";
+document.getElementById("quoteMessage").value = "";
+document.getElementById("characterCount").innerText = "0 / 500";
+
+window.location.href = "worker-open-task.html";
 }
 
 const quoteMessage = document.getElementById("quoteMessage");

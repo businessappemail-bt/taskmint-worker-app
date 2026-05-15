@@ -196,112 +196,77 @@ text-align:right;
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-
 const supabaseClient = window.supabase.createClient(
   "https://dbcthtjmtlumidpbucrc.supabase.co",
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
 
-const selectedTaskId =
-  localStorage.getItem("selectedQuoteTaskId");
+const selectedTaskId = localStorage.getItem("selectedQuoteTaskId");
 
 async function loadTask() {
-
   if (!selectedTaskId) {
     alert("No task selected.");
     return;
   }
 
-  const { data: task, error } =
-    await supabaseClient
-      .from("tasks")
-      .select("*")
-      .eq("id", selectedTaskId)
-      .maybeSingle();
+  const { data: task, error } = await supabaseClient
+    .from("tasks")
+    .select("*")
+    .eq("id", selectedTaskId)
+    .maybeSingle();
 
   if (error || !task) {
     alert("Error loading task.");
     return;
   }
 
-  document.getElementById("taskTitle").innerText =
-    task.title || "Task";
+  document.getElementById("taskTitle").innerText = task.title || "Task";
+  document.getElementById("taskDescription").innerText = task.description || "";
+  document.getElementById("taskLocation").innerText = task.city || "Not specified";
+  document.getElementById("taskDate").innerText = task.task_date || "Not specified";
+}
 
-  document.getElementById("taskDescription").innerText =
-    task.description || "";
-
-  document.getElementById("taskLocation").innerText =
-    task.city || "Not specified";
-
-  document.getElementById("taskDate").innerText =
-    task.task_date || "Not specified";
-
+function preventNegative(input) {
+  if (Number(input.value) < 0) {
+    input.value = "";
+  }
 }
 
 function submitQuote() {
-
-  const amount =
-    document.getElementById("quoteAmount").value;
-  
-  if (Number(amount) <= 0) {
-  alert("Quote amount must be greater than $0.");
-  return;
-}
-
-  if (cleanedMessage.length < 10) {
-  alert("Please provide more details for the customer.");
-  return;
-}
-
-  const message =
-    document.getElementById("quoteMessage").value;
-
+  const amount = document.getElementById("quoteAmount").value;
+  const message = document.getElementById("quoteMessage").value;
   const cleanedMessage = message.trim();
 
-  if (!amount) {
-    alert("Enter a quote amount.");
+  if (Number(amount) <= 0) {
+    alert("Quote amount must be greater than $0.");
     return;
   }
-  function preventNegative(input) {
 
-  if (input.value < 0) {
-    input.value = 0;
+  if (cleanedMessage.length < 10) {
+    alert("Please provide more details for the customer.");
+    return;
   }
 
+  const button = document.getElementById("submitQuoteBtn");
+
+  button.disabled = true;
+  button.innerText = "Submitting Quote...";
+
+  setTimeout(() => {
+    alert("Quote submitted successfully.");
+    button.disabled = false;
+    button.innerText = "Submit Quote";
+  }, 1200);
 }
 
-  const button =
-  document.querySelector("button[onclick='submitQuote()']");
-
-button.disabled = true;
-button.innerText = "Submitting Quote...";
-
-setTimeout(() => {
-
-  alert("Quote submitted successfully.");
-
-  button.disabled = false;
-  button.innerText = "Submit Quote";
-
-}, 1200);
-
-}
-
-  const quoteMessage =
-  document.getElementById("quoteMessage");
-
-const characterCount =
-  document.getElementById("characterCount");
+const quoteMessage = document.getElementById("quoteMessage");
+const characterCount = document.getElementById("characterCount");
 
 quoteMessage.addEventListener("input", () => {
-
-  characterCount.innerText =
-    `${quoteMessage.value.length} / 500`;
-
+  characterCount.innerText = `${quoteMessage.value.length} / 500`;
 });
 
 loadTask();
-
 </script>
 
 </body>

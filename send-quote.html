@@ -232,7 +232,7 @@ function preventNegative(input) {
   }
 }
 
-function submitQuote() {
+async function submitQuote() {
   const amount = document.getElementById("quoteAmount").value;
   const message = document.getElementById("quoteMessage").value;
   const cleanedMessage = message.trim();

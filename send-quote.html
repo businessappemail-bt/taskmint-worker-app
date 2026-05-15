@@ -169,10 +169,21 @@
   >
 </div>
 
-    <textarea
-      id="quoteMessage"
-      placeholder="Describe your experience, timeline, or anything the customer should know..."
-    ></textarea>
+   <textarea
+  id="quoteMessage"
+  maxlength="500"
+  placeholder="Describe your experience, timeline, or anything the customer should know..."
+></textarea>
+
+    <div id="characterCount"
+style="
+font-size:13px;
+color:#666;
+margin-top:6px;
+text-align:right;
+">
+0 / 500
+</div>
 
     <button onclick="submitQuote()">
       Submit Quote
@@ -231,9 +242,21 @@ function submitQuote() {
 
   const amount =
     document.getElementById("quoteAmount").value;
+  
+  if (Number(amount) <= 0) {
+  alert("Quote amount must be greater than $0.");
+  return;
+}
+
+  if (cleanedMessage.length < 10) {
+  alert("Please provide more details for the customer.");
+  return;
+}
 
   const message =
     document.getElementById("quoteMessage").value;
+
+  const cleanedMessage = message.trim();
 
   if (!amount) {
     alert("Enter a quote amount.");
@@ -250,6 +273,19 @@ function submitQuote() {
   alert("Quote submitted successfully.");
 
 }
+
+  const quoteMessage =
+  document.getElementById("quoteMessage");
+
+const characterCount =
+  document.getElementById("characterCount");
+
+quoteMessage.addEventListener("input", () => {
+
+  characterCount.innerText =
+    `${quoteMessage.value.length} / 500`;
+
+});
 
 loadTask();
 

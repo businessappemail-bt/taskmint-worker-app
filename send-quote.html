@@ -270,7 +270,20 @@ function submitQuote() {
 
 }
 
+  const button =
+  document.querySelector("button");
+
+button.disabled = true;
+button.innerText = "Submitting Quote...";
+
+setTimeout(() => {
+
   alert("Quote submitted successfully.");
+
+  button.disabled = false;
+  button.innerText = "Submit Quote";
+
+}, 1200);
 
 }
 

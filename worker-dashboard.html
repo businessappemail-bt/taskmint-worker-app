@@ -460,18 +460,47 @@ async function loadPendingQuotes(userId) {
           Edit Quote
         </button>
 
-        <button
-          style="
-            background:#b00020;
-            margin-top:8px;
-          ">
-          Cancel Quote
-        </button>
+       <button
+  onclick="cancelQuote('${quote.id}')"
+  style="
+    background:#b00020;
+    margin-top:8px;
+  ">
+  Cancel Quote
+</button>
 
       </div>
     `;
 
   });
+
+}
+
+async function cancelQuote(quoteId) {
+
+  const confirmed =
+    confirm(
+      "Are you sure you want to cancel this quote?"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const { error } =
+    await supabaseClient
+      .from("worker_quotes")
+      .delete()
+      .eq("id", quoteId);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Quote canceled.");
+
+  location.reload();
 
 }
   

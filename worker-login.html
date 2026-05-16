@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Worker Login - TaskMint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #111;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      background: white;
+      min-height: 100vh;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+
+    .logo {
+      text-align: center;
+      margin-top: 40px;
+      margin-bottom: 30px;
+    }
+
+    .logo img {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+    }
+
+    h1 {
+      text-align: center;
+      color: #0b7a28;
+      margin-bottom: 8px;
+    }
+
+    .subtext {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 30px;
+      line-height: 1.4;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      border: 1px solid #eee;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 22px;
+      border: none;
+      border-radius: 12px;
+      background: #0b7a28;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .secondary-btn {
+      background: white;
+      color: #111;
+      border: 1px solid #ddd;
+    }
+
+    .error {
+      color: #b00020;
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .success {
+      color: #0b7a28;
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="logo">
+    <img src="Taskmintlogo.png">
+  </div>
+
+  <h1>Worker Login</h1>
+
+  <div class="subtext">
+    Log into your TaskMint worker account to manage jobs, quotes, earnings, and payouts.
+  </div>
+
+  <div class="card">
+
+    <label>Email</label>
+    <input type="email" id="email">
+
+    <label>Password</label>
+    <input type="password" id="password">
+
+    <button onclick="workerLogin()">
+      Log In
+    </button>
+
+    <button class="secondary-btn"
+      onclick="window.location.href='worker-signup.html'">
+      Create Worker Account
+    </button>
+
+    <div id="status"></div>
+
+  </div>
+
+</div>
+
+<script>
+
+const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+);
+
+async function workerLogin() {
+
+  const status =
+    document.getElementById("status");
+
+  status.innerHTML = "";
+
+  const email =
+    document.getElementById("email")
+      .value
+      .trim();
+
+  const password =
+    document.getElementById("password")
+      .value;
+
+  if (!email || !password) {
+
+    status.innerHTML = `
+      <div class="error">
+        Enter your email and password.
+      </div>
+    `;
+
+    return;
+  }
+
+  const { data, error } =
+    await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+  if (error) {
+
+    status.innerHTML = `
+      <div class="error">
+        ${error.message}
+      </div>
+    `;
+
+    return;
+  }
+
+  const user = data.user;
+
+  const { data: worker } =
+    await supabaseClient
+      .from("workers")
+      .select("*")
+      .eq("auth_user_id", user.id)
+      .maybeSingle();
+
+  if (!worker) {
+
+    status.innerHTML = `
+      <div class="error">
+        Worker account not found.
+      </div>
+    `;
+
+    return;
+  }
+
+  status.innerHTML = `
+    <div class="success">
+      Login successful.
+    </div>
+  `;
+
+  setTimeout(() => {
+    window.location.href =
+      "worker-dashboard.html";
+  }, 1000);
+
+}
+
+</script>
+
+</body>
+</html>

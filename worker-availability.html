@@ -367,9 +367,22 @@ async function saveAvailability() {
   const { data: sessionData } =
     await supabaseClient.auth.getSession();
 
-  const workerUser =
-    sessionData.session.user;
+ const authUser =
+  sessionData.session.user;
 
+const { data: workerProfile, error: profileError } =
+  await supabaseClient
+    .from("worker_profiles")
+    .select("id")
+    .eq("email", authUser.email)
+    .maybeSingle();
+
+if (profileError || !workerProfile) {
+  alert("Worker profile not found.");
+  return;
+}
+
+const workerUser = workerProfile;
   const availabilityRows = [];
 
   const days = [

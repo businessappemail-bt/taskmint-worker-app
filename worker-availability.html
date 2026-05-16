@@ -369,7 +369,25 @@ function removeBlockedDate(index) {
 const workerUser =
   sessionData.session.user;
 
-alert(workerUser.id);
+const availabilityRows = [];
+
+if (document.getElementById("mondayAvailable").checked) {
+
+  availabilityRows.push({
+    worker_id: workerUser.id,
+    day_of_week: "Monday",
+    start_time:
+      document.getElementById("mondayStart").value,
+    end_time:
+      document.getElementById("mondayEnd").value,
+    is_available: true,
+    blocked_dates: blockedDates
+  });
+
+}
+
+console.log(availabilityRows);
+alert("Monday availability prepared.");
 }
 </script>
   

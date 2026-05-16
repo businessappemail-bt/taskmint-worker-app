@@ -202,8 +202,8 @@ async function workerLogin() {
     await supabaseClient
       .from("workers")
       .select("*")
-      .eq("auth_user_id", user.id)
-      .maybeSingle();
+.eq("email", email)
+    .maybeSingle();
 
   if (!worker) {
 

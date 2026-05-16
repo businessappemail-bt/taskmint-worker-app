@@ -202,7 +202,7 @@ async function workerLogin() {
     await supabaseClient
       .from("workers")
       .select("*")
-.ilike("email", email)
+.ilike("email", `%${email}%`)   
     .maybeSingle();
 
   if (!worker) {

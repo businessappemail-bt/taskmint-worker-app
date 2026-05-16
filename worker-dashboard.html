@@ -403,7 +403,7 @@ async function loadPendingQuotesByEmail(email) {
     await supabaseClient
       .from("profiles")
       .select("id")
-      .eq("email", email)
+      .ilike("email", email)
       .maybeSingle();
 
   if (!workerProfile) {

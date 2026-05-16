@@ -149,6 +149,8 @@
   background: #b00020;
 }
   </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -296,6 +298,11 @@
 <script>
 let blockedDates = [];
 
+  const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+);
+
 function addBlockedDateRange() {
   const startInput = document.getElementById("blockedStartDate");
   const endInput = document.getElementById("blockedEndDate");
@@ -355,8 +362,14 @@ function removeBlockedDate(index) {
   renderBlockedDates();
 }
 
-  function saveAvailability() {
-  alert("Availability saved for this session. Supabase save will be connected next.");
+ async function saveAvailability() {
+  const { data: sessionData } =
+  await supabaseClient.auth.getSession();
+
+const workerUser =
+  sessionData.session.user;
+
+alert(workerUser.id);
 }
 </script>
   

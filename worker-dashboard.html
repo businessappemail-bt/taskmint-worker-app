@@ -407,8 +407,7 @@ const workerProfile = {
       .from("worker_quotes")
       .select("*")
       .eq("worker_id", workerProfile.id)
-      .eq("status", "pending");
-
+    .ilike("status", "pending");
   if (error) {
 
     container.innerHTML = `

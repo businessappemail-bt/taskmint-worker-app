@@ -190,7 +190,7 @@
       
    <div class="stat-box clickable"
   onclick="window.location.href='worker-earnings.html'">
-  <div class="stat-number" id="earningsAmount">$0</div>
+  <div class="stat-number" id="earningsAmount">Loading...</div>
   <div class="stat-label">Money Earned</div>
 </div>
 
@@ -363,8 +363,10 @@ async function loadDashboard() {
     document.getElementById("ratingScore").innerText =
       profile.rating || "0.0";
 
-    document.getElementById("completedTasks").innerText =
-      profile.total_jobs || 0;
+ document.getElementById("completedTasks").innerText =
+  profile.total_jobs || 0;
+
+loadWorkerEarnings(profile.id);
 
     const hasPhoto =
       profile.profile_photo_url;
@@ -513,6 +515,31 @@ async function cancelQuote(quoteId) {
   alert("Quote canceled.");
 
   location.reload();
+
+}
+
+async function loadWorkerEarnings(workerId) {
+
+  const { data, error } =
+    await supabaseClient
+      .from("worker_earnings")
+      .select("worker_payout")
+      .eq("worker_id", workerId);
+
+  if (error) {
+    console.log(error);
+    return;
+  }
+
+  let total = 0;
+
+  data.forEach((item) => {
+    total += Number(item.worker_payout || 0);
+  });
+
+  document.getElementById("earningsAmount")
+    .innerText =
+      `$${total.toFixed(2)}`;
 
 }
   

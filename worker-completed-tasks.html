@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Completed Tasks - TaskMint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #111;
+      padding-bottom: 90px;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      background: white;
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .back {
+      color: #0b7a28;
+      font-weight: bold;
+      margin-bottom: 18px;
+      display: inline-block;
+      text-decoration: none;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #0b7a28;
+      margin-bottom: 18px;
+    }
+
+    .summary-card {
+      background: #0b7a28;
+      color: white;
+      padding: 22px;
+      border-radius: 18px;
+      margin-bottom: 20px;
+    }
+
+    .summary-number {
+      font-size: 34px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    .summary-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid #eee;
+    }
+
+    .task-title {
+      font-size: 17px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .small-text {
+      color: #666;
+      font-size: 13px;
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+
+    .status {
+      display: inline-block;
+      background: #e6f4ea;
+      color: #0b7a28;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 12px;
+    }
+
+    .amount {
+      color: #0b7a28;
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 14px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #777;
+      margin-top: 60px;
+      font-size: 15px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <a class="back"
+  href="worker-dashboard.html">
+    ← Back to Dashboard
+  </a>
+
+  <h1>Completed Tasks</h1>
+
+  <div class="summary-card">
+
+    <div class="summary-label">
+      Total Completed Tasks
+    </div>
+
+    <div class="summary-number"
+    id="completedCount">
+      0
+    </div>
+
+  </div>
+
+  <div id="completedTasksList"></div>
+
+</div>
+
+<script>
+
+const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+);
+
+loadCompletedTasks();
+
+async function loadCompletedTasks() {
+
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
+
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const { data: worker } =
+    await supabaseClient
+      .from("workers")
+      .select("*")
+      .eq("auth_user_id", user.id)
+      .maybeSingle();
+
+  if (!worker) {
+    return;
+  }
+
+  const { data: completedTasks, error } =
+    await supabaseClient
+      .from("tasks")
+      .select("*")
+      .eq("worker_id", worker.id)
+      .eq("status", "completed")
+      .order("created_at", {
+        ascending: false
+      });
+
+  if (error) {
+    console.log(error);
+    return;
+  }
+
+  document.getElementById("completedCount")
+    .innerText =
+      completedTasks.length;
+
+  const container =
+    document.getElementById("completedTasksList");
+
+  if (!completedTasks ||
+      completedTasks.length === 0) {
+
+    container.innerHTML = `
+      <div class="empty-state">
+        No completed tasks yet.
+      </div>
+    `;
+
+    return;
+  }
+
+  completedTasks.forEach((task) => {
+
+    container.innerHTML += `
+
+      <div class="card">
+
+        <div class="task-title">
+          ${task.title || "Task"}
+        </div>
+
+        <div class="small-text">
+          ${task.description || ""}
+        </div>
+
+        <div class="small-text">
+          Completed:
+          ${
+            task.completed_at
+            ? new Date(task.completed_at)
+                .toLocaleDateString()
+            : "Recently"
+          }
+        </div>
+
+        <div class="amount">
+          $${Number(task.quote_amount || 0)
+            .toFixed(2)}
+        </div>
+
+        <div class="status">
+          Completed
+        </div>
+
+      </div>
+
+    `;
+
+  });
+
+}
+
+</script>
+
+</body>
+</html>

@@ -345,7 +345,7 @@ async function loadDashboard() {
 
   const { data: profile } =
     await supabaseClient
-      .from("worker_profiles")
+      .from("workers")
       .select("*")
       .eq("id", user.id)
       .maybeSingle();

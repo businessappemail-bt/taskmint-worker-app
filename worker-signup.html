@@ -273,7 +273,7 @@ async function createWorkerAccount() {
 
   const { error: insertError } =
     await supabaseClient
-      .from("workers_old")
+      .from("workers")
       .insert([
         {
           auth_user_id: authUser.id,

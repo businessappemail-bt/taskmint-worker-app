@@ -99,6 +99,15 @@
       color: #555;
     }
 
+    .clickable {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.clickable:hover {
+  transform: scale(1.02);
+}
+
     .notice {
       margin-top: 14px;
       padding: 12px;
@@ -179,10 +188,11 @@
 
     <div class="stats-grid">
       
-      <div class="stat-box">
-        <div class="stat-number" id="earningsAmount">$0</div>
-        <div class="stat-label">Money Earned</div>
-      </div>
+   <div class="stat-box clickable"
+  onclick="window.location.href='worker-earnings.html'">
+  <div class="stat-number" id="earningsAmount">$0</div>
+  <div class="stat-label">Money Earned</div>
+</div>
 
       <div class="stat-box">
         <div class="stat-number" id="completedTasks">0</div>

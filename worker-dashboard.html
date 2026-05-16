@@ -331,7 +331,7 @@ async function loadDashboard() {
 
   const user = data.session.user;
 
-  loadPendingQuotes(user.id);
+ loadPendingQuotesByEmail(user.email);
 
   const { data: profile } =
     await supabaseClient
@@ -394,16 +394,34 @@ async function logout() {
 
 }
 
-async function loadPendingQuotes(userId) {
+async function loadPendingQuotesByEmail(email) {
 
   const container =
     document.getElementById("pendingQuotesList");
+
+  const { data: workerProfile } =
+    await supabaseClient
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+  if (!workerProfile) {
+
+    container.innerHTML = `
+      <div class="small-text">
+        Worker profile not found.
+      </div>
+    `;
+
+    return;
+  }
 
   const { data: quotes, error } =
     await supabaseClient
       .from("worker_quotes")
       .select("*")
-      .eq("worker_id", userId)
+      .eq("worker_id", workerProfile.id)
       .eq("status", "pending");
 
   if (error) {
@@ -460,14 +478,14 @@ async function loadPendingQuotes(userId) {
           Edit Quote
         </button>
 
-       <button
-  onclick="cancelQuote('${quote.id}')"
-  style="
-    background:#b00020;
-    margin-top:8px;
-  ">
-  Cancel Quote
-</button>
+        <button
+          onclick="cancelQuote('${quote.id}')"
+          style="
+            background:#b00020;
+            margin-top:8px;
+          ">
+          Cancel Quote
+        </button>
 
       </div>
     `;

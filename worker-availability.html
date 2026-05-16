@@ -371,22 +371,68 @@ const workerUser =
 
 const availabilityRows = [];
 
-if (document.getElementById("mondayAvailable").checked) {
+const days = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday"
+];
 
-  availabilityRows.push({
-    worker_id: workerUser.id,
-    day_of_week: "Monday",
-    start_time:
-      document.getElementById("mondayStart").value,
-    end_time:
-      document.getElementById("mondayEnd").value,
-    is_available: true,
-    blocked_dates: blockedDates
-  });
+days.forEach((day) => {
 
+  const lower =
+    day.toLowerCase();
+
+  const isChecked =
+    document.getElementById(
+      `${lower}Available`
+    ).checked;
+
+  if (isChecked) {
+
+    availabilityRows.push({
+
+      worker_id: workerUser.id,
+
+      day_of_week: day,
+
+      start_time:
+        document.getElementById(
+          `${lower}Start`
+        ).value,
+
+      end_time:
+        document.getElementById(
+          `${lower}End`
+        ).value,
+
+      is_available: true,
+
+      blocked_dates: blockedDates
+
+    });
+
+    if (availabilityRows.length === 0) {
+  alert("Select at least one available day.");
+  return;
 }
 
-console.log(availabilityRows);
+    const { error } =
+  await supabaseClient
+    .from("worker_availability")
+    .insert(availabilityRows);
+
+if (error) {
+  alert(error.message);
+  return;
+}
+
+  }
+
+});
 alert("Availability saved.");
 
 window.location.href =

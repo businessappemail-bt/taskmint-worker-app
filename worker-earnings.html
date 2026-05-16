@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -55,6 +54,14 @@
       margin-top: 10px;
     }
 
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .filter-card,
     .card {
       background: white;
       border-radius: 16px;
@@ -64,23 +71,56 @@
       border: 1px solid #eee;
     }
 
+    label {
+      display: block;
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    select {
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+      background: white;
+      box-sizing: border-box;
+    }
+
     .job-title {
       font-size: 17px;
       font-weight: bold;
       margin-bottom: 6px;
     }
 
-    .amount {
-      color: #0b7a28;
-      font-size: 22px;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-
     .small-text {
       color: #666;
       font-size: 13px;
       margin-top: 4px;
+    }
+
+    .money-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    .money-row strong {
+      color: #111;
+    }
+
+    .worker-pay {
+      color: #0b7a28;
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 12px;
+    }
+
+    .fee {
+      color: #b00020;
+      font-weight: bold;
     }
 
     .status {
@@ -93,7 +133,6 @@
       font-weight: bold;
       margin-top: 10px;
     }
-
   </style>
 </head>
 
@@ -101,63 +140,84 @@
 
 <div class="container">
 
-  <a class="back"
-  href="worker-dashboard.html">
+  <a class="back" href="worker-dashboard.html">
     ← Back to Dashboard
   </a>
 
   <h1>Earnings</h1>
 
   <div class="summary-card">
+    <div class="summary-label">Total Worker Payouts</div>
+    <div class="summary-amount">$174.25</div>
 
-    <div class="summary-label">
-      Total Earnings
+    <div class="summary-row">
+      <span>Total Job Amounts</span>
+      <strong>$205.00</strong>
     </div>
 
-    <div class="summary-amount">
-      $0.00
+    <div class="summary-row">
+      <span>TaskMint Platform Fees</span>
+      <strong>$30.75</strong>
     </div>
+  </div>
 
+  <div class="filter-card">
+    <label>Filter by Date</label>
+    <select id="dateFilter">
+      <option value="all">All Earnings</option>
+      <option value="this_week">This Week</option>
+      <option value="this_month">This Month</option>
+      <option value="last_month">Last Month</option>
+      <option value="this_year">This Year</option>
+    </select>
   </div>
 
   <div class="card">
-
-    <div class="job-title">
-      Furniture Assembly
-    </div>
+    <div class="job-title">Furniture Assembly</div>
 
     <div class="small-text">
       Completed May 15, 2026
     </div>
 
-    <div class="amount">
-      +$120
+    <div class="money-row">
+      <span>Customer Paid</span>
+      <strong>$120.00</strong>
     </div>
 
-    <div class="status">
-      Paid
+    <div class="money-row">
+      <span>TaskMint Fee</span>
+      <span class="fee">-$18.00</span>
     </div>
 
+    <div class="worker-pay">
+      Worker Payout: $102.00
+    </div>
+
+    <div class="status">Paid</div>
   </div>
 
   <div class="card">
-
-    <div class="job-title">
-      TV Mounting
-    </div>
+    <div class="job-title">TV Mounting</div>
 
     <div class="small-text">
       Completed May 10, 2026
     </div>
 
-    <div class="amount">
-      +$85
+    <div class="money-row">
+      <span>Customer Paid</span>
+      <strong>$85.00</strong>
     </div>
 
-    <div class="status">
-      Paid
+    <div class="money-row">
+      <span>TaskMint Fee</span>
+      <span class="fee">-$12.75</span>
     </div>
 
+    <div class="worker-pay">
+      Worker Payout: $72.25
+    </div>
+
+    <div class="status">Paid</div>
   </div>
 
 </div>

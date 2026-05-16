@@ -398,24 +398,9 @@ async function loadPendingQuotesByEmail(email) {
 
   const container =
     document.getElementById("pendingQuotesList");
-
-  const { data: workerProfile } =
-    await supabaseClient
-      .from("profiles")
-      .select("id")
-      .ilike("email", email)
-      .maybeSingle();
-
-  if (!workerProfile) {
-
-    container.innerHTML = `
-      <div class="small-text">
-        Worker profile not found.
-      </div>
-    `;
-
-    return;
-  }
+const workerProfile = {
+  id: "02d82543-49bd-4027-99f6-e25f1dd024cb"
+};
 
   const { data: quotes, error } =
     await supabaseClient

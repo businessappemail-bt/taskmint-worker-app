@@ -362,81 +362,84 @@ function removeBlockedDate(index) {
   renderBlockedDates();
 }
 
- async function saveAvailability() {
+async function saveAvailability() {
+
   const { data: sessionData } =
-  await supabaseClient.auth.getSession();
+    await supabaseClient.auth.getSession();
 
-const workerUser =
-  sessionData.session.user;
+  const workerUser =
+    sessionData.session.user;
 
-const availabilityRows = [];
+  const availabilityRows = [];
 
-const days = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday"
-];
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"
+  ];
 
-days.forEach((day) => {
+  days.forEach((day) => {
 
-  const lower =
-    day.toLowerCase();
+    const lower =
+      day.toLowerCase();
 
-  const isChecked =
-    document.getElementById(
-      `${lower}Available`
-    ).checked;
+    const isChecked =
+      document.getElementById(
+        `${lower}Available`
+      ).checked;
 
-  if (isChecked) {
+    if (isChecked) {
 
-    availabilityRows.push({
+      availabilityRows.push({
 
-      worker_id: workerUser.id,
+        worker_id: workerUser.id,
 
-      day_of_week: day,
+        day_of_week: day,
 
-      start_time:
-        document.getElementById(
-          `${lower}Start`
-        ).value,
+        start_time:
+          document.getElementById(
+            `${lower}Start`
+          ).value,
 
-      end_time:
-        document.getElementById(
-          `${lower}End`
-        ).value,
+        end_time:
+          document.getElementById(
+            `${lower}End`
+          ).value,
 
-      is_available: true,
+        is_available: true,
 
-      blocked_dates: blockedDates
+        blocked_dates: blockedDates
 
-    });
+      });
 
-        if (availabilityRows.length === 0) {
-  alert("Select at least one available day.");
-  return;
-}
+    }
 
-    const { error } =
-  await supabaseClient
-    .from("worker_availability")
-    .insert(availabilityRows);
+  });
 
-if (error) {
-  alert(error.message);
-  return;
-}
-
+  if (availabilityRows.length === 0) {
+    alert("Select at least one available day.");
+    return;
   }
 
-});
-alert("Availability saved.");
+  const { error } =
+    await supabaseClient
+      .from("worker_availability")
+      .insert(availabilityRows);
 
-window.location.href =
-  "worker-dashboard.html";
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Availability saved.");
+
+  window.location.href =
+    "worker-dashboard.html";
+
 }
 </script>
   

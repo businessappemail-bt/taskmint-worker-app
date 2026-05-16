@@ -133,6 +133,24 @@
       font-weight: bold;
       margin-top: 10px;
     }
+
+    .pdf-button {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 14px;
+  background: #111;
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 18px;
+  transition: 0.2s;
+}
+
+.pdf-button:hover {
+  transform: scale(1.01);
+}
   </style>
 </head>
 
@@ -154,11 +172,7 @@
       <span>Total Job Amounts</span>
       <strong>$205.00</strong>
     </div>
-
-    <div class="summary-row">
-      <span>TaskMint Platform Fees</span>
-      <strong>$30.75</strong>
-    </div>
+    
   </div>
 
   <div class="filter-card">
@@ -172,8 +186,9 @@
     </select>
   </div>
 
-  <button onclick="downloadEarningsPDF()">
-  Download Earnings PDF
+ <button class="pdf-button"
+  onclick="downloadEarningsPDF()">
+  Download PDF Statement
 </button>
 
   <div class="card">

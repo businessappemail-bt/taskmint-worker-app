@@ -151,10 +151,14 @@ async function loadCompletedTasks() {
     data: { user }
   } = await supabaseClient.auth.getUser();
 
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
+if (!user) {
+  document.getElementById("completedTasksList").innerHTML = `
+    <div class="empty-state">
+      No active worker session found. Please log in again.
+    </div>
+  `;
+  return;
+}
 
   const { data: worker } =
     await supabaseClient

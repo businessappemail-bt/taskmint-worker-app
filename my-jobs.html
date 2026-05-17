@@ -148,7 +148,7 @@ const { data: worker } = await supabaseClient
 if (!worker) {
   jobsList.innerHTML = `
     <div class="empty">
-      Worker account not found.
+      Worker account not found for ${user.email}
     </div>
   `;
   return;

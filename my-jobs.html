@@ -139,15 +139,31 @@ if (!user) {
   return;
 }
 
+const { data: worker } = await supabaseClient
+  .from("workers")
+  .select("id")
+  .eq("auth_user_id", user.id)
+  .maybeSingle();
+
+if (!worker) {
+  jobsList.innerHTML = `
+    <div class="empty">
+      Worker account not found.
+    </div>
+  `;
+  return;
+}
+
 const { data: jobs, error } = await supabaseClient
-.from("worker_quotes")
-.select("*")
-.eq("worker_email", user.email)
-.order("created_at", { ascending: false });
+  .from("worker_quotes")
+  .select("*")
+  .eq("worker_id", worker.id)
+  .order("created_at", { ascending: false });
 
 if (error) {
-jobsList.innerHTML = "Error loading jobs: " + error.message;
-return;
+  jobsList.innerHTML =
+    "Error loading jobs: " + error.message;
+  return;
 }
 
 if (!jobs || jobs.length === 0) {

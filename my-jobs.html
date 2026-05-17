@@ -126,7 +126,7 @@ if (!user) {
 }
 
 const { data: jobs, error } = await supabaseClient
-.from("tasks")
+.from("worker_quotes")
 .select("*")
 .eq("worker_id", user.id)
 .order("created_at", { ascending: false });

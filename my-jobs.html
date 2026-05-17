@@ -88,7 +88,7 @@ font-weight: bold;
 
 <div class="container">
 <h1>My Jobs</h1>
-<p>View jobs you have posted.</p>
+<p>View your accepted and active jobs.</p>
 
 <div id="jobsList">
 Loading jobs...
@@ -139,7 +139,7 @@ return;
 if (!jobs || jobs.length === 0) {
 jobsList.innerHTML = `
 <div class="empty">
-You have not posted any jobs yet.
+No accepted or active jobs yet.
 </div>
 `;
 return;

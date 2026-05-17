@@ -142,7 +142,7 @@ if (!user) {
 const { data: worker } = await supabaseClient
   .from("workers")
   .select("id")
-  .ilike("email", user.email)
+  .eq("email", user.email.trim().toLowerCase())
   .maybeSingle();
 
 if (!worker) {

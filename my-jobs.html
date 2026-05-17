@@ -112,15 +112,17 @@ const supabaseClient = window.supabase.createClient(
 
 async function loadMyJobs() {
 const jobsList = document.getElementById("jobsList");
-const customerId = localStorage.getItem("taskmintUserId");
+const {
+  data: { user }
+} = await supabaseClient.auth.getUser();
 
-if (!customerId) {
-jobsList.innerHTML = `
-<div class="empty">
-You must be logged in to view your jobs.
-</div>
-`;
-return;
+if (!user) {
+  jobsList.innerHTML = `
+    <div class="empty">
+      No active worker session found. Please log in again.
+    </div>
+  `;
+  return;
 }
 
 const { data: jobs, error } = await supabaseClient

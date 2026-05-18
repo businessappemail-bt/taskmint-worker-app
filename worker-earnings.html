@@ -176,6 +176,8 @@
   Loading...
 </strong>
     </div>
+
+<div id="earningsList"></div>
     
   </div>
 
@@ -226,30 +228,72 @@ async function loadEarnings() {
       .maybeSingle();
 
   const { data: earnings, error } =
-    await supabaseClient
-      .from("worker_earnings")
-      .select("*")
-      .eq("worker_id", workerProfile.id);
+  await supabaseClient
+    .from("worker_earnings")
+    .select("*")
+    .eq("worker_id", workerProfile.id);
 
-  if (error) {
-    console.log(error);
-    return;
-  }
+if (error) {
+  console.log(error);
+  return;
+}
 
-  let totalPayout = 0;
-  let totalCustomerPaid = 0;
+const earningsList =
+  document.getElementById("earningsList");
 
-  earnings.forEach((item) => {
+earningsList.innerHTML = "";
 
-    totalPayout += Number(
-      item.worker_payout || 0
-    );
+let totalPayout = 0;
+let totalCustomerPaid = 0;
+  
+ earnings.forEach((item) => {
 
-    totalCustomerPaid += Number(
-      item.customer_paid || 0
-    );
+  totalPayout += Number(
+    item.worker_payout || 0
+  );
 
-  });
+  totalCustomerPaid += Number(
+    item.customer_paid || 0
+  );
+
+  earningsList.innerHTML += `
+    <div class="card">
+
+      <div class="job-title">
+        ${item.task_title || "Completed Task"}
+      </div>
+
+      <div class="small-text">
+        Paid Job
+      </div>
+
+      <div class="money-row">
+        <span>Customer Paid</span>
+        <strong>
+          $${Number(item.customer_paid || 0).toFixed(2)}
+        </strong>
+      </div>
+
+      <div class="money-row">
+        <span>TaskMint Fee</span>
+        <span class="fee">
+          -$${Number(item.platform_fee || 0).toFixed(2)}
+        </span>
+      </div>
+
+      <div class="worker-pay">
+        Worker Payout:
+        $${Number(item.worker_payout || 0).toFixed(2)}
+      </div>
+
+      <div class="status">
+        Paid
+      </div>
+
+    </div>
+  `;
+
+});
 
   document.getElementById("totalPayout")
     .innerText =

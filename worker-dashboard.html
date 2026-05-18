@@ -439,13 +439,6 @@ const { data: workerProfile } =
     return;
   }
 
-  const { data: workerProfile } =
-  await supabaseClient
-    .from("workers")
-    .select("id")
-    .eq("email", email)
-    .maybeSingle();
-
   container.innerHTML = "";
 
   quotes.forEach((quote) => {

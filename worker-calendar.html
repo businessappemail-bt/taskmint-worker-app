@@ -219,12 +219,12 @@ async function loadWorkerJobs() {
 
   const workerUser = sessionData.session.user;
 
-  const { data, error } =
+ const { data, error } =
   await supabaseClient
-    .from("task_assignments")
+    .from("tasks")
     .select("*")
-    .eq("worker_user_id", workerUser.id)
-    .in("assignment_status", [
+    .eq("worker_id", workerUser.id)
+    .in("status", [
       "accepted",
       "in_progress",
       "completed"

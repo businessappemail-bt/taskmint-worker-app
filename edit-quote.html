@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Quote - TaskMint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #111;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      background: white;
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .back {
+      color: #0b7a28;
+      font-size: 15px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    h1 {
+      text-align: center;
+      color: #0b7a28;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      border: 1px solid #eee;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 18px;
+      border: none;
+      border-radius: 12px;
+      background: #0b7a28;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .danger {
+      background: #b00020;
+    }
+
+    .small-text {
+      color: #666;
+      font-size: 13px;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    .error {
+      color: #b00020;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <a class="back" href="worker-dashboard.html">
+    ← Back
+  </a>
+
+  <h1>Edit Quote</h1>
+
+  <div class="card">
+
+    <label>Quote Amount</label>
+    <input
+      type="number"
+      id="quoteAmount"
+      min="1"
+      step="0.01"
+    >
+
+    <label>Message to Customer</label>
+    <textarea
+      id="quoteMessage"
+      maxlength="500"
+    ></textarea>
+
+    <div class="small-text" id="characterCount">
+      0 / 500
+    </div>
+
+    <button onclick="saveQuoteChanges()">
+      Save Quote Changes
+    </button>
+
+    <button class="danger"
+      onclick="window.location.href='worker-dashboard.html'">
+      Cancel Editing
+    </button>
+
+    <div id="status"></div>
+
+  </div>
+
+</div>
+
+<script>
+const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+);
+
+const selectedQuoteId =
+  localStorage.getItem("selectedQuoteId");
+
+loadQuote();
+
+async function loadQuote() {
+
+  const status =
+    document.getElementById("status");
+
+  if (!selectedQuoteId) {
+    status.innerHTML =
+      `<div class="error">No quote selected.</div>`;
+    return;
+  }
+
+  const { data: quote, error } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("*")
+      .eq("id", selectedQuoteId)
+      .maybeSingle();
+
+  if (error || !quote) {
+    status.innerHTML =
+      `<div class="error">Quote not found.</div>`;
+    return;
+  }
+
+  if (quote.status !== "pending") {
+    status.innerHTML =
+      `<div class="error">Only pending quotes can be edited.</div>`;
+    return;
+  }
+
+  document.getElementById("quoteAmount").value =
+    quote.quote_amount || "";
+
+  document.getElementById("quoteMessage").value =
+    quote.message || "";
+
+  document.getElementById("characterCount").innerText =
+    `${(quote.message || "").length} / 500`;
+
+}
+
+async function saveQuoteChanges() {
+
+  const amount =
+    document.getElementById("quoteAmount").value;
+
+  const message =
+    document.getElementById("quoteMessage").value.trim();
+
+  if (Number(amount) <= 0) {
+    alert("Quote amount must be greater than $0.");
+    return;
+  }
+
+  if (message.length < 10) {
+    alert("Please enter more quote details.");
+    return;
+  }
+
+  const { error } =
+    await supabaseClient
+      .from("worker_quotes")
+      .update({
+        quote_amount: amount,
+        message: message
+      })
+      .eq("id", selectedQuoteId)
+      .eq("status", "pending");
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Quote updated.");
+
+  window.location.href =
+    "worker-dashboard.html";
+
+}
+
+const quoteMessage =
+  document.getElementById("quoteMessage");
+
+quoteMessage.addEventListener("input", () => {
+  document.getElementById("characterCount").innerText =
+    `${quoteMessage.value.length} / 500`;
+});
+</script>
+
+</body>
+</html>

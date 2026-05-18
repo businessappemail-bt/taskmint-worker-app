@@ -3,14 +3,318 @@
 <head>
   <title>Worker Calendar - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #111;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .back {
+      color: #0b7a28;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 16px;
+      font-size: 15px;
+    }
+
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .month-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #0b7a28;
+    }
+
+    .month-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: none;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #0b7a28;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+
+    .day-name {
+      text-align: center;
+      font-size: 13px;
+      font-weight: bold;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .calendar-day {
+      background: white;
+      border-radius: 14px;
+      min-height: 85px;
+      padding: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      position: relative;
+    }
+
+    .day-number {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .job-pill {
+      background: #0b7a28;
+      color: white;
+      font-size: 11px;
+      border-radius: 8px;
+      padding: 5px;
+      margin-top: 5px;
+      line-height: 1.3;
+    }
+
+    .job-pill.completed {
+      background: #888;
+      text-decoration: line-through;
+    }
+
+    .empty-day {
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .legend {
+      margin-top: 18px;
+      background: white;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .legend-color {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+    }
+
+    .green {
+      background: #0b7a28;
+    }
+
+    .gray {
+      background: #888;
+    }
+  </style>
 </head>
 
 <body>
-  <h1>Worker Calendar</h1>
-  <p>This page will show the worker’s full schedule.</p>
 
-  <button onclick="window.location.href='worker-dashboard.html'">
-    Back to Dashboard
-  </button>
+<div class="container">
+
+  <a class="back" href="worker-dashboard.html">
+    ← Back to Dashboard
+  </a>
+
+  <div class="calendar-header">
+
+    <button class="month-btn" onclick="previousMonth()">
+      ←
+    </button>
+
+    <div class="month-title" id="monthTitle">
+      May 2026
+    </div>
+
+    <button class="month-btn" onclick="nextMonth()">
+      →
+    </button>
+
+  </div>
+
+  <div class="calendar-grid" id="calendarGrid">
+
+  </div>
+
+  <div class="legend">
+
+    <div class="legend-row">
+      <div class="legend-color green"></div>
+      Upcoming / Scheduled Jobs
+    </div>
+
+    <div class="legend-row">
+      <div class="legend-color gray"></div>
+      Completed Jobs
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+const monthTitle =
+  document.getElementById("monthTitle");
+
+const calendarGrid =
+  document.getElementById("calendarGrid");
+
+const currentDate = new Date();
+
+let currentMonth =
+  currentDate.getMonth();
+
+let currentYear =
+  currentDate.getFullYear();
+
+const mockJobs = [
+  {
+    day: 8,
+    title: "TV Mount",
+    completed: false
+  },
+  {
+    day: 14,
+    title: "Cleaning",
+    completed: true
+  },
+  {
+    day: 21,
+    title: "Moving Job",
+    completed: false
+  }
+];
+
+function renderCalendar() {
+
+  calendarGrid.innerHTML = "";
+
+  const monthNames = [
+    "January","February","March","April",
+    "May","June","July","August",
+    "September","October","November","December"
+  ];
+
+  monthTitle.innerText =
+    `${monthNames[currentMonth]} ${currentYear}`;
+
+  const dayNames = [
+    "Sun","Mon","Tue","Wed",
+    "Thu","Fri","Sat"
+  ];
+
+  dayNames.forEach(day => {
+
+    calendarGrid.innerHTML += `
+      <div class="day-name">${day}</div>
+    `;
+
+  });
+
+  const firstDay =
+    new Date(currentYear, currentMonth, 1).getDay();
+
+  const totalDays =
+    new Date(currentYear, currentMonth + 1, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) {
+
+    calendarGrid.innerHTML += `
+      <div class="calendar-day empty-day"></div>
+    `;
+
+  }
+
+  for (let day = 1; day <= totalDays; day++) {
+
+    const jobsForDay =
+      mockJobs.filter(job => job.day === day);
+
+    let jobsHtml = "";
+
+    jobsForDay.forEach(job => {
+
+      jobsHtml += `
+        <div class="job-pill ${job.completed ? 'completed' : ''}">
+          ${job.title}
+        </div>
+      `;
+
+    });
+
+    calendarGrid.innerHTML += `
+      <div class="calendar-day">
+
+        <div class="day-number">
+          ${day}
+        </div>
+
+        ${jobsHtml}
+
+      </div>
+    `;
+
+  }
+
+}
+
+function nextMonth() {
+
+  currentMonth++;
+
+  if (currentMonth > 11) {
+    currentMonth = 0;
+    currentYear++;
+  }
+
+  renderCalendar();
+
+}
+
+function previousMonth() {
+
+  currentMonth--;
+
+  if (currentMonth < 0) {
+    currentMonth = 11;
+    currentYear--;
+  }
+
+  renderCalendar();
+
+}
+
+renderCalendar();
+
+</script>
+
 </body>
 </html>

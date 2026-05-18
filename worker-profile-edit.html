@@ -62,7 +62,8 @@
     }
 
     textarea,
-    input {
+input,
+select {
       width: 100%;
       box-sizing: border-box;
       padding: 12px;
@@ -275,6 +276,9 @@ async function loadProfile() {
   document.getElementById("serviceArea").value =
     data.service_area || "";
 
+  document.getElementById("serviceRadius").value =
+  data.service_radius || "";
+
   if (data.profile_photo_url) {
     document.getElementById("profilePreview").src =
       data.profile_photo_url;
@@ -348,6 +352,9 @@ async function saveProfile() {
   const area =
     document.getElementById("serviceArea").value.trim();
 
+  const radius =
+  document.getElementById("serviceRadius").value;
+
   const { error } = await supabaseClient
     .from("profiles")
     .upsert({
@@ -356,6 +363,7 @@ async function saveProfile() {
       experience: experience,
       skills: services,
       service_area: area,
+      service_radius: radius,
       account_type: "worker",
       is_worker_approved: false
     });

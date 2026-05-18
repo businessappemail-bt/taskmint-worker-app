@@ -343,6 +343,7 @@ if (!data.session) {
   const user = data.session.user;
 
  loadPendingQuotesByEmail(user.email);
+  loadWorkerRating(user.id);
 
 const { data: profile } =
   await supabaseClient
@@ -407,29 +408,65 @@ async function logout() {
 
 }
 
+async function loadWorkerRating(userId) {
+
+  const { data: reviews, error } =
+    await supabaseClient
+      .from("reviews")
+      .select("rating")
+      .eq("worker_id", userId);
+
+  if (error || !reviews || reviews.length === 0) {
+
+    document.getElementById("ratingScore").innerText =
+      "0.0";
+
+    return;
+  }
+
+  let total = 0;
+
+  reviews.forEach((review) => {
+
+    total += Number(review.rating);
+
+  });
+
+  const average =
+    total / reviews.length;
+
+  document.getElementById("ratingScore").innerText =
+    average.toFixed(1);
+
+}
+
+
+
 async function loadPendingQuotesByEmail(email) {
 
 
   const container =
     document.getElementById("pendingQuotesList");
+
   const { data: workerProfile } =
-  await supabaseClient
-    .from("workers")
-    .select("id")
-    .eq("email", email)
-    .maybeSingle();
+    await supabaseClient
+      .from("workers")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
 
-   console.log("running pending quotes query");
+  console.log("running pending quotes query");
 
-const { data: quotes, error } =
-  await supabaseClient
-    .from("worker_quotes")
-    .select("*")
-    .eq("worker_id", workerProfile.id)
-    .ilike("status", "pending");
+  const { data: quotes, error } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("*")
+      .eq("worker_id", workerProfile.id)
+      .ilike("status", "pending");
 
-console.log(quotes);
-console.log(error);
+  console.log(quotes);
+  console.log(error);
+
   if (error) {
 
     container.innerHTML = `

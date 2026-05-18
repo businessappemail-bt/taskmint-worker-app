@@ -418,7 +418,7 @@ const { data: quotes, error } =
   await supabaseClient
     .from("worker_quotes")
     .select("*")
-    .eq("worker_id", "41772e67-706b-46c4-a1d0-17288e811621")
+    .eq("worker_id", workerProfile.id)
     .ilike("status", "pending");
 
 console.log(quotes);

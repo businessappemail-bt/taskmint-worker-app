@@ -377,16 +377,30 @@ loadWorkerEarnings(profile.id);
       profile.experience &&
       profile.experience.trim() !== "";
 
-    if (!hasPhoto || !hasExperience) {
+    const hasPhoto =
+  profile.profile_photo_url &&
+  profile.profile_photo_url.trim() !== "";
 
-      document.getElementById("profileNotice").innerHTML = `
-        <div class="notice">
-          Complete your profile picture and experience
-          before sending quotes.
-        </div>
-      `;
+const hasExperience =
+  profile.experience &&
+  profile.experience.trim() !== "";
 
-    }
+const profileNotice =
+  document.getElementById("profileNotice");
+
+if (!hasPhoto || !hasExperience) {
+
+  profileNotice.innerHTML = `
+    <div class="notice">
+      Complete your worker profile before sending quotes.
+    </div>
+  `;
+
+} else {
+
+  profileNotice.innerHTML = "";
+
+}
 
   }
 

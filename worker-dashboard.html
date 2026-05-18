@@ -412,6 +412,8 @@ async function loadPendingQuotesByEmail(email) {
   const container =
     document.getElementById("pendingQuotesList");
 
+    console.log("running pending quotes query");
+
 
   const { data: quotes, error } =
     await supabaseClient

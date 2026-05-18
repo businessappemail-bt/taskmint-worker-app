@@ -235,6 +235,7 @@ select {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+
 const supabaseClient = window.supabase.createClient(
   "https://dbcthtjmtlumidpbucrc.supabase.co",
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
@@ -243,24 +244,39 @@ const supabaseClient = window.supabase.createClient(
 let currentUser = null;
 
 async function checkLogin() {
-  const { data, error } = await supabaseClient.auth.getUser();
+
+  const { data, error } =
+    await supabaseClient.auth.getUser();
 
   if (error || !data || !data.user) {
+
     alert("You must log in first.");
+
     window.location.href = "login.html";
+
     return;
   }
 
   currentUser = data.user;
+
   loadProfile();
+
 }
 
 async function loadProfile() {
-  const { data, error } = await supabaseClient
-    .from("profiles")
-    .select("experience, skills, service_area, profile_photo_url")
-    .eq("id", currentUser.id)
-    .single();
+
+  const { data, error } =
+    await supabaseClient
+      .from("profiles")
+      .select(`
+        experience,
+        skills,
+        service_area,
+        service_radius,
+        profile_photo_url
+      `)
+      .eq("id", currentUser.id)
+      .single();
 
   if (error || !data) {
     return;
@@ -276,113 +292,199 @@ async function loadProfile() {
     data.service_area || "";
 
   document.getElementById("serviceRadius").value =
-  data.service_radius || "";
+    data.service_radius || "";
 
   if (data.profile_photo_url) {
-  document.getElementById("profilePreview").src =
-    data.profile_photo_url;
-}
 
-updateChecklist(data);
+    document.getElementById("profilePreview").src =
+      data.profile_photo_url;
+
+  }
+
+  updateChecklist(data);
 
 }
 
 async function uploadProfilePhoto(event) {
+
   const file = event.target.files[0];
 
   if (!file || !currentUser) {
     return;
   }
 
-  const fileExt = file.name.split(".").pop();
+  const fileExt =
+    file.name.split(".").pop();
 
   const filePath =
     `worker-profile-photos/${currentUser.id}-${Date.now()}.${fileExt}`;
 
-  const { error: uploadError } = await supabaseClient.storage
-    .from("profile-photos")
-    .upload(filePath, file);
+  const { error: uploadError } =
+    await supabaseClient.storage
+      .from("profile-photos")
+      .upload(filePath, file);
 
   if (uploadError) {
+
     console.error(uploadError);
-    alert("Error uploading photo. Check the profile-photos storage bucket.");
+
+    alert(
+      "Error uploading photo. Check the profile-photos storage bucket."
+    );
+
     return;
   }
 
-  const { data } = supabaseClient.storage
-    .from("profile-photos")
-    .getPublicUrl(filePath);
+  const { data } =
+    supabaseClient.storage
+      .from("profile-photos")
+      .getPublicUrl(filePath);
 
-  const publicUrl = data.publicUrl;
+  const publicUrl =
+    data.publicUrl;
 
   document.getElementById("profilePreview").src =
     publicUrl;
 
-  const { error: updateError } = await supabaseClient
-    .from("profiles")
-    .upsert({
-      id: currentUser.id,
-      email: currentUser.email,
-      profile_photo_url: publicUrl,
-      account_type: "worker"
-    });
+  const { error: updateError } =
+    await supabaseClient
+      .from("profiles")
+      .upsert({
+        id: currentUser.id,
+        email: currentUser.email,
+        profile_photo_url: publicUrl,
+        account_type: "worker"
+      });
 
   if (updateError) {
+
     console.error(updateError);
-    alert("Photo uploaded, but there was an error saving it to your profile.");
+
+    alert(
+      "Photo uploaded, but there was an error saving it to your profile."
+    );
+
     return;
   }
 
+  updateChecklist({
+    profile_photo_url: publicUrl,
+    experience:
+      document.getElementById("experienceDescription").value,
+    service_area:
+      document.getElementById("serviceArea").value,
+    skills:
+      document.getElementById("servicesOffered").value
+  });
+
   alert("Profile photo uploaded successfully.");
+
+}
+
+function updateChecklist(profile) {
+
+  document.getElementById("photoCheck").innerText =
+    profile.profile_photo_url &&
+    profile.profile_photo_url.trim() !== ""
+      ? "✅ Upload profile picture"
+      : "☐ Upload profile picture";
+
+  document.getElementById("experienceCheck").innerText =
+    profile.experience &&
+    profile.experience.trim() !== ""
+      ? "✅ Add work experience"
+      : "☐ Add work experience";
+
+  document.getElementById("serviceAreaCheck").innerText =
+    profile.service_area &&
+    profile.service_area.trim() !== ""
+      ? "✅ Complete service area"
+      : "☐ Complete service area";
+
+  document.getElementById("servicesCheck").innerText =
+    profile.skills &&
+    profile.skills.trim() !== ""
+      ? "✅ Add services offered"
+      : "☐ Add services offered";
+
 }
 
 async function saveProfile() {
-  const status = document.getElementById("statusMessage");
+
+  const status =
+    document.getElementById("statusMessage");
 
   if (!currentUser) {
+
     alert("You must log in first.");
+
     window.location.href = "login.html";
+
     return;
   }
 
   const experience =
-    document.getElementById("experienceDescription").value.trim();
+    document.getElementById("experienceDescription")
+      .value
+      .trim();
 
   const services =
-    document.getElementById("servicesOffered").value.trim();
+    document.getElementById("servicesOffered")
+      .value
+      .trim();
 
   const area =
-    document.getElementById("serviceArea").value.trim();
+    document.getElementById("serviceArea")
+      .value
+      .trim();
 
   const radius =
-  document.getElementById("serviceRadius").value;
+    document.getElementById("serviceRadius")
+      .value;
 
-  const { error } = await supabaseClient
-    .from("profiles")
-    .upsert({
-      id: currentUser.id,
-      email: currentUser.email,
-      experience: experience,
-      skills: services,
-      service_area: area,
-      service_radius: radius,
-      account_type: "worker",
-      is_worker_approved: false
-    });
+  const { error } =
+    await supabaseClient
+      .from("profiles")
+      .upsert({
+        id: currentUser.id,
+        email: currentUser.email,
+        experience: experience,
+        skills: services,
+        service_area: area,
+        service_radius: radius,
+        account_type: "worker",
+        is_worker_approved: false
+      });
 
   if (error) {
+
     console.error(error);
+
     status.style.color = "red";
-    status.innerText = "Error saving profile.";
+
+    status.innerText =
+      "Error saving profile.";
+
     return;
   }
 
+  updateChecklist({
+    profile_photo_url:
+      document.getElementById("profilePreview").src,
+    experience: experience,
+    service_area: area,
+    skills: services
+  });
+
   status.style.color = "green";
-  status.innerText = "Profile saved successfully.";
+
+  status.innerText =
+    "Profile saved successfully.";
+
 }
 
 checkLogin();
-</script>
 
+</script>
 </body>
 </html>

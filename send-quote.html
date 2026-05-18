@@ -261,6 +261,7 @@ async function submitQuote() {
 
 const workerUser =
   sessionData.session.user;
+  console.log(workerUser.id);
 
   const { data: workerProfile } =
   await supabaseClient

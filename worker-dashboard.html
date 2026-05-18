@@ -412,17 +412,17 @@ async function loadPendingQuotesByEmail(email) {
   const container =
     document.getElementById("pendingQuotesList");
 
-    console.log("running pending quotes query");
+   console.log("running pending quotes query");
 
-
-  const { data: quotes, error } =
-    console.log(quotes);
-console.log(error);
-    await supabaseClient
-      .from("worker_quotes")
-      .select("*")
+const { data: quotes, error } =
+  await supabaseClient
+    .from("worker_quotes")
+    .select("*")
     .eq("worker_id", "41772e67-706b-46c4-a1d0-17288e811621")
     .ilike("status", "pending");
+
+console.log(quotes);
+console.log(error);
   if (error) {
 
     container.innerHTML = `

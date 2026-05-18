@@ -354,55 +354,48 @@ const { data: profile } =
 
 if (profile) {
 
-    document.getElementById("workerName").innerText =
-      profile.full_name || "Worker Profile";
+  document.getElementById("workerName").innerText =
+    profile.full_name || "Worker Profile";
 
-    if (profile.profile_photo_url) {
-      document.getElementById("profilePic").src =
-        profile.profile_photo_url;
-    }
-
-    document.getElementById("ratingScore").innerText =
-      profile.rating || "0.0";
-
- document.getElementById("completedTasks").innerText =
-  profile.total_jobs || 0;
-
-loadWorkerEarnings(profile.id);
-
-    const hasPhoto =
+  if (profile.profile_photo_url) {
+    document.getElementById("profilePic").src =
       profile.profile_photo_url;
+  }
 
-    const hasExperience =
-      profile.experience &&
-      profile.experience.trim() !== "";
+  document.getElementById("ratingScore").innerText =
+    profile.rating || "0.0";
 
-    const hasPhoto =
-  profile.profile_photo_url &&
-  profile.profile_photo_url.trim() !== "";
+  document.getElementById("completedTasks").innerText =
+    profile.total_jobs || 0;
 
-const hasExperience =
-  profile.experience &&
-  profile.experience.trim() !== "";
+  loadWorkerEarnings(profile.id);
 
-const profileNotice =
-  document.getElementById("profileNotice");
+  const hasPhoto =
+    profile.profile_photo_url &&
+    profile.profile_photo_url.trim() !== "";
 
-if (!hasPhoto || !hasExperience) {
+  const hasExperience =
+    profile.experience &&
+    profile.experience.trim() !== "";
 
-  profileNotice.innerHTML = `
-    <div class="notice">
-      Complete your worker profile before sending quotes.
-    </div>
-  `;
+  const profileNotice =
+    document.getElementById("profileNotice");
 
-} else {
+  if (!hasPhoto || !hasExperience) {
 
-  profileNotice.innerHTML = "";
+    profileNotice.innerHTML = `
+      <div class="notice">
+        Complete your worker profile before sending quotes.
+      </div>
+    `;
 
-}
+  } else {
+
+    profileNotice.innerHTML = "";
 
   }
+
+}
 
   document.getElementById("loading").style.display =
     "none";

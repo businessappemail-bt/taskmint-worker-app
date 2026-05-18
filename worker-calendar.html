@@ -220,15 +220,15 @@ async function loadWorkerJobs() {
   const workerUser = sessionData.session.user;
 
   const { data, error } =
-    await supabaseClient
-      .from("tasks")
-      .select("*")
-      .eq("worker_id", workerUser.id)
-      .in("status", [
-        "accepted",
-        "in_progress",
-        "completed"
-      ]);
+  await supabaseClient
+    .from("task_assignments")
+    .select("*")
+    .eq("worker_user_id", workerUser.id)
+    .in("assignment_status", [
+      "accepted",
+      "in_progress",
+      "completed"
+    ]);
 
 if (error) {
   console.error(error);

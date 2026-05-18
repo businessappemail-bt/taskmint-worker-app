@@ -347,7 +347,7 @@ if (!data.session) {
 
 const { data: profile } =
   await supabaseClient
-    .from("workers")
+    .from("profiles")
     .select("*")
     .eq("email", user.email)
     .maybeSingle();

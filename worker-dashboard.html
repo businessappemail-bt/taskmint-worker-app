@@ -344,13 +344,6 @@ if (!data.session) {
 
  loadPendingQuotesByEmail(user.email);
 
-  const { data: profile } =
-    await supabaseClient
-     .from("workers")
-.select("*")
-.eq("auth_user_id", user.id)
-      .maybeSingle();
-
   if (profile) {
 
     document.getElementById("workerName").innerText =

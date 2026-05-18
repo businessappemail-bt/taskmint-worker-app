@@ -1,200 +1,350 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>My Jobs - TaskMint</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Jobs - TaskMint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-.back {
-  color: #0b7a28;
-  font-size: 15px;
-  margin-bottom: 20px;
-  cursor: pointer;
-  font-weight: bold;
-  text-decoration: none;
-  display: inline-block;
-}
-  
-body {
-margin: 0;
-font-family: Arial, sans-serif;
-background: #f5f5f5;
-color: #111;
-padding-bottom: 80px;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #111;
+      padding-bottom: 80px;
+    }
 
-.container {
-max-width: 420px;
-margin: 0 auto;
-padding: 30px 20px 100px;
-}
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 30px 20px 100px;
+    }
 
-h1 {
-text-align: center;
-margin-bottom: 8px;
-}
+    .back {
+      color: #0b7a28;
+      font-size: 15px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+    }
 
-p {
-text-align: center;
-color: #555;
-}
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+      color: #0b7a28;
+    }
 
-.job-card {
-background: white;
-padding: 18px;
-border-radius: 12px;
-margin-bottom: 15px;
-box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
+    .subtitle {
+      text-align: center;
+      color: #555;
+      margin-bottom: 20px;
+    }
 
-.job-card h3 {
-margin: 0 0 8px;
-}
+    .job-card {
+      background: white;
+      padding: 18px;
+      border-radius: 14px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
 
-.job-card p {
-text-align: left;
-margin: 5px 0;
-}
+    .job-card h3 {
+      margin: 0 0 8px;
+      color: #111;
+    }
 
-.status {
-font-weight: bold;
-color: green;
-}
+    .job-card p {
+      text-align: left;
+      margin: 6px 0;
+      font-size: 14px;
+      color: #444;
+      line-height: 1.4;
+    }
 
-.empty {
-background: white;
-padding: 20px;
-border-radius: 12px;
-text-align: center;
-color: #555;
-}
+    .status {
+      font-weight: bold;
+      color: #0b7a28;
+      margin-top: 10px;
+    }
 
-.nav {
-position: fixed;
-bottom: 0;
-left: 0;
-width: 100%;
-background: white;
-border-top: 1px solid #ddd;
-display: flex;
-justify-content: space-around;
-padding: 12px 0;
-}
+    .locked-address {
+      background: #fff7e6;
+      border: 1px solid #ffd27a;
+      color: #7a4b00;
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
 
-.nav a {
-text-decoration: none;
-color: #555;
-font-size: 14px;
-}
+    .arrival-box {
+      background: #f7f7f7;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 14px;
+      border: 1px solid #e5e5e5;
+    }
 
-.nav a.active {
-color: green;
-font-weight: bold;
-}
-</style>
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 15px;
+      margin-top: 8px;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 10px;
+      background: #0b7a28;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .empty {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      color: #555;
+    }
+  </style>
 </head>
 
 <body>
 
 <div class="container">
-  <a class="back"
-href="worker-dashboard.html">
-  ← Back
-</a>
-<h1>My Jobs</h1>
-<p>View your accepted and active jobs.</p>
 
-<div id="jobsList">
-Loading jobs...
-</div>
-</div>
+  <a class="back" href="worker-dashboard.html">← Back</a>
 
-<div class="nav">
-<a href="customer-home.html">Home</a>
-<a href="my-jobs.html" class="active">My Jobs</a>
-<a href="messages.html">Messages</a>
-<a href="profile.html">Profile</a>
+  <h1>My Jobs</h1>
+  <p class="subtitle">View your accepted and active jobs.</p>
+
+  <div id="jobsList">
+    Loading jobs...
+  </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 const supabaseClient = window.supabase.createClient(
-"https://dbcthtjmtlumidpbucrc.supabase.co",
-"sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
 
+let currentWorkerId = null;
+
 async function loadMyJobs() {
-const jobsList = document.getElementById("jobsList");
-const {
-  data: { user }
-} = await supabaseClient.auth.getUser();
+  const jobsList = document.getElementById("jobsList");
 
-if (!user) {
-  jobsList.innerHTML = `
-    <div class="empty">
-      No active worker session found. Please log in again.
-    </div>
-  `;
-  return;
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
+
+  if (!user) {
+    jobsList.innerHTML = `
+      <div class="empty">
+        No active worker session found. Please log in again.
+      </div>
+    `;
+    return;
+  }
+
+  const { data: workerProfile, error: profileError } = await supabaseClient
+    .from("profiles")
+    .select("id")
+    .eq("email", user.email)
+    .maybeSingle();
+
+  if (profileError || !workerProfile) {
+    jobsList.innerHTML = `
+      <div class="empty">
+        Worker profile not found.
+      </div>
+    `;
+    return;
+  }
+
+  currentWorkerId = workerProfile.id;
+
+  const { data: quotes, error: quoteError } = await supabaseClient
+    .from("worker_quotes")
+    .select("*")
+    .eq("worker_id", currentWorkerId)
+    .in("status", ["accepted", "in_progress", "completed", "paid"])
+    .order("created_at", { ascending: false });
+
+  if (quoteError) {
+    jobsList.innerHTML =
+      "Error loading jobs: " + quoteError.message;
+    return;
+  }
+
+  if (!quotes || quotes.length === 0) {
+    jobsList.innerHTML = `
+      <div class="empty">
+        No accepted or active jobs yet.
+      </div>
+    `;
+    return;
+  }
+
+  const taskIds = quotes.map(q => q.task_id);
+
+  const { data: tasks, error: taskError } = await supabaseClient
+    .from("tasks")
+    .select("*")
+    .in("id", taskIds);
+
+  if (taskError) {
+    jobsList.innerHTML =
+      "Error loading task details: " + taskError.message;
+    return;
+  }
+
+  const taskMap = {};
+
+  tasks.forEach(task => {
+    taskMap[task.id] = task;
+  });
+
+  jobsList.innerHTML = "";
+
+  quotes.forEach(quote => {
+    const task = taskMap[quote.task_id];
+
+    if (!task) {
+      return;
+    }
+
+    const taskDate = task.task_date
+      ? new Date(task.task_date)
+      : null;
+
+    const today = new Date();
+
+    let daysUntilJob = null;
+
+    if (taskDate) {
+      const difference =
+        taskDate.getTime() - today.getTime();
+
+      daysUntilJob =
+        Math.ceil(difference / (1000 * 60 * 60 * 24));
+    }
+
+    const canShowFullAddress =
+      daysUntilJob !== null && daysUntilJob <= 7;
+
+    const addressSection = canShowFullAddress
+      ? `
+        <p><strong>Address:</strong> ${task.street_address || "Not listed"}</p>
+        <p><strong>Unit:</strong> ${task.unit || "N/A"}</p>
+        <p><strong>Location:</strong> ${task.city || ""}, ${task.state || ""} ${task.zip_code || ""}</p>
+      `
+      : `
+        <p><strong>Location:</strong> ${task.city || ""}, ${task.state || ""}</p>
+        <div class="locked-address">
+          Full address will be shown 7 days before the scheduled job date.
+        </div>
+      `;
+
+    jobsList.innerHTML += `
+      <div class="job-card">
+
+        <h3>${task.title || "Untitled Job"}</h3>
+
+        <p>${task.description || ""}</p>
+
+        <p><strong>Category:</strong> ${task.category || "Not listed"}</p>
+
+        <p><strong>Quote:</strong> $${quote.quote_amount || "0"}</p>
+
+        <p><strong>Scheduled Date:</strong> ${task.task_date || "Not scheduled"}</p>
+
+        ${addressSection}
+
+        <p class="status">Status: ${quote.status || "accepted"}</p>
+
+        <div class="arrival-box">
+          <strong>Arrival Verification</strong>
+
+          <p>
+            When you arrive, ask the customer for the arrival code and enter it below.
+          </p>
+
+          <input
+            id="arrivalCode-${quote.task_id}"
+            type="text"
+            placeholder="Enter arrival code"
+            maxlength="6"
+          >
+
+          <button onclick="verifyArrivalCode('${quote.task_id}')">
+            Verify Arrival / Start Task
+          </button>
+        </div>
+
+      </div>
+    `;
+  });
 }
 
-const { data: worker } = await supabaseClient
-  .from("workers")
-  .select("id")
-  .eq("email", user.email.trim().toLowerCase())
-  .maybeSingle();
+async function verifyArrivalCode(taskId) {
+  const codeInput =
+    document.getElementById(`arrivalCode-${taskId}`);
 
-if (!worker) {
-  jobsList.innerHTML = `
-    <div class="empty">
-      Worker account not found for ${user.email}
-    </div>
-  `;
-  return;
-}
+  const code =
+    codeInput.value.trim();
 
-const { data: jobs, error } = await supabaseClient
-  .from("worker_quotes")
-  .select("*")
-  .eq("worker_id", worker.id)
-  .order("created_at", { ascending: false });
+  if (!code) {
+    alert("Enter the arrival code from the customer.");
+    return;
+  }
 
-if (error) {
-  jobsList.innerHTML =
-    "Error loading jobs: " + error.message;
-  return;
-}
+  const { data, error } = await supabaseClient
+    .from("task_assignments")
+    .select("*")
+    .eq("task_id", taskId)
+    .eq("worker_user_id", currentWorkerId)
+    .eq("arrival_code", code)
+    .maybeSingle();
 
-if (!jobs || jobs.length === 0) {
-jobsList.innerHTML = `
-<div class="empty">
-No accepted or active jobs yet.
-</div>
-`;
-return;
-}
+  if (error || !data) {
+    alert("Invalid arrival code.");
+    return;
+  }
 
-jobsList.innerHTML = jobs.map(job => `
-<div class="job-card" onclick="openJob('${job.id}')" style="cursor:pointer;">
-<h3>${job.title || "Untitled Job"}</h3>
-<p>${job.description || ""}</p>
-<p><strong>Category:</strong> ${job.category || ""}</p>
-<p><strong>Budget:</strong> $${job.price || ""}</p>
-<p><strong>Address:</strong> ${job.street_address || ""}</p>
-<p><strong>Unit:</strong> ${job.unit || "N/A"}</p>
-<p><strong>Location:</strong> ${job.city || ""}, ${job.state || ""} ${job.zip_code || ""}</p>
-<p><strong>Schedule:</strong> ${job.schedule_preferer || ""}</p>
-<p class="status">${job.status || "open"}</p>
-</div>
+  const { error: updateError } = await supabaseClient
+    .from("task_assignments")
+    .update({
+      arrival_verified: true,
+      assignment_status: "in_progress",
+      arrived_at: new Date().toISOString()
+    })
+    .eq("id", data.id);
 
-`).join("");
-}
-function openJob(jobId) {
-  localStorage.setItem("selectedJobId", jobId);
-  window.location.href = "job-details.html";
-}
+  if (updateError) {
+    alert("Error verifying arrival.");
+    return;
+  }
+
+  alert("Arrival verified. Task started.");
   loadMyJobs();
+}
+
+loadMyJobs();
 </script>
 
 </body>

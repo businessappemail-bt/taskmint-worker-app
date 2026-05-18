@@ -531,6 +531,7 @@ async function loadWorkerEarnings(workerId) {
       .select("worker_payout")
       .eq("worker_id", workerId);
 
+
   if (error) {
     console.log(error);
     return;

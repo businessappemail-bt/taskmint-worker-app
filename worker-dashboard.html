@@ -444,7 +444,9 @@ console.log(error);
 
     return;
   }
-
+document.getElementById("pendingQuotes").innerText =
+  quotes.length;
+  
   container.innerHTML = "";
 
   quotes.forEach((quote) => {

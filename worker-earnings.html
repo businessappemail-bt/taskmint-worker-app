@@ -263,6 +263,8 @@ async function loadEarnings() {
   const workerUser =
     sessionData.session.user;
 
+  console.log(workerUser.email);
+
   const { data: workerProfile } =
     await supabaseClient
       .from("workers")

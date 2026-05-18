@@ -195,12 +195,25 @@
       placeholder="Cleaning, moving, yard work, painting"
     >
 
-    <label for="serviceArea">Service Area</label>
-    <input
-      id="serviceArea"
-      type="text"
-      placeholder="Villa Rica, Douglasville, Atlanta"
-    >
+    <label for="serviceArea">Primary Service Area</label>
+<input
+  id="serviceArea"
+  type="text"
+  placeholder="Start typing your main work area"
+>
+
+<label for="serviceRadius">Service Radius</label>
+<select id="serviceRadius">
+  <option value="">Select radius</option>
+  <option value="10">Within 10 miles</option>
+  <option value="25">Within 25 miles</option>
+  <option value="50">Within 50 miles</option>
+  <option value="75">Within 75 miles</option>
+</select>
+
+<div class="help-text">
+  TaskMint will use your service area and radius to match you with nearby customer tasks.
+</div>
 
     <button onclick="saveProfile()">
       Save Profile

@@ -267,12 +267,12 @@ const { error } =
     .from("worker_quotes")
    .insert([
   {
-    task_id: selectedTaskId,
-    worker_id: "02d82543-49bd-4027-99f6-e25f1dd024cb",
-    customer_id: selectedTaskCustomerId,
-    quote_amount: amount,
-    message: cleanedMessage,
-    status: "pending"
+task_id: selectedTaskId,
+worker_id: workerProfile.id,
+customer_id: selectedTaskCustomerId,
+quote_amount: amount,
+message: cleanedMessage,
+status: "pending"
   }
 ]);
 

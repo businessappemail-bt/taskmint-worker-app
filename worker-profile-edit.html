@@ -279,9 +279,13 @@ async function loadProfile() {
   data.service_radius || "";
 
   if (data.profile_photo_url) {
-    document.getElementById("profilePreview").src =
-      data.profile_photo_url;
-  }
+  document.getElementById("profilePreview").src =
+    data.profile_photo_url;
+}
+
+updateChecklist(data);
+
+}
 }
 
 async function uploadProfilePhoto(event) {

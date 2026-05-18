@@ -422,7 +422,7 @@ const { data: workerProfile } =
     await supabaseClient
       .from("worker_quotes")
       .select("*")
-      .eq("worker_id", user.id)
+    .eq("worker_id", workerProfile.id)
     .ilike("status", "pending");
   if (error) {
 

@@ -409,8 +409,15 @@ async function logout() {
 
 async function loadPendingQuotesByEmail(email) {
 
+
   const container =
     document.getElementById("pendingQuotesList");
+  const { data: workerProfile } =
+  await supabaseClient
+    .from("workers")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
 
    console.log("running pending quotes query");
 

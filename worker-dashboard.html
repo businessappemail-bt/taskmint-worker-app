@@ -531,6 +531,18 @@ async function cancelQuote(quoteId) {
 
 }
 
+function editQuote(quoteId) {
+
+  localStorage.setItem(
+    "selectedQuoteId",
+    quoteId
+  );
+
+  window.location.href =
+    "edit-quote.html";
+
+}
+
 async function loadWorkerEarnings(workerId) {
 
   const { data, error } =

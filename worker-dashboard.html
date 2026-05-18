@@ -509,7 +509,7 @@ async function cancelQuote(quoteId) {
   const { error } =
     await supabaseClient
       .from("worker_quotes")
-      .delete()
+      .update({ status: "canceled" })
       .eq("id", quoteId);
 
   if (error) {

@@ -416,6 +416,8 @@ async function loadPendingQuotesByEmail(email) {
 
 
   const { data: quotes, error } =
+    console.log(quotes);
+console.log(error);
     await supabaseClient
       .from("worker_quotes")
       .select("*")

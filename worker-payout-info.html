@@ -132,11 +132,43 @@
 
 <script>
 
-function startStripePayoutSetup() {
+async function startStripePayoutSetup() {
 
-  alert(
-    "Stripe Connect onboarding will be connected here through a secure backend endpoint."
-  );
+  try {
+
+    const response = await fetch(
+      "https://task-app-mu-two.vercel.app/api/create-stripe-account-link",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: "worker@test.com"
+        })
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+
+      alert(data.error || "Stripe setup failed.");
+
+      return;
+    }
+
+    window.location.href =
+      data.url;
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert("Unable to connect to Stripe.");
+
+  }
 
 }
 

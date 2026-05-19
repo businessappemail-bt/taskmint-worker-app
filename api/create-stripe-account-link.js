@@ -65,8 +65,8 @@ module.exports = async (req, res) => {
         refresh_url:
           "https://task-app-mu-two.vercel.app/worker-payout-info.html",
 
-        return_url:
-  "https://task-app-mu-two.vercel.app/worker-payout-info.html",
+       return_url:
+  "https://businessappemail-bt.github.io/taskmint-worker-app/worker-dashboard.html",
 
         type: "account_onboarding"
       });

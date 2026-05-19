@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Worker Settings - TaskMint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body { margin:0; font-family:Arial, sans-serif; background:#f5f5f5; color:#111; padding-bottom:60px; }
+    .container { max-width:420px; margin:0 auto; padding:20px; }
+    .back { color:#0b7a28; font-weight:bold; text-decoration:none; display:inline-block; margin-bottom:18px; }
+    h1 { text-align:center; color:#0b7a28; margin-bottom:18px; }
+    .card { background:white; border-radius:14px; padding:18px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+    .section-title { font-size:18px; font-weight:bold; margin-bottom:12px; }
+    .row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid #eee; cursor:pointer; }
+    .row:last-child { border-bottom:none; }
+    .row-text { font-size:15px; font-weight:bold; }
+    .row-sub { font-size:13px; color:#666; margin-top:3px; line-height:1.4; }
+    .arrow { color:#0b7a28; font-size:22px; font-weight:bold; }
+    .toggle-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee; }
+    .toggle-row:last-child { border-bottom:none; }
+    input[type="checkbox"] { width:22px; height:22px; accent-color:#0b7a28; }
+    button { width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; background:#0b7a28; color:white; font-size:15px; font-weight:bold; cursor:pointer; }
+    .secondary { background:white; color:#111; border:1px solid #ddd; }
+    .danger { background:#b00020; }
+    .faq-question { width:100%; text-align:left; background:white; color:#111; border:1px solid #ddd; padding:14px; margin-top:10px; border-radius:10px; font-weight:bold; }
+    .faq-answer { display:none; font-size:14px; color:#555; line-height:1.5; padding:10px 4px 0; }
+    .status { font-size:13px; color:#666; margin-top:10px; text-align:center; }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <a class="back" href="worker-dashboard.html">← Back to Dashboard</a>
+
+  <h1>Worker Settings</h1>
+
+  <div class="card">
+    <div class="section-title">Account</div>
+
+    <div class="row" onclick="goTo('worker-profile-edit.html')">
+      <div>
+        <div class="row-text">Edit Profile</div>
+        <div class="row-sub">Update photo, experience, services, and service area.</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+
+    <div class="row" onclick="goTo('worker-verification.html')">
+      <div>
+        <div class="row-text">Verification Status</div>
+        <div class="row-sub">View ID, approval, and background check status.</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Work Preferences</div>
+
+    <div class="row" onclick="goTo('worker-availability.html')">
+      <div>
+        <div class="row-text">Availability Schedule</div>
+        <div class="row-sub">Set working days, times, and blocked dates.</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="row-text">Pause Worker Profile</div>
+        <div class="row-sub">Hide your profile from new quote requests.</div>
+      </div>
+      <input type="checkbox" id="pauseMode" onchange="saveSettings()">
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="row-text">Profile Visible</div>
+        <div class="row-sub">Allow customers to view your public worker profile.</div>
+      </div>
+      <input type="checkbox" id="profileVisible" checked onchange="saveSettings()">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Payments & Earnings</div>
+
+    <div class="row" onclick="goTo('worker-payout-info.html')">
+      <div>
+        <div class="row-text">Payout Information</div>
+        <div class="row-sub">Update ACH or debit card payout setup.</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+
+    <div class="row" onclick="goTo('worker-earnings.html')">
+      <div>
+        <div class="row-text">Earnings History</div>
+        <div class="row-sub">Review payouts, completed jobs, and TaskMint fees.</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Notifications</div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="row-text">Email Notifications</div>
+        <div class="row-sub">Receive job, quote, message, and payout updates.</div>
+      </div>
+      <input type="checkbox" id="emailNotifications" checked onchange="saveSettings()">
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="row-text">SMS Alerts</div>
+        <div class="row-sub">Receive urgent job and schedule updates by text.</div>
+      </div>
+      <input type="checkbox" id="smsNotifications" onchange="saveSettings()">
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="row-text">New Job Alerts</div>
+        <div class="row-sub">Get notified when nearby jobs match your services.</div>
+      </div>
+      <input type="checkbox" id="jobAlerts" checked onchange="saveSettings()">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Trust & Safety</div>
+
+    <div class="row" onclick="goTo('worker-disputes.html')">
+      <div>
+        <div class="row-text">Dispute Center</div>
+        <div class="row-sub">View or respond to job-related disputes.</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+
+    <div class="row" onclick="goTo('worker-blocked-customers.html')">
+      <div>
+        <div class="row-text">Blocked Customers</div>
+        <div class="row-sub">Manage customers you do not want to work with again.</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">How TaskMint Works for Workers</div>
+
+    <button class="faq-question" onclick="toggleFAQ(this)">How do I get jobs?</button>
+    <div class="faq-answer">Browse available tasks, send a quote, and wait for the customer to accept. Once accepted and approved, the job moves into your active jobs.</div>
+
+    <button class="faq-question" onclick="toggleFAQ(this)">When do I get paid?</button>
+    <div class="faq-answer">Payment is released after the task is completed and confirmed. TaskMint may hold funds briefly for disputes, payout verification, or fraud prevention.</div>
+
+    <button class="faq-question" onclick="toggleFAQ(this)">Can I cancel a quote?</button>
+    <div class="faq-answer">Yes. Pending quotes can be canceled before the customer accepts them. Accepted jobs may require a cancellation or reschedule process.</div>
+
+    <button class="faq-question" onclick="toggleFAQ(this)">Can I change the scheduled time?</button>
+    <div class="faq-answer">Yes. Either the worker or customer can request a schedule change, but the other party must approve before the calendar is updated.</div>
+
+    <button class="faq-question" onclick="toggleFAQ(this)">Why do customers get a code?</button>
+    <div class="faq-answer">The arrival code confirms that you arrived at the job location. Ask the customer for the code when you arrive and enter it in My Jobs.</div>
+
+    <button class="faq-question" onclick="toggleFAQ(this)">What happens if a customer cancels late?</button>
+    <div class="faq-answer">TaskMint may charge a cancellation fee depending on how close the cancellation is to the scheduled job date. Part of that fee may compensate the worker for blocked time.</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Legal & Support</div>
+
+    <div class="row" onclick="goTo('worker-support.html')">
+      <div>
+        <div class="row-text">Contact Support</div>
+        <div class="row-sub">Get help with jobs, payments, disputes, or account issues.</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+
+    <div class="row" onclick="goTo('worker-terms.html')">
+      <div>
+        <div class="row-text">Terms & Worker Agreement</div>
+        <div class="row-sub">Review TaskMint worker terms and policies.</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Danger Zone</div>
+
+    <button class="secondary" onclick="deactivateWorkerProfile()">Deactivate Worker Profile</button>
+    <button class="danger" onclick="logout()">Log Out</button>
+
+    <div class="status" id="statusMessage"></div>
+  </div>
+
+</div>
+
+<script>
+const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+);
+
+let currentUser = null;
+
+async function loadSettings() {
+  const { data } = await supabaseClient.auth.getUser();
+
+  if (!data || !data.user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  currentUser = data.user;
+
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("pause_mode, profile_visible, email_notifications, sms_notifications, job_alerts")
+    .eq("id", currentUser.id)
+    .maybeSingle();
+
+  if (!profile) return;
+
+  document.getElementById("pauseMode").checked =
+    profile.pause_mode === true;
+
+  document.getElementById("profileVisible").checked =
+    profile.profile_visible !== false;
+
+  document.getElementById("emailNotifications").checked =
+    profile.email_notifications !== false;
+
+  document.getElementById("smsNotifications").checked =
+    profile.sms_notifications === true;
+
+  document.getElementById("jobAlerts").checked =
+    profile.job_alerts !== false;
+}
+
+async function saveSettings() {
+  if (!currentUser) return;
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .upsert({
+      id: currentUser.id,
+      email: currentUser.email,
+      pause_mode: document.getElementById("pauseMode").checked,
+      profile_visible: document.getElementById("profileVisible").checked,
+      email_notifications: document.getElementById("emailNotifications").checked,
+      sms_notifications: document.getElementById("smsNotifications").checked,
+      job_alerts: document.getElementById("jobAlerts").checked,
+      account_type: "worker"
+    });
+
+  const status = document.getElementById("statusMessage");
+
+  if (error) {
+    status.style.color = "#b00020";
+    status.innerText = "Error saving settings.";
+    return;
+  }
+
+  status.style.color = "#0b7a28";
+  status.innerText = "Settings saved.";
+}
+
+function toggleFAQ(button) {
+  const answer = button.nextElementSibling;
+  answer.style.display =
+    answer.style.display === "block" ? "none" : "block";
+}
+
+function goTo(page) {
+  window.location.href = page;
+}
+
+async function deactivateWorkerProfile() {
+  const confirmDeactivate = confirm(
+    "Deactivate your worker profile? Customers will not be able to send you new job requests."
+  );
+
+  if (!confirmDeactivate) return;
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .update({
+      pause_mode: true,
+      profile_visible: false
+    })
+    .eq("id", currentUser.id);
+
+  if (error) {
+    alert("Error deactivating profile.");
+    return;
+  }
+
+  alert("Worker profile deactivated.");
+  loadSettings();
+}
+
+async function logout() {
+  await supabaseClient.auth.signOut();
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+
+loadSettings();
+</script>
+
+</body>
+</html>

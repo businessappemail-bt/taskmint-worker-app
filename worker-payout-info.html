@@ -105,9 +105,9 @@
         Payout Status
       </div>
 
-      <div class="status-text" id="payoutStatus">
-        No payout method connected yet.
-      </div>
+     <div class="status-text" id="payoutStatus">
+  Checking payout status...
+</div>
 
     </div>
 
@@ -131,7 +131,25 @@
 </div>
 
 <script>
+async function loadPayoutStatus() {
 
+  const stripeAccountId =
+    localStorage.getItem("stripeAccountId");
+
+  if (!stripeAccountId) {
+
+    document.getElementById("payoutStatus").innerText =
+      "No payout method connected yet.";
+
+    return;
+  }
+
+  document.getElementById("payoutStatus").innerText =
+    "Payout setup connected.";
+
+}
+
+  
 async function startStripePayoutSetup() {
 
   try {
@@ -160,6 +178,11 @@ async function startStripePayoutSetup() {
       return;
     }
 
+localStorage.setItem(
+  "stripeAccountId",
+  data.stripeAccountId
+);
+    
     window.location.href =
       data.url;
 
@@ -172,7 +195,7 @@ async function startStripePayoutSetup() {
   }
 
 }
-
+loadPayoutStatus();
 </script>
 
 </body>

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Verification Status - TaskMint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:#f5f5f5;
+      color:#111;
+      padding-bottom:60px;
+    }
+
+    .container {
+      max-width:420px;
+      margin:0 auto;
+      padding:20px;
+    }
+
+    .back {
+      color:#0b7a28;
+      font-weight:bold;
+      text-decoration:none;
+      display:inline-block;
+      margin-bottom:18px;
+    }
+
+    h1 {
+      text-align:center;
+      color:#0b7a28;
+      margin-bottom:18px;
+    }
+
+    .card {
+      background:white;
+      border-radius:14px;
+      padding:18px;
+      margin-bottom:16px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .section-title {
+      font-size:18px;
+      font-weight:bold;
+      margin-bottom:12px;
+    }
+
+    .verify-row {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:14px 0;
+      border-bottom:1px solid #eee;
+    }
+
+    .verify-row:last-child {
+      border-bottom:none;
+    }
+
+    .verify-title {
+      font-weight:bold;
+      font-size:15px;
+    }
+
+    .verify-sub {
+      font-size:13px;
+      color:#666;
+      margin-top:4px;
+      line-height:1.4;
+    }
+
+    .status {
+      font-size:13px;
+      font-weight:bold;
+      padding:6px 10px;
+      border-radius:999px;
+    }
+
+    .complete {
+      background:#e7f7ec;
+      color:#0b7a28;
+    }
+
+    .incomplete {
+      background:#fff4e5;
+      color:#a15c00;
+    }
+
+    .danger {
+      background:#ffe5e5;
+      color:#b00020;
+    }
+
+    button {
+      width:100%;
+      padding:14px;
+      margin-top:12px;
+      border:none;
+      border-radius:10px;
+      background:#0b7a28;
+      color:white;
+      font-size:15px;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    .secondary {
+      background:white;
+      color:#111;
+      border:1px solid #ddd;
+    }
+
+    .note {
+      font-size:13px;
+      color:#666;
+      line-height:1.5;
+      margin-top:10px;
+    }
+
+    .upload-preview {
+      width:90px;
+      height:90px;
+      object-fit:cover;
+      border-radius:10px;
+      margin-top:10px;
+      border:1px solid #ddd;
+      display:none;
+    }
+
+    .status-message {
+      text-align:center;
+      margin-top:10px;
+      font-size:14px;
+      font-weight:bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <a class="back" href="worker-settings.html">
+    ← Back to Settings
+  </a>
+
+  <h1>Verification Status</h1>
+
+  <div class="card">
+
+    <div class="section-title">
+      Worker Verification
+    </div>
+
+    <div class="verify-row">
+      <div>
+        <div class="verify-title">Profile Photo</div>
+        <div class="verify-sub">
+          Upload a clear profile picture customers can recognize.
+        </div>
+      </div>
+
+      <div id="photoStatus" class="status incomplete">
+        Incomplete
+      </div>
+    </div>
+
+    <div class="verify-row">
+      <div>
+        <div class="verify-title">Experience Description</div>
+        <div class="verify-sub">
+          Tell customers about your work experience and skills.
+        </div>
+      </div>
+
+      <div id="experienceStatus" class="status incomplete">
+        Incomplete
+      </div>
+    </div>
+
+    <div class="verify-row">
+      <div>
+        <div class="verify-title">Service Area</div>
+        <div class="verify-sub">
+          Set the cities or areas where you accept jobs.
+        </div>
+      </div>
+
+      <div id="serviceAreaStatus" class="status incomplete">
+        Incomplete
+      </div>
+    </div>
+
+    <div class="verify-row">
+      <div>
+        <div class="verify-title">Government ID</div>
+        <div class="verify-sub">
+          Upload a valid ID for account verification and fraud prevention.
+        </div>
+      </div>
+
+      <div id="idStatus" class="status incomplete">
+        Incomplete
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <div class="section-title">
+      Upload Government ID
+    </div>
+
+    <input
+      type="file"
+      id="idUpload"
+      accept="image/*"
+      onchange="uploadGovernmentId(event)"
+    >
+
+    <img
+      id="idPreview"
+      class="upload-preview"
+    >
+
+    <div class="note">
+      Accepted IDs include driver's licenses, state IDs, and passports. Information is used only for verification and fraud prevention.
+    </div>
+
+    <div class="status-message" id="uploadStatus"></div>
+
+  </div>
+
+  <div class="card">
+
+    <div class="section-title">
+      Account Approval
+    </div>
+
+    <div class="note">
+      Workers must complete profile setup and ID verification before sending quotes and receiving payouts.
+    </div>
+
+    <button onclick="window.location.href='worker-profile-edit.html'">
+      Complete Worker Profile
+    </button>
+
+    <button class="secondary"
+      onclick="window.location.href='worker-dashboard.html'">
+      Back to Dashboard
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+);
+
+let currentUser = null;
+
+async function loadVerificationStatus() {
+
+  const { data } =
+    await supabaseClient.auth.getUser();
+
+  if (!data || !data.user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  currentUser = data.user;
+
+  const { data: profile } =
+    await supabaseClient
+      .from("profiles")
+      .select(`
+        profile_photo_url,
+        experience,
+        service_area,
+        government_id_url
+      `)
+      .eq("id", currentUser.id)
+      .maybeSingle();
+
+  if (!profile) return;
+
+  if (
+    profile.profile_photo_url &&
+    profile.profile_photo_url.trim() !== ""
+  ) {
+    setComplete("photoStatus");
+  }
+
+  if (
+    profile.experience &&
+    profile.experience.trim() !== ""
+  ) {
+    setComplete("experienceStatus");
+  }
+
+  if (
+    profile.service_area &&
+    profile.service_area.trim() !== ""
+  ) {
+    setComplete("serviceAreaStatus");
+  }
+
+  if (
+    profile.government_id_url &&
+    profile.government_id_url.trim() !== ""
+  ) {
+    setComplete("idStatus");
+
+    document.getElementById("idPreview").style.display =
+      "block";
+
+    document.getElementById("idPreview").src =
+      profile.government_id_url;
+  }
+
+}
+
+function setComplete(id) {
+
+  const element =
+    document.getElementById(id);
+
+  element.classList.remove("incomplete");
+
+  element.classList.add("complete");
+
+  element.innerText = "Verified";
+
+}
+
+async function uploadGovernmentId(event) {
+
+  const file =
+    event.target.files[0];
+
+  if (!file || !currentUser) {
+    return;
+  }
+
+  const fileExt =
+    file.name.split(".").pop();
+
+  const filePath =
+    `government-ids/${currentUser.id}-${Date.now()}.${fileExt}`;
+
+  const uploadStatus =
+    document.getElementById("uploadStatus");
+
+  uploadStatus.style.color =
+    "#111";
+
+  uploadStatus.innerText =
+    "Uploading ID...";
+
+  const { error: uploadError } =
+    await supabaseClient.storage
+      .from("worker-verification")
+      .upload(filePath, file);
+
+  if (uploadError) {
+
+    console.error(uploadError);
+
+    uploadStatus.style.color =
+      "#b00020";
+
+    uploadStatus.innerText =
+      "Error uploading ID.";
+
+    return;
+  }
+
+  const { data } =
+    supabaseClient.storage
+      .from("worker-verification")
+      .getPublicUrl(filePath);
+
+  const publicUrl =
+    data.publicUrl;
+
+  document.getElementById("idPreview").src =
+    publicUrl;
+
+  document.getElementById("idPreview").style.display =
+    "block";
+
+  const { error: updateError } =
+    await supabaseClient
+      .from("profiles")
+      .upsert({
+        id: currentUser.id,
+        email: currentUser.email,
+        government_id_url: publicUrl,
+        account_type: "worker"
+      });
+
+  if (updateError) {
+
+    console.error(updateError);
+
+    uploadStatus.style.color =
+      "#b00020";
+
+    uploadStatus.innerText =
+      "ID uploaded but failed to save.";
+
+    return;
+  }
+
+  setComplete("idStatus");
+
+  uploadStatus.style.color =
+    "#0b7a28";
+
+  uploadStatus.innerText =
+    "Government ID uploaded successfully.";
+
+}
+
+loadVerificationStatus();
+</script>
+
+</body>
+</html>

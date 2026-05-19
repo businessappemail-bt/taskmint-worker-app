@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ratings & Reviews - TaskMint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body { margin:0; font-family:Arial, sans-serif; background:#f5f5f5; color:#111; }
+    .container { max-width:420px; margin:0 auto; padding:20px; }
+    .back { color:#0b7a28; font-weight:bold; text-decoration:none; display:inline-block; margin-bottom:18px; }
+    h1 { text-align:center; color:#0b7a28; margin-bottom:18px; }
+    .card { background:white; border-radius:14px; padding:18px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+    .section-title { font-size:18px; font-weight:bold; margin-bottom:12px; }
+    .rating-main { font-size:36px; font-weight:bold; color:#0b7a28; text-align:center; }
+    .rating-sub { text-align:center; color:#666; font-size:14px; margin-top:4px; }
+    .breakdown-row { display:flex; align-items:center; gap:8px; margin:8px 0; font-size:14px; }
+    .bar-bg { flex:1; height:8px; background:#eee; border-radius:8px; overflow:hidden; }
+    .bar-fill { height:100%; background:#0b7a28; }
+    .review-header { display:flex; gap:12px; align-items:center; margin-bottom:10px; }
+    .customer-pic { width:46px; height:46px; border-radius:50%; object-fit:cover; background:#ddd; }
+    .customer-name { font-weight:bold; }
+    .review-meta { color:#666; font-size:13px; margin-top:2px; }
+    .stars { color:#0b7a28; font-weight:bold; margin:8px 0; }
+    .review-text { font-size:14px; line-height:1.5; color:#333; }
+    .worker-response { background:#f0f8f2; border-left:4px solid #0b7a28; padding:10px; border-radius:8px; margin-top:12px; font-size:14px; }
+    textarea { width:100%; box-sizing:border-box; padding:12px; border:1px solid #ddd; border-radius:10px; font-family:Arial; min-height:80px; margin-top:10px; }
+    button { width:100%; padding:13px; margin-top:10px; border:none; border-radius:10px; background:#0b7a28; color:white; font-weight:bold; font-size:15px; cursor:pointer; }
+    .empty { text-align:center; color:#666; padding:20px; }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <a class="back" href="worker-dashboard.html">← Back to Dashboard</a>
+
+  <h1>Ratings & Reviews</h1>
+
+  <div class="card">
+    <div class="section-title">Overall Rating</div>
+    <div class="rating-main" id="averageRating">0.0</div>
+    <div class="rating-sub" id="reviewCount">0 reviews</div>
+
+    <div id="ratingBreakdown"></div>
+  </div>
+
+  <div id="reviewsList">
+    <div class="card empty">Loading reviews...</div>
+  </div>
+</div>
+
+<script>
+const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+);
+
+let currentUser = null;
+
+const blockedWords = [
+  "fuck", "shit", "bitch", "asshole", "damn", "cunt", "nigga", "nigger"
+];
+
+async function loadReviewsPage() {
+  const { data: userData } = await supabaseClient.auth.getUser();
+
+  if (!userData || !userData.user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  currentUser = userData.user;
+
+  const { data: workerProfile, error: workerError } = await supabaseClient
+    .from("profiles")
+    .select("id")
+    .eq("email", currentUser.email)
+    .maybeSingle();
+
+  if (workerError || !workerProfile) {
+    document.getElementById("reviewsList").innerHTML =
+      `<div class="card empty">Worker profile not found.</div>`;
+    return;
+  }
+
+  const { data: reviews, error } = await supabaseClient
+    .from("reviews")
+    .select("*")
+    .eq("worker_id", workerProfile.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    document.getElementById("reviewsList").innerHTML =
+      `<div class="card empty">Error loading reviews.</div>`;
+    return;
+  }
+
+  renderRatingSummary(reviews || []);
+  await renderReviews(reviews || []);
+}
+
+function renderRatingSummary(reviews) {
+  if (!reviews.length) {
+    document.getElementById("averageRating").innerText = "0.0";
+    document.getElementById("reviewCount").innerText = "0 reviews";
+    document.getElementById("ratingBreakdown").innerHTML = "";
+    return;
+  }
+
+  let total = 0;
+  const counts = { 1:0, 2:0, 3:0, 4:0, 5:0 };
+
+  reviews.forEach(review => {
+    const rating = Number(review.rating || 0);
+    total += rating;
+    if (counts[rating] !== undefined) counts[rating]++;
+  });
+
+  const average = total / reviews.length;
+
+  document.getElementById("averageRating").innerText = average.toFixed(1);
+  document.getElementById("reviewCount").innerText =
+    `${reviews.length} review${reviews.length === 1 ? "" : "s"}`;
+
+  let html = "";
+
+  [5,4,3,2,1].forEach(star => {
+    const percent = reviews.length ? (counts[star] / reviews.length) * 100 : 0;
+
+    html += `
+      <div class="breakdown-row">
+        <span>${star}★</span>
+        <div class="bar-bg">
+          <div class="bar-fill" style="width:${percent}%"></div>
+        </div>
+        <span>${counts[star]}</span>
+      </div>
+    `;
+  });
+
+  document.getElementById("ratingBreakdown").innerHTML = html;
+}
+
+async function renderReviews(reviews) {
+  const container = document.getElementById("reviewsList");
+
+  if (!reviews.length) {
+    container.innerHTML = `<div class="card empty">No reviews yet.</div>`;
+    return;
+  }
+
+  container.innerHTML = "";
+
+  for (const review of reviews) {
+    const customer = await getCustomerProfile(review.customer_id);
+    const task = await getTaskInfo(review.task_id);
+
+    const customerName = formatCustomerName(customer);
+    const customerPhoto = customer?.profile_photo_url || "Taskmintlogo.png";
+    const reviewDate = review.created_at
+      ? new Date(review.created_at).toLocaleDateString()
+      : "Date unavailable";
+
+    const jobType = task?.category || task?.title || "Task";
+
+    const responseArea = review.worker_response
+      ? `
+        <div class="worker-response">
+          <strong>Worker Response:</strong><br>
+          ${review.worker_response}
+        </div>
+      `
+      : `
+        <textarea id="response-${review.id}" maxlength="500" placeholder="Write a public response to this review..."></textarea>
+        <button onclick="submitWorkerResponse('${review.id}')">
+          Submit Response
+        </button>
+      `;
+
+    container.innerHTML += `
+      <div class="card">
+        <div class="review-header">
+          <img class="customer-pic" src="${customerPhoto}">
+          <div>
+            <div class="customer-name">${customerName}</div>
+            <div class="review-meta">${reviewDate} • ${jobType}</div>
+          </div>
+        </div>
+
+        <div class="stars">${renderStars(review.rating)} (${review.rating}/5)</div>
+
+        <div class="review-text">
+          ${review.review_text || ""}
+        </div>
+
+        ${responseArea}
+      </div>
+    `;
+  }
+}
+
+async function getCustomerProfile(customerId) {
+  if (!customerId) return null;
+
+  const { data } = await supabaseClient
+    .from("profiles")
+    .select("first_name, last_name, full_name, profile_photo_url")
+    .eq("id", customerId)
+    .maybeSingle();
+
+  return data;
+}
+
+async function getTaskInfo(taskId) {
+  if (!taskId) return null;
+
+  const { data } = await supabaseClient
+    .from("tasks")
+    .select("title, category")
+    .eq("id", taskId)
+    .maybeSingle();
+
+  return data;
+}
+
+function formatCustomerName(customer) {
+  if (!customer) return "Customer";
+
+  if (customer.first_name && customer.last_name) {
+    return `${customer.first_name} ${customer.last_name.charAt(0)}.`;
+  }
+
+  if (customer.full_name) {
+    const parts = customer.full_name.trim().split(" ");
+    const first = parts[0] || "Customer";
+    const lastInitial = parts[1] ? parts[1].charAt(0) + "." : "";
+    return `${first} ${lastInitial}`;
+  }
+
+  return "Customer";
+}
+
+function renderStars(rating) {
+  const count = Number(rating || 0);
+  let stars = "";
+
+  for (let i = 1; i <= 5; i++) {
+    stars += i <= count ? "★" : "☆";
+  }
+
+  return stars;
+}
+
+function containsBlockedWords(text) {
+  const lower = text.toLowerCase();
+
+  return blockedWords.some(word =>
+    lower.includes(word)
+  );
+}
+
+async function submitWorkerResponse(reviewId) {
+  const textarea = document.getElementById(`response-${reviewId}`);
+  const response = textarea.value.trim();
+
+  if (response.length < 5) {
+    alert("Response must be at least 5 characters.");
+    return;
+  }
+
+  if (containsBlockedWords(response)) {
+    alert("Please remove inappropriate language before submitting.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("reviews")
+    .update({
+      worker_response: response,
+      worker_responded_at: new Date().toISOString()
+    })
+    .eq("id", reviewId)
+    .is("worker_response", null);
+
+  if (error) {
+    alert("Unable to submit response. You may have already responded.");
+    return;
+  }
+
+  alert("Response submitted.");
+  loadReviewsPage();
+}
+
+loadReviewsPage();
+</script>
+
+</body>
+</html>

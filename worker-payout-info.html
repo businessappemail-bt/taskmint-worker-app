@@ -144,8 +144,9 @@ async function startStripePayoutSetup() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          email: "worker@test.com"
-        })
+  email: "worker@test.com",
+  stripeAccountId: null
+})
       }
     );
 

@@ -1,11 +1,52 @@
 <div class="card">
-  <div class="section-title">Worker Help</div>
 
-  <div class="row" onclick="goTo('worker-how-taskmint-works.html')">
-    <div>
-      <div class="row-text">How TaskMint Works for Workers</div>
-      <div class="row-sub">Read worker FAQs about quotes, jobs, payments, schedules, cancellations, and disputes.</div>
-    </div>
-    <div class="arrow">›</div>
+  <div class="section-title">
+    Worker Help
   </div>
+
+  <button class="faq-question"
+    onclick="toggleFAQ(this)">
+    How do I get jobs?
+  </button>
+
+  <div class="faq-answer">
+    Browse open tasks, submit quotes, and wait for the customer to accept your offer. Once accepted, the task moves into your active jobs.
+  </div>
+
+  <button class="faq-question"
+    onclick="toggleFAQ(this)">
+    When do I get paid?
+  </button>
+
+  <div class="faq-answer">
+    Payments are released after the customer confirms the task is complete. Some payouts may be delayed briefly for fraud prevention or disputes.
+  </div>
+
+  <button class="faq-question"
+    onclick="toggleFAQ(this)">
+    Can I change a scheduled job time?
+  </button>
+
+  <div class="faq-answer">
+    Yes. Either the customer or worker can request a reschedule, but both parties must approve the change.
+  </div>
+
+  <button class="faq-question"
+    onclick="toggleFAQ(this)">
+    Why do customers have an arrival code?
+  </button>
+
+  <div class="faq-answer">
+    The arrival code helps confirm the worker arrived at the correct location before work begins.
+  </div>
+
+  <button class="faq-question"
+    onclick="toggleFAQ(this)">
+    What happens if there is a dispute?
+  </button>
+
+  <div class="faq-answer">
+    TaskMint may temporarily hold payment while reviewing messages, photos, timestamps, and other job evidence from both parties.
+  </div>
+
 </div>

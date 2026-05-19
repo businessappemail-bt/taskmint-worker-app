@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tax Center - TaskMint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body { margin:0; font-family:Arial, sans-serif; background:#f5f5f5; color:#111; }
+    .container { max-width:420px; margin:0 auto; padding:20px; }
+    .back { color:#0b7a28; font-weight:bold; text-decoration:none; display:inline-block; margin-bottom:18px; }
+    h1 { text-align:center; color:#0b7a28; margin-bottom:18px; }
+    .card { background:white; border-radius:14px; padding:18px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+    .section-title { font-size:18px; font-weight:bold; margin-bottom:12px; }
+    .row { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid #eee; padding:10px 0; font-size:14px; }
+    .row:last-child { border-bottom:none; }
+    .label { color:#555; }
+    .value { font-weight:bold; text-align:right; }
+    .status-good { color:#0b7a28; font-weight:bold; }
+    .status-warning { color:#b36b00; font-weight:bold; }
+    .note { font-size:13px; color:#666; line-height:1.5; margin-top:10px; }
+    button { width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; background:#0b7a28; color:white; font-size:15px; font-weight:bold; cursor:pointer; }
+    button.disabled { background:#999; cursor:not-allowed; }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <a class="back" href="worker-dashboard.html">← Back to Dashboard</a>
+
+  <h1>Tax Center</h1>
+
+  <div class="card">
+    <div class="section-title">Tax Status</div>
+
+    <div class="row">
+      <div class="label">Worker Type</div>
+      <div class="value">Independent Contractor</div>
+    </div>
+
+    <div class="row">
+      <div class="label">W-9 Status</div>
+      <div class="value" id="w9Status">Checking...</div>
+    </div>
+
+    <div class="row">
+      <div class="label">Payout Setup</div>
+      <div class="value" id="payoutStatus">Checking...</div>
+    </div>
+
+    <div class="note">
+      TaskMint workers are responsible for their own tax filings and estimated taxes.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Yearly Earnings</div>
+
+    <div class="row">
+      <div class="label">Tax Year</div>
+      <div class="value" id="taxYear"></div>
+    </div>
+
+    <div class="row">
+      <div class="label">Gross Earnings</div>
+      <div class="value" id="grossEarnings">$0.00</div>
+    </div>
+
+    <div class="row">
+      <div class="label">Estimated TaskMint Fees</div>
+      <div class="value" id="platformFees">$0.00</div>
+    </div>
+
+    <div class="row">
+      <div class="label">Estimated Net Payout</div>
+      <div class="value" id="netPayout">$0.00</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Tax Documents</div>
+
+    <div id="taxDocuments">
+      Loading tax documents...
+    </div>
+
+    <div class="note">
+      1099 forms are usually available after the end of the tax year if earnings meet reporting requirements.
+    </div>
+  </div>
+
+</div>
+
+<script>
+const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+);
+
+let currentUser = null;
+
+async function loadTaxCenter() {
+  const year = new Date().getFullYear();
+  document.getElementById("taxYear").innerText = year;
+
+  const { data: userData } = await supabaseClient.auth.getUser();
+
+  if (!userData || !userData.user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  currentUser = userData.user;
+
+  await loadTaxStatus();
+  await loadEarnings();
+  await loadTaxDocuments();
+}
+
+async function loadTaxStatus() {
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("tax_status")
+    .eq("id", currentUser.id)
+    .maybeSingle();
+
+  document.getElementById("w9Status").innerHTML =
+    profile && profile.tax_status === "verified"
+      ? "<span class='status-good'>Verified</span>"
+      : "<span class='status-warning'>Not Completed</span>";
+
+  const { data: payout } = await supabaseClient
+    .from("worker_payouts")
+    .select("payout_status")
+    .eq("email", currentUser.email)
+    .maybeSingle();
+
+  document.getElementById("payoutStatus").innerHTML =
+    payout && payout.payout_status === "verified"
+      ? "<span class='status-good'>Verified</span>"
+      : "<span class='status-warning'>Not Completed</span>";
+}
+
+async function loadEarnings() {
+  const { data: quotes } = await supabaseClient
+    .from("worker_quotes")
+    .select("quote_amount, status")
+    .eq("worker_id", currentUser.id)
+    .in("status", ["paid", "completed"]);
+
+  let gross = 0;
+
+  if (quotes && quotes.length > 0) {
+    quotes.forEach(q => {
+      gross += Number(q.quote_amount || 0);
+    });
+  }
+
+  const fee = gross * 0.15;
+  const net = gross - fee;
+
+  document.getElementById("grossEarnings").innerText =
+    "$" + gross.toFixed(2);
+
+  document.getElementById("platformFees").innerText =
+    "$" + fee.toFixed(2);
+
+  document.getElementById("netPayout").innerText =
+    "$" + net.toFixed(2);
+}
+
+async function loadTaxDocuments() {
+  const container = document.getElementById("taxDocuments");
+
+  const { data: docs, error } = await supabaseClient
+    .from("worker_tax_documents")
+    .select("*")
+    .eq("worker_id", currentUser.id)
+    .order("tax_year", { ascending: false });
+
+  if (error || !docs || docs.length === 0) {
+    container.innerHTML = `
+      <div class="note">
+        No tax documents are available yet.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = "";
+
+  docs.forEach(doc => {
+    container.innerHTML += `
+      <div class="row">
+        <div>
+          <strong>${doc.document_type || "Tax Document"}</strong><br>
+          <span class="label">${doc.tax_year || ""}</span>
+        </div>
+
+        <button onclick="window.location.href='${doc.document_url}'">
+          Download
+        </button>
+      </div>
+    `;
+  });
+}
+
+loadTaxCenter();
+</script>
+
+</body>
+</html>

@@ -368,7 +368,7 @@ async function uploadGovernmentId(event) {
 
   const { error: uploadError } =
     await supabaseClient.storage
-      .from("worker-verification")
+      .from("worker-ids")
       .upload(filePath, file);
 
   if (uploadError) {
@@ -386,7 +386,7 @@ async function uploadGovernmentId(event) {
 
   const { data } =
     supabaseClient.storage
-      .from("worker-verification")
+      .from("worker-ids")
       .getPublicUrl(filePath);
 
   const publicUrl =

@@ -65,26 +65,18 @@
       animation:fadeUp 0.5s ease;
     }
 
-    .logo-circle{
-  width:110px;
-  height:110px;
-  border-radius:50%;
-  background:white;
-  margin:0 auto 18px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:
-    0 10px 24px rgba(0,0,0,0.14);
-  border:4px solid #0b7a28;
-  overflow:hidden;
-}
+    .taskmint-logo{
+      width:290px;
+      max-width:100%;
+      object-fit:contain;
+      margin:0 auto 14px;
+      display:block;
 
-.logo-img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
+      filter:
+        drop-shadow(
+          0 8px 18px rgba(0,0,0,0.14)
+        );
+    }
 
     .welcome-text{
       font-size:28px;
@@ -318,15 +310,11 @@
 
   <div class="hero">
 
-   <div class="logo-circle">
-
-  <img
-    src="taskmintlogo.png"
-    class="logo-img"
-    alt="TaskMint Logo"
-  >
-
-</div>
+    <img
+      src="taskmintlogo.png"
+      class="taskmint-logo"
+      alt="TaskMint Logo"
+    >
 
     <div class="welcome-text">
       Worker Portal

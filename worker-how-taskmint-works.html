@@ -1,223 +1,380 @@
-<style>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>How TaskMint Works for Workers</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-.worker-help-card{
-  background:white;
-  border-radius:14px;
-  padding:18px;
-  margin-bottom:16px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #111;
+      padding-bottom: 70px;
+    }
 
-.section-title{
-  font-size:20px;
-  font-weight:bold;
-  margin-bottom:14px;
-  color:#111;
-}
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 20px;
+    }
 
-.faq-item{
-  border-bottom:1px solid #eee;
-}
+    .back {
+      color: #0b7a28;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 18px;
+      font-size: 15px;
+    }
 
-.faq-item:last-child{
-  border-bottom:none;
-}
+    .hero-card {
+      background: linear-gradient(135deg, #0b7a28, #159447);
+      color: white;
+      border-radius: 22px;
+      padding: 24px 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.16);
+      text-align: center;
+      animation: slideUp 0.45s ease;
+    }
 
-.faq-question{
-  width:100%;
-  background:white;
-  border:none;
-  padding:18px 0;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  color:#111;
-  font-size:17px;
-  font-weight:600;
-  cursor:pointer;
-  text-align:left;
-}
+    .hero-icon {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      background: white;
+      color: #0b7a28;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: bold;
+      margin: 0 auto 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.16);
+    }
 
-.faq-icon{
-  color:#0b7a28;
-  font-size:28px;
-  font-weight:bold;
-  min-width:25px;
-  text-align:right;
-}
+    h1 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.2;
+    }
 
-.faq-answer{
-  display:none;
-  padding:0 0 18px;
-  color:#555;
-  font-size:15px;
-  line-height:1.6;
-}
+    .hero-text {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-top: 10px;
+      opacity: 0.95;
+    }
 
-</style>
+    .search-card {
+      background: white;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      animation: slideUp 0.55s ease;
+    }
 
-<div class="card worker-help-card">
+    .search-box {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+      font-family: Arial, sans-serif;
+      outline: none;
+    }
 
-  <div class="section-title">
-    Worker Help
-  </div>
+    .search-box:focus {
+      border-color: #0b7a28;
+      box-shadow: 0 0 0 3px rgba(11,122,40,0.12);
+    }
 
-  <div class="faq-item">
+    .worker-help-card {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      animation: slideUp 0.65s ease;
+    }
 
-    <button class="faq-question"
-      onclick="toggleFAQ(this)">
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 14px;
+      color: #111;
+    }
 
-      <span>
-        How do I get jobs?
-      </span>
+    .faq-item {
+      border-bottom: 1px solid #eee;
+    }
 
-      <span class="faq-icon">
-        +
-      </span>
+    .faq-item:last-child {
+      border-bottom: none;
+    }
 
-    </button>
+    .faq-question {
+      width: 100%;
+      background: white;
+      border: none;
+      padding: 18px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #111;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: left;
+      font-family: Arial, sans-serif;
+    }
 
-    <div class="faq-answer">
+    .faq-question span:first-child {
+      padding-right: 12px;
+      line-height: 1.35;
+    }
 
-      Browse open tasks, submit quotes,
-      and wait for the customer to accept
-      your offer. Once accepted, the task
-      moves into your active jobs.
+    .faq-icon {
+      color: #0b7a28;
+      font-size: 28px;
+      font-weight: bold;
+      min-width: 25px;
+      text-align: right;
+      transition: transform 0.25s ease;
+    }
 
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      color: #555;
+      font-size: 15px;
+      line-height: 1.6;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      padding: 0;
+    }
+
+    .faq-answer.open {
+      max-height: 300px;
+      padding: 0 0 18px;
+    }
+
+    .faq-item.active .faq-icon {
+      transform: rotate(180deg);
+    }
+
+    .no-results {
+      display: none;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      padding: 18px;
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <a class="back" href="worker-settings.html">
+    ← Back to Settings
+  </a>
+
+  <div class="hero-card">
+
+    <div class="hero-icon">
+      ?
+    </div>
+
+    <h1>
+      How TaskMint Works for Workers
+    </h1>
+
+    <div class="hero-text">
+      Search common worker questions about jobs, quotes, payouts, arrival codes, disputes, scheduling, and ratings.
     </div>
 
   </div>
 
-  <div class="faq-item">
+  <div class="search-card">
+    <input
+      id="faqSearch"
+      class="search-box"
+      type="text"
+      placeholder="Search worker questions..."
+      oninput="searchFAQs()"
+    >
+  </div>
 
-    <button class="faq-question"
-      onclick="toggleFAQ(this)">
+  <div class="worker-help-card" id="faqList">
 
-      <span>
-        When do I get paid?
-      </span>
+    <div class="section-title">
+      Worker FAQ
+    </div>
 
-      <span class="faq-icon">
-        +
-      </span>
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>How do I get jobs?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        Browse open tasks, submit quotes, and wait for the customer to accept your offer. Once accepted, the task moves into your active jobs.
+      </div>
+    </div>
 
-    </button>
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>When do I get paid?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        Payments are released after the customer confirms the task is complete. Some payouts may be delayed briefly for fraud prevention, payment processing, or disputes.
+      </div>
+    </div>
 
-    <div class="faq-answer">
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>Can I change a scheduled job time?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        Yes. Either the customer or worker can request a reschedule, but both parties must approve the change before the schedule updates.
+      </div>
+    </div>
 
-      Payments are released after the
-      customer confirms the task is complete.
-      Some payouts may be delayed briefly
-      for fraud prevention or disputes.
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>Why do customers have an arrival code?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        The arrival code confirms you arrived before work begins and helps protect workers from false claims that they never showed up.
+      </div>
+    </div>
 
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>What happens if there is a dispute?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        TaskMint may temporarily hold payment while reviewing messages, timestamps, photos, location verification, and other evidence from both parties.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>Can I pause my worker profile?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        Yes. Pause Mode hides your worker profile from new job opportunities while keeping your account active.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>How do ratings and reviews work?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        Customers can leave a 1–5 star rating and written review after completed jobs. Workers may publicly respond to a review one time.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>Can customers pay me outside TaskMint?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        No. For safety, dispute protection, and payout tracking, all TaskMint jobs must be paid through the TaskMint platform.
+      </div>
     </div>
 
   </div>
 
-  <div class="faq-item">
-
-    <button class="faq-question"
-      onclick="toggleFAQ(this)">
-
-      <span>
-        Can I change a scheduled job time?
-      </span>
-
-      <span class="faq-icon">
-        +
-      </span>
-
-    </button>
-
-    <div class="faq-answer">
-
-      Yes. Either the customer or worker
-      can request a reschedule, but both
-      parties must approve the change
-      before the schedule updates.
-
-    </div>
-
-  </div>
-
-  <div class="faq-item">
-
-    <button class="faq-question"
-      onclick="toggleFAQ(this)">
-
-      <span>
-        Why do customers have an arrival code?
-      </span>
-
-      <span class="faq-icon">
-        +
-      </span>
-
-    </button>
-
-    <div class="faq-answer">
-
-      The arrival code confirms you arrived
-      before work begins and helps protect
-      workers from false claims that they
-      never showed up.
-
-    </div>
-
-  </div>
-
-  <div class="faq-item">
-
-    <button class="faq-question"
-      onclick="toggleFAQ(this)">
-
-      <span>
-        What happens if there is a dispute?
-      </span>
-
-      <span class="faq-icon">
-        +
-      </span>
-
-    </button>
-
-    <div class="faq-answer">
-
-      TaskMint may temporarily hold payment
-      while reviewing messages, timestamps,
-      photos, location verification,
-      and other evidence from both parties.
-
-    </div>
-
+  <div id="noResults" class="no-results">
+    No matching questions found.
   </div>
 
 </div>
 
 <script>
+function toggleFAQ(button) {
+  const item = button.parentElement;
+  const answer = button.nextElementSibling;
+  const icon = button.querySelector(".faq-icon");
 
-function toggleFAQ(button){
+  const isOpen = answer.classList.contains("open");
 
-  const answer =
-    button.nextElementSibling;
+  document.querySelectorAll(".faq-answer").forEach(answerBox => {
+    answerBox.classList.remove("open");
+  });
 
-  const icon =
-    button.querySelector(".faq-icon");
+  document.querySelectorAll(".faq-icon").forEach(iconBox => {
+    iconBox.innerText = "+";
+  });
 
-  if(answer.style.display === "block"){
+  document.querySelectorAll(".faq-item").forEach(faqItem => {
+    faqItem.classList.remove("active");
+  });
 
-    answer.style.display = "none";
-
-    icon.innerText = "+";
-
-  } else {
-
-    answer.style.display = "block";
-
+  if (!isOpen) {
+    answer.classList.add("open");
     icon.innerText = "−";
-
+    item.classList.add("active");
   }
-
 }
 
+function searchFAQs() {
+  const searchValue =
+    document.getElementById("faqSearch").value.toLowerCase().trim();
+
+  const faqItems =
+    document.querySelectorAll(".faq-item");
+
+  let matches = 0;
+
+  faqItems.forEach(item => {
+    const question =
+      item.querySelector(".faq-question").innerText.toLowerCase();
+
+    const answer =
+      item.querySelector(".faq-answer").innerText.toLowerCase();
+
+    if (
+      question.includes(searchValue) ||
+      answer.includes(searchValue)
+    ) {
+      item.style.display = "block";
+      matches++;
+    } else {
+      item.style.display = "none";
+    }
+  });
+
+  document.getElementById("noResults").style.display =
+    matches === 0 ? "block" : "none";
+}
 </script>
+
+</body>
+</html>

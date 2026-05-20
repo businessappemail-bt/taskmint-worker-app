@@ -514,6 +514,11 @@
       onclick="window.location.href='worker-profile-edit.html'">
       Edit Worker Profile
     </button>
+
+    <button
+  onclick="viewPublicProfile()">
+  View Public Profile
+</button>
  
   </div>
  
@@ -1234,6 +1239,18 @@ function scrollToPendingQuotes() {
  
 }
  
+function viewPublicProfile() {
+
+  localStorage.setItem(
+    "selectedWorkerId",
+    currentWorkerId
+  );
+
+  window.location.href =
+    "worker-public-profile.html";
+
+}
+
 loadDashboard();
  
 </script>

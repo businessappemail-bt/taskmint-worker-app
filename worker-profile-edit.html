@@ -331,6 +331,41 @@
       box-shadow: none;
     }
  
+ 
+    .locked-input {
+      background: #f1f1f1 !important;
+      color: #666 !important;
+      cursor: not-allowed;
+      font-weight: 800;
+    }
+ 
+    .address-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+ 
+    .address-grid .full-row {
+      grid-column: 1 / -1;
+    }
+ 
+    .privacy-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      background: #fff7e6;
+      border: 1px solid #ffd27a;
+      color: #7a4b00;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+ 
+    .section-divider {
+      height: 1px;
+      background: #eeeeee;
+      margin: 16px 0 4px;
+    }
+ 
     #statusMessage,
     #locationStatusMessage,
     #photoStatusMessage {
@@ -455,6 +490,24 @@
     </div>
   </div>
  
+ 
+  <div class="card">
+    <div class="section-title">Legal Name</div>
+ 
+    <label for="legalName">Full Legal Name</label>
+    <input
+      id="legalName"
+      type="text"
+      class="locked-input"
+      disabled
+      placeholder="Legal name"
+    >
+ 
+    <div class="help-text">
+      Your name must match your government-issued ID and cannot be edited here.
+    </div>
+  </div>
+ 
   <div class="card">
     <div class="section-title">Experience & Services</div>
  
@@ -480,28 +533,80 @@
     <div class="pill-row" id="servicesPreview"></div>
   </div>
  
+ 
   <div class="card">
-    <div class="section-title">Service Area</div>
+    <div class="section-title">Service Area & Address</div>
  
     <label for="serviceArea">Primary Service Area</label>
     <input
       id="serviceArea"
       type="text"
       oninput="handleLiveProfileUpdate()"
-      placeholder="Start typing your main work area"
+      placeholder="Douglasville, GA"
     >
+ 
+    <div class="help-text">
+      This is the public service area customers can see on your worker profile.
+    </div>
+ 
+    <div class="section-divider"></div>
+ 
+    <label for="workerAddress">Edit Address</label>
+    <input
+      id="workerAddress"
+      type="text"
+      oninput="handleLiveProfileUpdate()"
+      placeholder="Street address"
+    >
+ 
+    <div class="address-grid">
+      <div>
+        <label for="workerCity">City</label>
+        <input
+          id="workerCity"
+          type="text"
+          oninput="handleLiveProfileUpdate()"
+          placeholder="City"
+        >
+      </div>
+ 
+      <div>
+        <label for="workerState">State</label>
+        <input
+          id="workerState"
+          type="text"
+          oninput="handleLiveProfileUpdate()"
+          placeholder="GA"
+          maxlength="2"
+        >
+      </div>
+ 
+      <div class="full-row">
+        <label for="workerZip">Zip Code</label>
+        <input
+          id="workerZip"
+          type="text"
+          oninput="handleLiveProfileUpdate()"
+          placeholder="Zip code"
+        >
+      </div>
+    </div>
+ 
+    <div class="privacy-box">
+      This address is used to calculate your mileage and nearby job matches. Customers will not see your full home address.
+    </div>
  
     <label for="serviceRadius">Service Radius</label>
     <select id="serviceRadius" onchange="handleLiveProfileUpdate()">
       <option value="">Select radius</option>
-      <option value="10">Within 10 miles</option>
-      <option value="25">Within 25 miles</option>
-      <option value="50">Within 50 miles</option>
-      <option value="75">Within 75 miles</option>
+      <option value="10">Within 10 miles of my saved address</option>
+      <option value="25">Within 25 miles of my saved address</option>
+      <option value="50">Within 50 miles of my saved address</option>
+      <option value="75">Within 75 miles of my saved address</option>
     </select>
  
     <div class="help-text">
-      Save your service area so TaskMint can match you with nearby customer tasks.
+      TaskMint will read your saved address and service radius to match you with nearby customer tasks.
     </div>
  
     <div class="inline-actions">
@@ -510,7 +615,7 @@
         class="small-btn"
         onclick="saveServiceArea()"
       >
-        Save Service Area
+        Save Address & Service Area
       </button>
  
       <button
@@ -523,7 +628,7 @@
     </div>
  
     <div class="saved-location-card" id="savedLocationCard">
-      <div class="saved-location-title">Saved Location</div>
+      <div class="saved-location-title">Saved Address & Service Area</div>
       <div class="saved-location-text" id="savedLocationText"></div>
     </div>
  
@@ -568,6 +673,13 @@ let currentProfile = {
   skills: "",
   service_area: "",
   service_radius: "",
+  worker_address: "",
+  worker_city: "",
+  worker_state: "",
+  worker_zip: "",
+  first_name: "",
+  last_name: "",
+  full_name: "",
   tax_setup_complete: false,
   payout_setup_complete: false,
   identity_verified: false
@@ -618,6 +730,10 @@ function getLiveProfileSnapshot() {
     skills: getInputValue("servicesOffered"),
     service_area: getInputValue("serviceArea"),
     service_radius: document.getElementById("serviceRadius").value,
+    worker_address: getInputValue("workerAddress"),
+    worker_city: getInputValue("workerCity"),
+    worker_state: getInputValue("workerState"),
+    worker_zip: getInputValue("workerZip"),
     tax_setup_complete: currentProfile.tax_setup_complete,
     payout_setup_complete: currentProfile.payout_setup_complete,
     identity_verified: currentProfile.identity_verified
@@ -637,7 +753,11 @@ function calculateCompletion(profile) {
  
   const areaDone =
     hasValue(profile.service_area) &&
-    hasValue(profile.service_radius);
+    hasValue(profile.service_radius) &&
+    hasValue(profile.worker_address) &&
+    hasValue(profile.worker_city) &&
+    hasValue(profile.worker_state) &&
+    hasValue(profile.worker_zip);
  
   const taxDone =
     profile.tax_setup_complete === true ||
@@ -690,7 +810,14 @@ function updateCompletionUI(profile) {
   setChecklistState("verificationCheck", result.verificationDone, "Done");
  
   updateServicesPreview(profile.skills);
-  updateSavedLocationCard(profile.service_area, profile.service_radius);
+  updateSavedLocationCard(
+    profile.service_area,
+    profile.service_radius,
+    profile.worker_address,
+    profile.worker_city,
+    profile.worker_state,
+    profile.worker_zip
+  );
 }
  
 function handleLiveProfileUpdate() {
@@ -723,14 +850,21 @@ function updateServicesPreview(value) {
   });
 }
  
-function updateSavedLocationCard(area, radius) {
+function updateSavedLocationCard(area, radius, address, city, state, zip) {
   const card =
     document.getElementById("savedLocationCard");
  
   const text =
     document.getElementById("savedLocationText");
  
-  if (!hasValue(area) || !hasValue(radius)) {
+  if (
+    !hasValue(area) ||
+    !hasValue(radius) ||
+    !hasValue(address) ||
+    !hasValue(city) ||
+    !hasValue(state) ||
+    !hasValue(zip)
+  ) {
     card.style.display = "none";
     text.innerText = "";
     return;
@@ -738,8 +872,9 @@ function updateSavedLocationCard(area, radius) {
  
   card.style.display = "block";
   text.innerText =
-    `${area} • Within ${radius} miles`;
+    `${area} • ${address}, ${city}, ${state} ${zip} • Within ${radius} miles of saved address`;
 }
+ 
  
 async function checkLogin() {
   const { data, error } =
@@ -796,6 +931,27 @@ async function loadProfile() {
  
   document.getElementById("serviceRadius").value =
     data.service_radius || "";
+ 
+  document.getElementById("workerAddress").value =
+    data.worker_address || data.address || data.street_address || "";
+ 
+  document.getElementById("workerCity").value =
+    data.worker_city || data.city || "";
+ 
+  document.getElementById("workerState").value =
+    data.worker_state || data.state || "";
+ 
+  document.getElementById("workerZip").value =
+    data.worker_zip || data.zip_code || data.zip || "";
+ 
+  const legalName =
+    data.full_name ||
+    `${data.first_name || ""} ${data.last_name || ""}`.trim() ||
+    currentUser.email ||
+    "Legal name not saved";
+ 
+  document.getElementById("legalName").value =
+    legalName;
  
   if (hasValue(data.profile_photo_url)) {
     document.getElementById("profilePreview").src =
@@ -880,6 +1036,18 @@ async function saveServiceArea() {
   const radius =
     document.getElementById("serviceRadius").value;
  
+  const address =
+    getInputValue("workerAddress");
+ 
+  const city =
+    getInputValue("workerCity");
+ 
+  const state =
+    getInputValue("workerState");
+ 
+  const zip =
+    getInputValue("workerZip");
+ 
   if (!currentUser) {
     alert("You must log in first.");
     window.location.href = "worker-login.html";
@@ -904,6 +1072,15 @@ async function saveServiceArea() {
     return;
   }
  
+  if (!hasValue(address) || !hasValue(city) || !hasValue(state) || !hasValue(zip)) {
+    setMessage(
+      "locationStatusMessage",
+      "Enter your full address, city, state, and zip code before saving.",
+      "red"
+    );
+    return;
+  }
+ 
   setMessage("locationStatusMessage", "Saving service area...", "#0b7a28");
  
   const { error } =
@@ -914,6 +1091,10 @@ async function saveServiceArea() {
         email: currentUser.email,
         service_area: area,
         service_radius: radius,
+        worker_address: address,
+        worker_city: city,
+        worker_state: state,
+        worker_zip: zip,
         account_type: "worker"
       });
  
@@ -929,6 +1110,10 @@ async function saveServiceArea() {
  
   currentProfile.service_area = area;
   currentProfile.service_radius = radius;
+  currentProfile.worker_address = address;
+  currentProfile.worker_city = city;
+  currentProfile.worker_state = state;
+  currentProfile.worker_zip = zip;
  
   updateCompletionUI(getLiveProfileSnapshot());
  
@@ -938,6 +1123,10 @@ async function saveServiceArea() {
 function clearServiceArea() {
   document.getElementById("serviceArea").value = "";
   document.getElementById("serviceRadius").value = "";
+  document.getElementById("workerAddress").value = "";
+  document.getElementById("workerCity").value = "";
+  document.getElementById("workerState").value = "";
+  document.getElementById("workerZip").value = "";
   setMessage("locationStatusMessage", "Service area cleared. Save again to update your profile.", "#555");
   handleLiveProfileUpdate();
 }
@@ -964,6 +1153,18 @@ async function saveProfile() {
   const radius =
     document.getElementById("serviceRadius").value;
  
+  const address =
+    getInputValue("workerAddress");
+ 
+  const city =
+    getInputValue("workerCity");
+ 
+  const state =
+    getInputValue("workerState");
+ 
+  const zip =
+    getInputValue("workerZip");
+ 
   status.style.color = "#0b7a28";
   status.innerText = "Saving profile...";
  
@@ -977,6 +1178,10 @@ async function saveProfile() {
         skills: services,
         service_area: area,
         service_radius: radius,
+        worker_address: address,
+        worker_city: city,
+        worker_state: state,
+        worker_zip: zip,
         account_type: "worker",
         is_worker_approved: false
       });
@@ -993,7 +1198,11 @@ async function saveProfile() {
     experience: experience,
     skills: services,
     service_area: area,
-    service_radius: radius
+    service_radius: radius,
+    worker_address: address,
+    worker_city: city,
+    worker_state: state,
+    worker_zip: zip
   };
  
   updateCompletionUI(getLiveProfileSnapshot());

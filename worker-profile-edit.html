@@ -30,8 +30,8 @@
  
     .floating-bg {
       position: absolute;
-      width: 260px;
-      height: 260px;
+      width: 240px;
+      height: 240px;
       background: rgba(11,122,40,0.08);
       border-radius: 50%;
       top: -120px;
@@ -40,214 +40,119 @@
       z-index: 0;
     }
  
-    .floating-bg2 {
-      position: absolute;
-      width: 180px;
-      height: 180px;
-      background: rgba(45,199,86,0.08);
-      border-radius: 50%;
-      bottom: 160px;
-      left: -80px;
-      filter: blur(10px);
-      z-index: 0;
-    }
- 
-    .top-hero {
+    .top-card,
+    .card {
       position: relative;
       z-index: 2;
+    }
+ 
+    .back {
+      color: #0b7a28;
+      font-weight: 800;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+ 
+    .top-card {
       background: linear-gradient(135deg, #0b7a28, #19a447);
       color: white;
       border-radius: 26px;
       padding: 22px;
       margin-bottom: 16px;
       box-shadow: 0 10px 28px rgba(11,122,40,0.22);
-      animation: fadeUp 0.45s ease;
     }
  
-    .top-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
- 
-    .back {
-      color: white;
-      font-weight: 800;
-      text-decoration: none;
-      font-size: 14px;
-      background: rgba(255,255,255,0.16);
-      padding: 10px 12px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
- 
-    .dashboard-link {
-      color: white;
-      font-weight: 800;
-      font-size: 13px;
-      cursor: pointer;
-      background: rgba(255,255,255,0.16);
-      padding: 10px 12px;
-      border-radius: 999px;
-      border: none;
-      width: auto;
-      margin-top: 0;
-    }
- 
-    .hero-title {
-      font-size: 25px;
-      font-weight: 800;
-      margin-bottom: 6px;
+    .top-title {
+      font-size: 26px;
+      font-weight: 900;
+      margin-bottom: 8px;
       letter-spacing: -0.4px;
     }
  
-    .hero-sub {
+    .top-sub {
       font-size: 14px;
-      line-height: 1.5;
+      line-height: 1.45;
       opacity: 0.95;
     }
  
     .progress-wrap {
-      margin-top: 18px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 999px;
+      margin-top: 16px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 18px;
+      padding: 12px;
+    }
+ 
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+ 
+    .progress-track {
+      width: 100%;
       height: 12px;
+      background: rgba(255,255,255,0.28);
+      border-radius: 999px;
       overflow: hidden;
     }
  
-    .progress-bar {
-      width: 0%;
+    .progress-fill {
       height: 100%;
+      width: 0%;
       background: white;
       border-radius: 999px;
       transition: width 0.25s ease;
     }
  
-    .progress-text {
-      margin-top: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      opacity: 0.96;
-    }
- 
     .card {
-      position: relative;
-      z-index: 2;
       background: white;
       border-radius: 22px;
       padding: 18px;
       margin-bottom: 16px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
       border: 1px solid #eee;
-      animation: fadeUp 0.55s ease;
-    }
- 
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
     }
  
     .section-title {
       font-size: 18px;
-      font-weight: 800;
-      color: #111;
-    }
- 
-    .section-note {
-      font-size: 12px;
-      color: #666;
-      line-height: 1.4;
-      margin-top: 4px;
-    }
- 
-    .checklist {
-      display: grid;
-      gap: 10px;
-    }
- 
-    .checklist-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #f7faf8;
-      border: 1px solid #e3eee6;
-      border-radius: 16px;
-      padding: 12px;
-      color: #444;
-      font-size: 14px;
-      font-weight: 700;
-      transition: 0.2s;
-    }
- 
-    .check-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: #eef2ef;
-      color: #777;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      font-size: 15px;
       font-weight: 900;
-    }
- 
-    .checklist-item.complete {
-      background: #e7f7ec;
-      border-color: #bde7c8;
-      color: #0b7a28;
-    }
- 
-    .checklist-item.complete .check-icon {
-      background: #0b7a28;
-      color: white;
+      margin-bottom: 12px;
+      color: #111;
     }
  
     .profile-photo-section {
       text-align: center;
+      margin-bottom: 8px;
     }
  
-    .photo-ring {
-      width: 128px;
-      height: 128px;
+    .profile-preview-wrap {
+      width: 122px;
+      height: 122px;
       margin: 0 auto 12px;
       border-radius: 50%;
       padding: 5px;
-      background: linear-gradient(135deg, #0b7a28, #31c85d);
-      box-shadow: 0 8px 18px rgba(11,122,40,0.18);
+      background: linear-gradient(135deg, #0b7a28, #2dc756);
     }
  
     .profile-preview {
-      width: 118px;
-      height: 118px;
+      width: 112px;
+      height: 112px;
       border-radius: 50%;
       object-fit: cover;
       background: #e7f7ec;
       border: 4px solid white;
-      display: block;
-    }
- 
-    .photo-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 12px;
     }
  
     label {
       display: block;
       font-weight: 800;
-      margin-top: 16px;
-      margin-bottom: 7px;
-      color: #111;
+      margin-top: 14px;
+      margin-bottom: 6px;
       font-size: 14px;
     }
  
@@ -255,13 +160,12 @@
     input,
     select {
       width: 100%;
-      box-sizing: border-box;
-      padding: 14px;
-      border: 1px solid #d8dedb;
+      padding: 13px;
+      border: 1px solid #d9d9d9;
       border-radius: 14px;
       font-size: 15px;
       font-family: Arial, sans-serif;
-      background: #fbfdfc;
+      background: #fbfbfb;
       outline: none;
       transition: 0.2s;
     }
@@ -270,310 +174,263 @@
     input:focus,
     select:focus {
       border-color: #0b7a28;
-      box-shadow: 0 0 0 3px rgba(11,122,40,0.1);
       background: white;
+      box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
     }
  
     textarea {
-      min-height: 140px;
+      min-height: 130px;
       resize: vertical;
-      line-height: 1.45;
-    }
- 
-    .field-row {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0;
     }
  
     .help-text {
       font-size: 13px;
       color: #666;
-      margin-top: 6px;
-      line-height: 1.45;
+      margin-top: 5px;
+      line-height: 1.4;
     }
  
-    .counter-row {
+    .checklist {
+      display: grid;
+      gap: 9px;
+      margin-top: 12px;
+    }
+ 
+    .checklist-item {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       gap: 10px;
-      margin-top: 6px;
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 15px;
+      padding: 12px;
+      font-size: 14px;
+      color: #444;
+    }
+ 
+    .check-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+ 
+    .check-icon {
+      width: 23px;
+      height: 23px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #eee;
+      color: #777;
+      font-size: 13px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+ 
+    .checklist-item.done .check-icon {
+      background: #0b7a28;
+      color: white;
+    }
+ 
+    .check-status {
       font-size: 12px;
-      color: #666;
-    }
- 
-    .counter-warning {
-      color: #b00020;
       font-weight: 800;
+      color: #999;
+      white-space: nowrap;
     }
  
-    .service-chip-area {
+    .checklist-item.done .check-status {
+      color: #0b7a28;
+    }
+ 
+    .inline-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+ 
+    .saved-location-card {
+      display: none;
+      margin-top: 12px;
+      padding: 13px;
+      border-radius: 16px;
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+    }
+ 
+    .saved-location-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #0b7a28;
+      margin-bottom: 5px;
+    }
+ 
+    .saved-location-text {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.4;
+    }
+ 
+    .pill-row {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       margin-top: 10px;
     }
  
-    .service-chip {
-      border-radius: 999px;
-      padding: 8px 10px;
-      background: #e7f7ec;
-      color: #0b7a28;
-      border: 1px solid #bde7c8;
-      font-size: 12px;
-      font-weight: 800;
+    .pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-    }
- 
-    .service-chip button {
-      width: auto;
-      margin: 0;
-      padding: 0;
-      border: none;
-      background: transparent;
-      color: #0b7a28;
-      font-size: 14px;
-      line-height: 1;
-      cursor: pointer;
-    }
- 
-    .quick-suggestions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
- 
-    .suggestion-pill {
-      border: 1px solid #d8dedb;
-      background: white;
-      color: #0b7a28;
+      padding: 7px 10px;
       border-radius: 999px;
-      padding: 8px 10px;
+      background: #e7f7ec;
+      color: #0b7a28;
       font-size: 12px;
       font-weight: 800;
-      cursor: pointer;
-    }
- 
-    .preview-box {
-      background: #f7faf8;
-      border: 1px solid #e3eee6;
-      border-radius: 18px;
-      padding: 14px;
-      margin-top: 14px;
-    }
- 
-    .preview-title {
-      font-size: 14px;
-      font-weight: 800;
-      color: #111;
-      margin-bottom: 6px;
-    }
- 
-    .preview-text {
-      font-size: 13px;
-      color: #555;
-      line-height: 1.45;
-      white-space: pre-wrap;
-    }
- 
-    .button-row {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      margin-top: 16px;
     }
  
     button {
       width: 100%;
       padding: 14px;
+      margin-top: 14px;
       border: none;
       border-radius: 14px;
       background: #0b7a28;
       color: white;
       font-size: 15px;
-      font-weight: 800;
+      font-weight: 900;
       cursor: pointer;
       transition: 0.2s;
     }
  
     button:hover {
       transform: translateY(-1px);
-      box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.10);
     }
  
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
- 
-    .secondary {
+    button.secondary {
       background: white;
       color: #111;
       border: 1px solid #ddd;
     }
  
-    .ghost {
-      background: #f7faf8;
-      color: #0b7a28;
-      border: 1px solid #e3eee6;
+    button.small-btn {
+      margin-top: 0;
+      padding: 12px;
+      font-size: 13px;
     }
  
-    #statusMessage {
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+ 
+    #statusMessage,
+    #locationStatusMessage,
+    #photoStatusMessage {
       margin-top: 12px;
       font-weight: 800;
       text-align: center;
       font-size: 14px;
-      min-height: 20px;
-    }
- 
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 22px;
-      transform: translateX(-50%) translateY(80px);
-      width: calc(100% - 36px);
-      max-width: 384px;
-      background: #111;
-      color: white;
-      border-radius: 16px;
-      padding: 14px;
-      z-index: 50;
-      opacity: 0;
-      transition: 0.25s;
-      font-size: 14px;
-      font-weight: 700;
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
-    }
- 
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
- 
-    .loading-screen {
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 100px 20px;
-      text-align: center;
-      color: #555;
-      font-size: 16px;
-    }
- 
-    .spinner {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      border: 4px solid #e7f7ec;
-      border-top-color: #0b7a28;
-      margin: 0 auto 12px;
-      animation: spin 0.8s linear infinite;
-    }
- 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
- 
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(14px);
-      }
- 
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      line-height: 1.4;
     }
   </style>
 </head>
  
 <body>
  
-<div class="loading-screen" id="loadingScreen">
-  <div class="spinner"></div>
-  Loading worker profile...
-</div>
- 
-<div class="container" id="pageContainer" style="display:none;">
+<div class="container">
  
   <div class="floating-bg"></div>
-  <div class="floating-bg2"></div>
  
-  <div class="top-hero">
-    <div class="top-row">
-      <a class="back" href="worker-settings.html">← Back</a>
-      <button class="dashboard-link" onclick="goToDashboard()">Dashboard</button>
-    </div>
+  <a class="back" href="worker-settings.html">← Back</a>
  
-    <div class="hero-title">Edit Worker Profile</div>
-    <div class="hero-sub">
-      Build a complete worker profile customers can trust before they accept your quote.
+  <div class="top-card">
+    <div class="top-title">Edit Worker Profile</div>
+    <div class="top-sub">
+      Complete your profile so customers can see your experience, service area, and the work you offer.
     </div>
  
     <div class="progress-wrap">
-      <div class="progress-bar" id="progressBar"></div>
+      <div class="progress-top">
+        <span>Profile Completion</span>
+        <span id="completionPercent">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="completionFill"></div>
+      </div>
     </div>
-    <div class="progress-text" id="progressText">0% complete</div>
   </div>
  
   <div class="card">
-    <div class="section-header">
-      <div>
-        <div class="section-title">Profile Completion</div>
-        <div class="section-note">Complete the main items before sending quotes.</div>
-      </div>
-    </div>
+    <div class="section-title">Completion Checklist</div>
  
     <div class="checklist">
       <div class="checklist-item" id="photoCheck">
-        <div class="check-icon">•</div>
-        <div>Upload profile picture</div>
+        <div class="check-left">
+          <div class="check-icon">•</div>
+          <div>Upload profile picture</div>
+        </div>
+        <div class="check-status">Needed</div>
       </div>
  
       <div class="checklist-item" id="experienceCheck">
-        <div class="check-icon">•</div>
-        <div>Add work experience</div>
+        <div class="check-left">
+          <div class="check-icon">•</div>
+          <div>Add work experience</div>
+        </div>
+        <div class="check-status">Needed</div>
       </div>
  
       <div class="checklist-item" id="serviceAreaCheck">
-        <div class="check-icon">•</div>
-        <div>Complete service area</div>
+        <div class="check-left">
+          <div class="check-icon">•</div>
+          <div>Save service area</div>
+        </div>
+        <div class="check-status">Needed</div>
       </div>
  
       <div class="checklist-item" id="servicesCheck">
-        <div class="check-icon">•</div>
-        <div>Add services offered</div>
+        <div class="check-left">
+          <div class="check-icon">•</div>
+          <div>Add services offered</div>
+        </div>
+        <div class="check-status">Needed</div>
       </div>
  
       <div class="checklist-item" id="taxCheck">
-        <div class="check-icon">•</div>
-        <div>Tax and payout setup</div>
+        <div class="check-left">
+          <div class="check-icon">•</div>
+          <div>Tax and payout setup</div>
+        </div>
+        <div class="check-status">Later</div>
       </div>
  
       <div class="checklist-item" id="verificationCheck">
-        <div class="check-icon">•</div>
-        <div>ID verification</div>
+        <div class="check-left">
+          <div class="check-icon">•</div>
+          <div>ID verification</div>
+        </div>
+        <div class="check-status">Later</div>
       </div>
     </div>
   </div>
  
   <div class="card">
     <div class="section-title">Profile Photo</div>
-    <div class="section-note">Use a clear photo so customers know who is arriving.</div>
  
     <div class="profile-photo-section">
-      <div class="photo-ring">
+      <div class="profile-preview-wrap">
         <img
           id="profilePreview"
           class="profile-preview"
-          src="https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true"
+          src="Taskmintlogo.png"
           alt="Profile Picture"
         >
       </div>
@@ -586,122 +443,109 @@
         onchange="uploadProfilePhoto(event)"
       >
  
-      <div class="photo-actions">
-        <button
-          type="button"
-          class="secondary"
-          onclick="document.getElementById('profilePhotoInput').click()"
-        >
-          Upload Photo
-        </button>
+      <button
+        type="button"
+        class="secondary"
+        onclick="document.getElementById('profilePhotoInput').click()"
+      >
+        Upload Profile Picture
+      </button>
  
-        <button
-          type="button"
-          class="ghost"
-          onclick="previewProfileCard()"
-        >
-          Preview
-        </button>
-      </div>
+      <p id="photoStatusMessage"></p>
     </div>
   </div>
  
   <div class="card">
-    <div class="section-title">Work Experience</div>
-    <div class="section-note">This appears on the customer-facing worker profile.</div>
+    <div class="section-title">Experience & Services</div>
  
     <label for="experienceDescription">Experience Description</label>
     <textarea
       id="experienceDescription"
-      maxlength="600"
-      placeholder="Example: I have 5 years of experience with moving, furniture assembly, and home projects. I arrive on time, communicate clearly, and keep the work area clean."
-      oninput="handleFormInput()"
+      oninput="handleLiveProfileUpdate()"
+      placeholder="Tell customers what type of work you have experience with, how long you’ve been doing it, and what makes you reliable."
     ></textarea>
  
-    <div class="counter-row">
-      <span>Recommended: 120+ characters</span>
-      <span id="experienceCounter">0 / 600</span>
+    <div class="help-text">
+      This is what customers will see on your public worker profile.
     </div>
-  </div>
  
-  <div class="card">
-    <div class="section-title">Services Offered</div>
-    <div class="section-note">Add services one at a time or choose from the quick suggestions.</div>
- 
-    <label for="serviceInput">Add Service</label>
+    <label for="servicesOffered">Services Offered</label>
     <input
-      id="serviceInput"
+      id="servicesOffered"
       type="text"
+      oninput="handleLiveProfileUpdate()"
       placeholder="Cleaning, moving, yard work, painting"
-      onkeydown="handleServiceKey(event)"
-      oninput="markDirtyAndRefresh()"
     >
  
-    <button type="button" class="secondary" onclick="addServiceFromInput()">
-      Add Service
-    </button>
- 
-    <input id="servicesOffered" type="hidden">
- 
-    <div class="quick-suggestions">
-      <span class="suggestion-pill" onclick="addSuggestedService('Cleaning')">Cleaning</span>
-      <span class="suggestion-pill" onclick="addSuggestedService('Moving')">Moving</span>
-      <span class="suggestion-pill" onclick="addSuggestedService('Furniture Assembly')">Furniture Assembly</span>
-      <span class="suggestion-pill" onclick="addSuggestedService('Yard Work')">Yard Work</span>
-      <span class="suggestion-pill" onclick="addSuggestedService('TV Mounting')">TV Mounting</span>
-      <span class="suggestion-pill" onclick="addSuggestedService('Painting')">Painting</span>
-    </div>
- 
-    <div class="service-chip-area" id="serviceChipArea"></div>
+    <div class="pill-row" id="servicesPreview"></div>
   </div>
  
   <div class="card">
     <div class="section-title">Service Area</div>
-    <div class="section-note">This helps TaskMint match you with nearby customer tasks.</div>
  
     <label for="serviceArea">Primary Service Area</label>
     <input
       id="serviceArea"
       type="text"
+      oninput="handleLiveProfileUpdate()"
       placeholder="Start typing your main work area"
-      oninput="handleFormInput()"
     >
  
     <label for="serviceRadius">Service Radius</label>
-    <select id="serviceRadius" onchange="handleFormInput()">
+    <select id="serviceRadius" onchange="handleLiveProfileUpdate()">
       <option value="">Select radius</option>
       <option value="10">Within 10 miles</option>
       <option value="25">Within 25 miles</option>
       <option value="50">Within 50 miles</option>
       <option value="75">Within 75 miles</option>
     </select>
+ 
+    <div class="help-text">
+      Save your service area so TaskMint can match you with nearby customer tasks.
+    </div>
+ 
+    <div class="inline-actions">
+      <button
+        type="button"
+        class="small-btn"
+        onclick="saveServiceArea()"
+      >
+        Save Service Area
+      </button>
+ 
+      <button
+        type="button"
+        class="secondary small-btn"
+        onclick="clearServiceArea()"
+      >
+        Clear
+      </button>
+    </div>
+ 
+    <div class="saved-location-card" id="savedLocationCard">
+      <div class="saved-location-title">Saved Location</div>
+      <div class="saved-location-text" id="savedLocationText"></div>
+    </div>
+ 
+    <p id="locationStatusMessage"></p>
   </div>
  
   <div class="card">
-    <div class="section-title">Customer Preview</div>
-    <div class="section-note">Use this to check how your profile summary reads before saving.</div>
+    <button onclick="saveProfile()">
+      Save Full Profile
+    </button>
  
-    <div class="preview-box">
-      <div class="preview-title" id="previewName">Worker Profile</div>
-      <div class="preview-text" id="previewText">Start adding your experience, services, and service area.</div>
-    </div>
- 
-    <div class="button-row">
-      <button id="saveButton" onclick="saveProfile()">
-        Save Profile
-      </button>
- 
-      <button class="secondary" onclick="goToDashboard()">
-        Back to Dashboard
-      </button>
-    </div>
+    <button
+      class="secondary"
+      onclick="window.location.href='worker-dashboard.html'"
+    >
+      Back to Dashboard
+    </button>
  
     <p id="statusMessage"></p>
   </div>
  
 </div>
- 
-<div class="toast" id="toast"></div>
  
 <script>
  
@@ -718,13 +562,186 @@ const supabaseClient =
   );
  
 let currentUser = null;
-let serviceList = [];
-let latestProfilePhotoUrl = "";
-let hasUnsavedChanges = false;
-let currentProfile = null;
+let currentProfile = {
+  profile_photo_url: "",
+  experience: "",
+  skills: "",
+  service_area: "",
+  service_radius: "",
+  tax_setup_complete: false,
+  payout_setup_complete: false,
+  identity_verified: false
+};
+ 
+function getInputValue(id) {
+  return document.getElementById(id).value.trim();
+}
+ 
+function hasValue(value) {
+  return value !== null && value !== undefined && String(value).trim() !== "";
+}
+ 
+function setMessage(id, text, color) {
+  const element = document.getElementById(id);
+  element.style.color = color;
+  element.innerText = text;
+}
+ 
+function setChecklistState(id, done, doneText) {
+  const row = document.getElementById(id);
+  const icon = row.querySelector(".check-icon");
+  const status = row.querySelector(".check-status");
+ 
+  if (done) {
+    row.classList.add("done");
+    icon.innerText = "✓";
+    status.innerText = doneText || "Done";
+  } else {
+    row.classList.remove("done");
+    icon.innerText = "•";
+    status.innerText = "Needed";
+  }
+}
+ 
+function getLiveProfileSnapshot() {
+  const previewSrc =
+    document.getElementById("profilePreview").getAttribute("src") || "";
+ 
+  const photoUrl =
+    hasValue(currentProfile.profile_photo_url)
+      ? currentProfile.profile_photo_url
+      : previewSrc;
+ 
+  return {
+    profile_photo_url: photoUrl,
+    experience: getInputValue("experienceDescription"),
+    skills: getInputValue("servicesOffered"),
+    service_area: getInputValue("serviceArea"),
+    service_radius: document.getElementById("serviceRadius").value,
+    tax_setup_complete: currentProfile.tax_setup_complete,
+    payout_setup_complete: currentProfile.payout_setup_complete,
+    identity_verified: currentProfile.identity_verified
+  };
+}
+ 
+function calculateCompletion(profile) {
+  const photoDone =
+    hasValue(profile.profile_photo_url) &&
+    !profile.profile_photo_url.includes("Taskmintlogo.png");
+ 
+  const experienceDone =
+    hasValue(profile.experience);
+ 
+  const servicesDone =
+    hasValue(profile.skills);
+ 
+  const areaDone =
+    hasValue(profile.service_area) &&
+    hasValue(profile.service_radius);
+ 
+  const taxDone =
+    profile.tax_setup_complete === true ||
+    profile.payout_setup_complete === true;
+ 
+  const verificationDone =
+    profile.identity_verified === true;
+ 
+  const items = [
+    photoDone,
+    experienceDone,
+    areaDone,
+    servicesDone,
+    taxDone,
+    verificationDone
+  ];
+ 
+  const doneCount =
+    items.filter(Boolean).length;
+ 
+  const percent =
+    Math.round((doneCount / items.length) * 100);
+ 
+  return {
+    percent,
+    photoDone,
+    experienceDone,
+    areaDone,
+    servicesDone,
+    taxDone,
+    verificationDone
+  };
+}
+ 
+function updateCompletionUI(profile) {
+  const result =
+    calculateCompletion(profile);
+ 
+  document.getElementById("completionPercent").innerText =
+    `${result.percent}%`;
+ 
+  document.getElementById("completionFill").style.width =
+    `${result.percent}%`;
+ 
+  setChecklistState("photoCheck", result.photoDone, "Done");
+  setChecklistState("experienceCheck", result.experienceDone, "Done");
+  setChecklistState("serviceAreaCheck", result.areaDone, "Saved");
+  setChecklistState("servicesCheck", result.servicesDone, "Done");
+  setChecklistState("taxCheck", result.taxDone, "Done");
+  setChecklistState("verificationCheck", result.verificationDone, "Done");
+ 
+  updateServicesPreview(profile.skills);
+  updateSavedLocationCard(profile.service_area, profile.service_radius);
+}
+ 
+function handleLiveProfileUpdate() {
+  const profile =
+    getLiveProfileSnapshot();
+ 
+  updateCompletionUI(profile);
+}
+ 
+function updateServicesPreview(value) {
+  const container =
+    document.getElementById("servicesPreview");
+ 
+  container.innerHTML = "";
+ 
+  if (!hasValue(value)) {
+    return;
+  }
+ 
+  const services =
+    value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+ 
+  services.forEach((service) => {
+    container.innerHTML += `
+      <span class="pill">${service}</span>
+    `;
+  });
+}
+ 
+function updateSavedLocationCard(area, radius) {
+  const card =
+    document.getElementById("savedLocationCard");
+ 
+  const text =
+    document.getElementById("savedLocationText");
+ 
+  if (!hasValue(area) || !hasValue(radius)) {
+    card.style.display = "none";
+    text.innerText = "";
+    return;
+  }
+ 
+  card.style.display = "block";
+  text.innerText =
+    `${area} • Within ${radius} miles`;
+}
  
 async function checkLogin() {
- 
   const { data, error } =
     await supabaseClient.auth.getUser();
  
@@ -737,388 +754,65 @@ async function checkLogin() {
   currentUser = data.user;
  
   await loadProfile();
- 
-  document.getElementById("loadingScreen").style.display =
-    "none";
- 
-  document.getElementById("pageContainer").style.display =
-    "block";
- 
 }
  
 async function loadProfile() {
- 
-  const { data: profileData, error: profileError } =
+  const { data, error } =
     await supabaseClient
       .from("profiles")
-      .select(`
-        full_name,
-        first_name,
-        last_name,
-        experience,
-        skills,
-        service_area,
-        service_radius,
-        profile_photo_url
-      `)
+      .select("*")
       .eq("id", currentUser.id)
       .maybeSingle();
  
-  if (profileError) {
-    console.error(profileError);
-    showToast("Profile could not load. Check your profiles table or RLS policy.");
+  if (error) {
+    console.error(error);
+    setMessage(
+      "statusMessage",
+      "Error loading profile. Check your profiles table permissions.",
+      "red"
+    );
+    updateCompletionUI(getLiveProfileSnapshot());
+    return;
   }
  
-  const { data: workerData, error: workerError } =
-    await supabaseClient
-      .from("workers")
-      .select("*")
-      .eq("email", currentUser.email)
-      .maybeSingle();
- 
-  if (workerError) {
-    console.warn("Worker table lookup skipped or blocked:", workerError);
+  if (!data) {
+    updateCompletionUI(getLiveProfileSnapshot());
+    return;
   }
  
   currentProfile = {
-    ...(profileData || {}),
-    worker_record: workerData || null,
-    payout_setup_complete:
-      Boolean(
-        (profileData && profileData.payout_setup_complete) ||
-        (workerData && workerData.payout_setup_complete) ||
-        (workerData && workerData.payout_complete) ||
-        (workerData && workerData.stripe_onboarding_complete)
-      ),
-    id_verification_complete:
-      Boolean(
-        (profileData && profileData.id_verification_complete) ||
-        (workerData && workerData.id_verification_complete) ||
-        (workerData && workerData.identity_verified) ||
-        (workerData && workerData.background_check_complete)
-      )
+    ...currentProfile,
+    ...data
   };
- 
-  const savedPhotoUrl =
-    (profileData && profileData.profile_photo_url) ||
-    (workerData && workerData.profile_photo_url) ||
-    (workerData && workerData.photo_url) ||
-    (workerData && workerData.profile_picture_url) ||
-    (workerData && workerData.avatar_url) ||
-    "";
  
   document.getElementById("experienceDescription").value =
-    currentProfile.experience || "";
- 
-  document.getElementById("serviceArea").value =
-    currentProfile.service_area || "";
- 
-  document.getElementById("serviceRadius").value =
-    currentProfile.service_radius || "";
- 
-  latestProfilePhotoUrl =
-    isRealProfilePhoto(savedPhotoUrl) ? savedPhotoUrl : "";
- 
-  if (latestProfilePhotoUrl !== "") {
-    document.getElementById("profilePreview").src =
-      latestProfilePhotoUrl;
-  }
- 
-  serviceList = parseServices(currentProfile.skills || "");
-  renderServiceChips();
-  updateChecklist(getCurrentProfileValues());
-  updateExperienceCounter();
-  updatePreview();
- 
-}
- 
-function parseServices(value) {
- 
-  if (!value) {
-    return [];
-  }
- 
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter((item) => item !== "")
-    .filter((item, index, array) =>
-      array.findIndex((match) =>
-        match.toLowerCase() === item.toLowerCase()
-      ) === index
-    );
- 
-}
- 
-function syncServicesField() {
+    data.experience || "";
  
   document.getElementById("servicesOffered").value =
-    serviceList.join(", ");
+    data.skills || "";
  
-}
+  document.getElementById("serviceArea").value =
+    data.service_area || "";
  
-function renderServiceChips() {
+  document.getElementById("serviceRadius").value =
+    data.service_radius || "";
  
-  const chipArea =
-    document.getElementById("serviceChipArea");
- 
-  syncServicesField();
- 
-  if (serviceList.length === 0) {
-    chipArea.innerHTML = `
-      <div class="help-text">
-        No services added yet.
-      </div>
-    `;
-    return;
+  if (hasValue(data.profile_photo_url)) {
+    document.getElementById("profilePreview").src =
+      data.profile_photo_url;
   }
  
-  chipArea.innerHTML = "";
- 
-  serviceList.forEach((service, index) => {
-    chipArea.innerHTML += `
-      <span class="service-chip">
-        ${escapeHtml(service)}
-        <button type="button" onclick="removeService(${index})">×</button>
-      </span>
-    `;
-  });
- 
-}
- 
-function addSuggestedService(service) {
-  addService(service);
-}
- 
-function addServiceFromInput() {
- 
-  const input =
-    document.getElementById("serviceInput");
- 
-  addService(input.value);
-  input.value = "";
- 
-}
- 
-function addService(value) {
- 
-  const service =
-    value.trim();
- 
-  if (service === "") {
-    showToast("Type a service first.");
-    return;
-  }
- 
-  const alreadyExists =
-    serviceList.some((item) =>
-      item.toLowerCase() === service.toLowerCase()
-    );
- 
-  if (!alreadyExists) {
-    serviceList.push(service);
-  }
- 
-  hasUnsavedChanges = true;
-  renderServiceChips();
-  updateChecklist(getCurrentProfileValues());
-  updatePreview();
- 
-}
- 
-function removeService(index) {
- 
-  serviceList.splice(index, 1);
-  hasUnsavedChanges = true;
-  renderServiceChips();
-  updateChecklist(getCurrentProfileValues());
-  updatePreview();
- 
-}
- 
-function handleServiceKey(event) {
- 
-  if (event.key === "Enter") {
-    event.preventDefault();
-    addServiceFromInput();
-  }
- 
-}
- 
-function handleFormInput() {
- 
-  hasUnsavedChanges = true;
-  updateExperienceCounter();
-  updateChecklist(getCurrentProfileValues());
-  updatePreview();
- 
-}
- 
-function markDirtyAndRefresh() {
-  hasUnsavedChanges = true;
-}
- 
-function updateExperienceCounter() {
- 
-  const experience =
-    document.getElementById("experienceDescription").value;
- 
-  const counter =
-    document.getElementById("experienceCounter");
- 
-  counter.innerText =
-    `${experience.length} / 600`;
- 
-  if (experience.length > 0 && experience.length < 120) {
-    counter.classList.add("counter-warning");
-  } else {
-    counter.classList.remove("counter-warning");
-  }
- 
-}
- 
-function isRealProfilePhoto(value) {
- 
-  if (!value || String(value).trim() === "") {
-    return false;
-  }
- 
-  const photoValue =
-    String(value).trim().toLowerCase();
- 
-  return !(
-    photoValue.includes("taskmintlogo") ||
-    photoValue.includes("taskmint-logo") ||
-    photoValue.endsWith("taskmintlogo.png") ||
-    photoValue.endsWith("taskmintlogo.jpg")
-  );
- 
-}
- 
-function getCurrentProfileValues() {
- 
-  const previewSrc =
-    document.getElementById("profilePreview").getAttribute("src") || "";
- 
-  const photoUrl =
-    isRealProfilePhoto(latestProfilePhotoUrl)
-      ? latestProfilePhotoUrl
-      : (isRealProfilePhoto(previewSrc) ? previewSrc : "");
- 
-  return {
-    profile_photo_url: photoUrl,
-    experience: document.getElementById("experienceDescription").value,
-    service_area: document.getElementById("serviceArea").value,
-    service_radius: document.getElementById("serviceRadius").value,
-    skills: serviceList.join(", "),
-    payout_setup_complete:
-      currentProfile && currentProfile.payout_setup_complete === true,
-    id_verification_complete:
-      currentProfile && currentProfile.id_verification_complete === true
-  };
- 
-}
- 
-function updateChecklist(profile) {
- 
-  const checks = [
-    {
-      id: "photoCheck",
-      complete:
-        isRealProfilePhoto(profile.profile_photo_url)
-    },
-    {
-      id: "experienceCheck",
-      complete:
-        profile.experience &&
-        profile.experience.trim().length >= 20
-    },
-    {
-      id: "serviceAreaCheck",
-      complete:
-        profile.service_area &&
-        profile.service_area.trim() !== "" &&
-        profile.service_radius &&
-        String(profile.service_radius).trim() !== ""
-    },
-    {
-      id: "servicesCheck",
-      complete:
-        profile.skills &&
-        profile.skills.trim() !== ""
-    },
-    {
-      id: "taxCheck",
-      complete:
-        profile.payout_setup_complete === true
-    },
-    {
-      id: "verificationCheck",
-      complete:
-        profile.id_verification_complete === true
-    }
-  ];
- 
-  let completeCount = 0;
- 
-  checks.forEach((check) => {
- 
-    const row =
-      document.getElementById(check.id);
- 
-    const icon =
-      row.querySelector(".check-icon");
- 
-    if (check.complete) {
-      row.classList.add("complete");
-      icon.innerText = "✓";
-      completeCount += 1;
-    } else {
-      row.classList.remove("complete");
-      icon.innerText = "•";
-    }
- 
-  });
- 
-  const percent =
-    Math.round((completeCount / checks.length) * 100);
- 
-  document.getElementById("progressBar").style.width =
-    `${percent}%`;
- 
-  document.getElementById("progressText").innerText =
-    `${percent}% complete (${completeCount} of ${checks.length} items done)`;
- 
+  updateCompletionUI(getLiveProfileSnapshot());
 }
  
 async function uploadProfilePhoto(event) {
- 
   const file = event.target.files[0];
  
   if (!file || !currentUser) {
     return;
   }
  
-  if (!file.type.startsWith("image/")) {
-    showToast("Please choose an image file.");
-    return;
-  }
- 
-  if (file.size > 5 * 1024 * 1024) {
-    showToast("Photo must be under 5 MB.");
-    return;
-  }
- 
-  const reader = new FileReader();
- 
-  reader.onload = function(loadEvent) {
-    document.getElementById("profilePreview").src =
-      loadEvent.target.result;
-  };
- 
-  reader.readAsDataURL(file);
- 
-  showToast("Uploading photo...");
+  setMessage("photoStatusMessage", "Uploading photo...", "#0b7a28");
  
   const fileExt =
     file.name.split(".").pop();
@@ -1133,7 +827,11 @@ async function uploadProfilePhoto(event) {
  
   if (uploadError) {
     console.error(uploadError);
-    showToast("Error uploading photo. Check the profile-photos storage bucket.");
+    setMessage(
+      "photoStatusMessage",
+      "Error uploading photo. Check the profile-photos storage bucket.",
+      "red"
+    );
     return;
   }
  
@@ -1142,11 +840,11 @@ async function uploadProfilePhoto(event) {
       .from("profile-photos")
       .getPublicUrl(filePath);
  
-  latestProfilePhotoUrl =
+  const publicUrl =
     data.publicUrl;
  
   document.getElementById("profilePreview").src =
-    latestProfilePhotoUrl;
+    publicUrl;
  
   const { error: updateError } =
     await supabaseClient
@@ -1154,74 +852,99 @@ async function uploadProfilePhoto(event) {
       .upsert({
         id: currentUser.id,
         email: currentUser.email,
-        profile_photo_url: latestProfilePhotoUrl,
+        profile_photo_url: publicUrl,
         account_type: "worker"
       });
  
   if (updateError) {
     console.error(updateError);
-    showToast("Photo uploaded, but there was an error saving it to your profile.");
+    setMessage(
+      "photoStatusMessage",
+      "Photo uploaded, but there was an error saving it to your profile.",
+      "red"
+    );
     return;
   }
  
-  hasUnsavedChanges = false;
-  updateChecklist(getCurrentProfileValues());
-  updatePreview();
-  showToast("Profile photo uploaded successfully.");
+  currentProfile.profile_photo_url = publicUrl;
  
+  updateCompletionUI(getLiveProfileSnapshot());
+ 
+  setMessage("photoStatusMessage", "Profile photo saved.", "green");
 }
  
-function updatePreview() {
- 
-  const profile =
-    getCurrentProfileValues();
- 
-  const fullName =
-    currentProfile && (
-      currentProfile.full_name ||
-      `${currentProfile.first_name || ""} ${currentProfile.last_name || ""}`.trim()
-    );
- 
-  document.getElementById("previewName").innerText =
-    fullName || "Worker Profile";
- 
-  const services =
-    profile.skills || "No services added yet";
- 
+async function saveServiceArea() {
   const area =
-    profile.service_area || "Service area not set";
+    getInputValue("serviceArea");
  
   const radius =
-    profile.service_radius
-      ? `within ${profile.service_radius} miles`
-      : "radius not set";
+    document.getElementById("serviceRadius").value;
  
-  const experience =
-    profile.experience && profile.experience.trim() !== ""
-      ? profile.experience.trim()
-      : "No experience description added yet.";
+  if (!currentUser) {
+    alert("You must log in first.");
+    window.location.href = "worker-login.html";
+    return;
+  }
  
-  document.getElementById("previewText").innerText =
-    `Services: ${services}\nService Area: ${area} (${radius})\n\n${experience}`;
+  if (!hasValue(area)) {
+    setMessage(
+      "locationStatusMessage",
+      "Enter your primary service area before saving.",
+      "red"
+    );
+    return;
+  }
  
+  if (!hasValue(radius)) {
+    setMessage(
+      "locationStatusMessage",
+      "Select a service radius before saving.",
+      "red"
+    );
+    return;
+  }
+ 
+  setMessage("locationStatusMessage", "Saving service area...", "#0b7a28");
+ 
+  const { error } =
+    await supabaseClient
+      .from("profiles")
+      .upsert({
+        id: currentUser.id,
+        email: currentUser.email,
+        service_area: area,
+        service_radius: radius,
+        account_type: "worker"
+      });
+ 
+  if (error) {
+    console.error(error);
+    setMessage(
+      "locationStatusMessage",
+      "Error saving service area.",
+      "red"
+    );
+    return;
+  }
+ 
+  currentProfile.service_area = area;
+  currentProfile.service_radius = radius;
+ 
+  updateCompletionUI(getLiveProfileSnapshot());
+ 
+  setMessage("locationStatusMessage", "Service area saved.", "green");
 }
  
-function previewProfileCard() {
- 
-  document.querySelector(".preview-box").scrollIntoView({
-    behavior: "smooth",
-    block: "center"
-  });
- 
+function clearServiceArea() {
+  document.getElementById("serviceArea").value = "";
+  document.getElementById("serviceRadius").value = "";
+  setMessage("locationStatusMessage", "Service area cleared. Save again to update your profile.", "#555");
+  handleLiveProfileUpdate();
 }
  
 async function saveProfile() {
- 
   const status =
     document.getElementById("statusMessage");
- 
-  const saveButton =
-    document.getElementById("saveButton");
  
   if (!currentUser) {
     alert("You must log in first.");
@@ -1230,30 +953,18 @@ async function saveProfile() {
   }
  
   const experience =
-    document.getElementById("experienceDescription")
-      .value
-      .trim();
+    getInputValue("experienceDescription");
  
   const services =
-    serviceList.join(", ");
+    getInputValue("servicesOffered");
  
   const area =
-    document.getElementById("serviceArea")
-      .value
-      .trim();
+    getInputValue("serviceArea");
  
   const radius =
-    document.getElementById("serviceRadius")
-      .value;
+    document.getElementById("serviceRadius").value;
  
-  if (experience.length > 0 && experience.length < 20) {
-    showToast("Add a little more detail to your experience description.");
-    return;
-  }
- 
-  saveButton.disabled = true;
-  saveButton.innerText = "Saving...";
-  status.style.color = "#555";
+  status.style.color = "#0b7a28";
   status.innerText = "Saving profile...";
  
   const { error } =
@@ -1266,98 +977,33 @@ async function saveProfile() {
         skills: services,
         service_area: area,
         service_radius: radius,
-        profile_photo_url: latestProfilePhotoUrl || null,
         account_type: "worker",
         is_worker_approved: false
       });
  
-  saveButton.disabled = false;
-  saveButton.innerText = "Save Profile";
- 
   if (error) {
     console.error(error);
-    status.style.color = "#b00020";
+    status.style.color = "red";
     status.innerText = "Error saving profile.";
-    showToast("Profile did not save. Check your profiles table columns or RLS policy.");
     return;
   }
  
-  hasUnsavedChanges = false;
- 
   currentProfile = {
-    ...(currentProfile || {}),
+    ...currentProfile,
     experience: experience,
     skills: services,
     service_area: area,
-    service_radius: radius,
-    profile_photo_url: latestProfilePhotoUrl
+    service_radius: radius
   };
  
-  updateChecklist(getCurrentProfileValues());
-  updatePreview();
+  updateCompletionUI(getLiveProfileSnapshot());
  
-  status.style.color = "#0b7a28";
+  status.style.color = "green";
   status.innerText = "Profile saved successfully.";
-  showToast("Profile saved successfully.");
- 
 }
- 
-function goToDashboard() {
- 
-  if (hasUnsavedChanges) {
-    const leavePage = confirm(
-      "You have unsaved changes. Leave without saving?"
-    );
- 
-    if (!leavePage) {
-      return;
-    }
-  }
- 
-  window.location.href = "worker-dashboard.html";
- 
-}
- 
-function showToast(message) {
- 
-  const toast =
-    document.getElementById("toast");
- 
-  toast.innerText = message;
-  toast.classList.add("show");
- 
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, 2600);
- 
-}
- 
-function escapeHtml(value) {
- 
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
- 
-}
- 
-window.addEventListener("beforeunload", function(event) {
- 
-  if (!hasUnsavedChanges) {
-    return;
-  }
- 
-  event.preventDefault();
-  event.returnValue = "";
- 
-});
  
 checkLogin();
  
 </script>
 </body>
 </html>
-
-

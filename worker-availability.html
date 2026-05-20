@@ -534,9 +534,9 @@ async function getCurrentWorker() {
 
   currentUser = sessionData.session.user;
 
- const { data: workerProfile, error: profileError } =
+const { data: workerProfile, error: profileError } =
   await supabaseClient
-    .from("workers")
+    .from("worker_profiles")
     .select("id")
     .eq("email", authUser.email)
     .maybeSingle();

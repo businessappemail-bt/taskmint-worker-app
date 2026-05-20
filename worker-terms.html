@@ -1,0 +1,223 @@
+<style>
+
+.worker-help-card{
+  background:white;
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+.section-title{
+  font-size:20px;
+  font-weight:bold;
+  margin-bottom:14px;
+  color:#111;
+}
+
+.faq-item{
+  border-bottom:1px solid #eee;
+}
+
+.faq-item:last-child{
+  border-bottom:none;
+}
+
+.faq-question{
+  width:100%;
+  background:white;
+  border:none;
+  padding:18px 0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:#111;
+  font-size:17px;
+  font-weight:600;
+  cursor:pointer;
+  text-align:left;
+}
+
+.faq-icon{
+  color:#0b7a28;
+  font-size:28px;
+  font-weight:bold;
+  min-width:25px;
+  text-align:right;
+}
+
+.faq-answer{
+  display:none;
+  padding:0 0 18px;
+  color:#555;
+  font-size:15px;
+  line-height:1.6;
+}
+
+</style>
+
+<div class="card worker-help-card">
+
+  <div class="section-title">
+    Worker Help
+  </div>
+
+  <div class="faq-item">
+
+    <button class="faq-question"
+      onclick="toggleFAQ(this)">
+
+      <span>
+        How do I get jobs?
+      </span>
+
+      <span class="faq-icon">
+        +
+      </span>
+
+    </button>
+
+    <div class="faq-answer">
+
+      Browse open tasks, submit quotes,
+      and wait for the customer to accept
+      your offer. Once accepted, the task
+      moves into your active jobs.
+
+    </div>
+
+  </div>
+
+  <div class="faq-item">
+
+    <button class="faq-question"
+      onclick="toggleFAQ(this)">
+
+      <span>
+        When do I get paid?
+      </span>
+
+      <span class="faq-icon">
+        +
+      </span>
+
+    </button>
+
+    <div class="faq-answer">
+
+      Payments are released after the
+      customer confirms the task is complete.
+      Some payouts may be delayed briefly
+      for fraud prevention or disputes.
+
+    </div>
+
+  </div>
+
+  <div class="faq-item">
+
+    <button class="faq-question"
+      onclick="toggleFAQ(this)">
+
+      <span>
+        Can I change a scheduled job time?
+      </span>
+
+      <span class="faq-icon">
+        +
+      </span>
+
+    </button>
+
+    <div class="faq-answer">
+
+      Yes. Either the customer or worker
+      can request a reschedule, but both
+      parties must approve the change
+      before the schedule updates.
+
+    </div>
+
+  </div>
+
+  <div class="faq-item">
+
+    <button class="faq-question"
+      onclick="toggleFAQ(this)">
+
+      <span>
+        Why do customers have an arrival code?
+      </span>
+
+      <span class="faq-icon">
+        +
+      </span>
+
+    </button>
+
+    <div class="faq-answer">
+
+      The arrival code confirms you arrived
+      before work begins and helps protect
+      workers from false claims that they
+      never showed up.
+
+    </div>
+
+  </div>
+
+  <div class="faq-item">
+
+    <button class="faq-question"
+      onclick="toggleFAQ(this)">
+
+      <span>
+        What happens if there is a dispute?
+      </span>
+
+      <span class="faq-icon">
+        +
+      </span>
+
+    </button>
+
+    <div class="faq-answer">
+
+      TaskMint may temporarily hold payment
+      while reviewing messages, timestamps,
+      photos, location verification,
+      and other evidence from both parties.
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+function toggleFAQ(button){
+
+  const answer =
+    button.nextElementSibling;
+
+  const icon =
+    button.querySelector(".faq-icon");
+
+  if(answer.style.display === "block"){
+
+    answer.style.display = "none";
+
+    icon.innerText = "+";
+
+  } else {
+
+    answer.style.display = "block";
+
+    icon.innerText = "−";
+
+  }
+
+}
+
+</script>

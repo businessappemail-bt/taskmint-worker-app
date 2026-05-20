@@ -521,7 +521,7 @@ async function getCurrentWorker() {
   await supabaseClient
     .from("profiles")
     .select("id")
-    .eq("email", authUser.email)
+    .eq("email", currentUser.email)
     .maybeSingle();
  
   if (profileError) {

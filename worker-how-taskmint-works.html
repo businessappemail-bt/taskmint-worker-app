@@ -4,49 +4,138 @@
     Worker Help
   </div>
 
-  <button class="faq-question"
-    onclick="toggleFAQ(this)">
-    How do I get jobs?
-  </button>
+  <div class="faq-item">
 
-  <div class="faq-answer">
-    Browse open tasks, submit quotes, and wait for the customer to accept your offer. Once accepted, the task moves into your active jobs.
+    <button class="faq-question"
+      onclick="toggleFAQ(this)">
+      <span>How do I get jobs?</span>
+      <span class="faq-icon">+</span>
+    </button>
+
+    <div class="faq-answer">
+      Browse open tasks, submit quotes, and wait for the customer to accept your offer. Once accepted, the task moves into your active jobs.
+    </div>
+
   </div>
 
-  <button class="faq-question"
-    onclick="toggleFAQ(this)">
-    When do I get paid?
-  </button>
+  <div class="faq-item">
 
-  <div class="faq-answer">
-    Payments are released after the customer confirms the task is complete. Some payouts may be delayed briefly for fraud prevention or disputes.
+    <button class="faq-question"
+      onclick="toggleFAQ(this)">
+      <span>When do I get paid?</span>
+      <span class="faq-icon">+</span>
+    </button>
+
+    <div class="faq-answer">
+      Payments are released after the customer confirms the task is complete. Some payouts may be delayed briefly for fraud prevention or disputes.
+    </div>
+
   </div>
 
-  <button class="faq-question"
-    onclick="toggleFAQ(this)">
-    Can I change a scheduled job time?
-  </button>
+  <div class="faq-item">
 
-  <div class="faq-answer">
-    Yes. Either the customer or worker can request a reschedule, but both parties must approve the change.
+    <button class="faq-question"
+      onclick="toggleFAQ(this)">
+      <span>Can I change a scheduled job time?</span>
+      <span class="faq-icon">+</span>
+    </button>
+
+    <div class="faq-answer">
+      Yes. Either the customer or worker can request a reschedule, but both parties must approve the change before the schedule updates.
+    </div>
+
   </div>
 
-  <button class="faq-question"
-    onclick="toggleFAQ(this)">
-    Why do customers have an arrival code?
-  </button>
+  <div class="faq-item">
 
-  <div class="faq-answer">
-    The arrival code helps confirm the worker arrived at the correct location before work begins. We also use this code to protect the workers from claims of not arriving for the job.
+    <button class="faq-question"
+      onclick="toggleFAQ(this)">
+      <span>Why do customers have an arrival code?</span>
+      <span class="faq-icon">+</span>
+    </button>
+
+    <div class="faq-answer">
+      The arrival code helps confirm the worker arrived at the correct location before work begins. This also helps protect workers from false claims that they never arrived.
+    </div>
+
   </div>
 
-  <button class="faq-question"
-    onclick="toggleFAQ(this)">
-    What happens if there is a dispute?
-  </button>
+  <div class="faq-item">
 
-  <div class="faq-answer">
-    TaskMint may temporarily hold payment while reviewing messages, photos, timestamps, and other job evidence from both parties.
+    <button class="faq-question"
+      onclick="toggleFAQ(this)">
+      <span>What happens if there is a dispute?</span>
+      <span class="faq-icon">+</span>
+    </button>
+
+    <div class="faq-answer">
+      TaskMint may temporarily hold payment while reviewing messages, timestamps, photos, location verification, and other evidence from both parties.
+    </div>
+
   </div>
 
 </div>
+
+<style>
+
+.faq-item{
+  border-bottom:1px solid #eee;
+}
+
+.faq-question{
+  width:100%;
+  background:white;
+  border:none;
+  padding:16px 0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+  color:#111;
+}
+
+.faq-icon{
+  font-size:22px;
+  color:#0b7a28;
+  font-weight:bold;
+}
+
+.faq-answer{
+  display:none;
+  padding-bottom:16px;
+  color:#555;
+  line-height:1.6;
+  font-size:14px;
+}
+
+</style>
+
+<script>
+
+function toggleFAQ(button){
+
+  const answer =
+    button.nextElementSibling;
+
+  const icon =
+    button.querySelector(".faq-icon");
+
+  if(answer.style.display === "block"){
+
+    answer.style.display = "none";
+
+    icon.innerText = "+";
+
+  } else {
+
+    answer.style.display = "block";
+
+    icon.innerText = "−";
+
+  }
+
+}
+
+</script>

@@ -267,7 +267,7 @@
       cursor: pointer;
     }
 
-    .upload-work-photo-box {
+    .work-photo-upload-box {
       display: none;
       background: #f7faf8;
       border: 1px solid #e3eee6;
@@ -276,7 +276,7 @@
       margin-bottom: 12px;
     }
 
-    .upload-work-photo-box.show {
+    .work-photo-upload-box.show {
       display: block;
     }
 
@@ -284,15 +284,15 @@
       font-size: 12px;
       color: #666;
       line-height: 1.4;
-      margin-top: 6px;
+      margin-top: 7px;
     }
 
     .upload-status {
       font-size: 13px;
       font-weight: 900;
-      margin-top: 8px;
-      text-align: center;
+      margin-top: 9px;
       line-height: 1.4;
+      text-align: center;
     }
 
     .pending-photo-card {
@@ -301,7 +301,7 @@
       color: #7a4b00;
       border-radius: 16px;
       padding: 12px;
-      margin-top: 10px;
+      margin-bottom: 12px;
       font-size: 13px;
       line-height: 1.4;
       font-weight: 700;
@@ -550,6 +550,19 @@ async function resolveWorkerId() {
  
   return selectedWorkerId;
 }
+
+function isOwnWorkerProfile(profile) {
+  if (!currentUser || !profile) {
+    return false;
+  }
+
+  return (
+    String(profile.id || "") === String(currentUser.id || "") ||
+    String(profile.auth_user_id || "") === String(currentUser.id || "") ||
+    String(profile.email || "").toLowerCase() ===
+      String(currentUser.email || "").toLowerCase()
+  );
+}
  
 function getDisplayName(profile) {
   const firstName = getFirstAvailable(profile, [
@@ -644,6 +657,26 @@ function formatDate(value) {
     month: "short",
     day: "numeric"
   });
+}
+
+function formatTime(value) {
+  if (!value) {
+    return "Time not set";
+  }
+
+  const parts = String(value).split(":");
+  const hour = Number(parts[0]);
+  const minute = Number(parts[1] || 0);
+
+  if (Number.isNaN(hour) || Number.isNaN(minute)) {
+    return value;
+  }
+
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  const displayMinute = String(minute).padStart(2, "0");
+
+  return `${displayHour}:${displayMinute} ${suffix}`;
 }
  
 function normalizeStatus(value) {
@@ -742,12 +775,32 @@ async function loadPortfolio(workerId) {
     .from("worker_portfolio")
     .select("*")
     .eq("worker_id", workerId)
+    .eq("approval_status", "approved")
     .order("created_at", { ascending: false });
  
   if (!error && data) {
     return data;
   }
  
+  return [];
+}
+
+async function loadPendingPortfolio(workerId, profile) {
+  if (!isOwnWorkerProfile(profile)) {
+    return [];
+  }
+
+  const { data, error } = await supabaseClient
+    .from("worker_portfolio")
+    .select("*")
+    .eq("worker_id", workerId)
+    .eq("approval_status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (!error && data) {
+    return data;
+  }
+
   return [];
 }
  
@@ -829,6 +882,48 @@ function renderPortfolio(portfolio) {
           >
         `;
       }).join("")}
+    </div>
+  `;
+}
+
+function renderWorkPhotoUpload(profile) {
+  if (!isOwnWorkerProfile(profile)) {
+    return "";
+  }
+
+  return `
+    <div class="work-photo-upload-box show">
+      <input
+        type="file"
+        id="workPhotoInput"
+        accept="image/*"
+        style="display:none;"
+        onchange="uploadWorkPhoto(event)"
+      >
+
+      <button
+        type="button"
+        onclick="document.getElementById('workPhotoInput').click()">
+        Upload Work Photo
+      </button>
+
+      <div class="upload-note">
+        Photos must be manually approved by TaskMint before customers can see them.
+      </div>
+
+      <div id="workPhotoUploadStatus" class="upload-status"></div>
+    </div>
+  `;
+}
+
+function renderPendingPortfolio(pendingPortfolio, profile) {
+  if (!isOwnWorkerProfile(profile) || !pendingPortfolio || pendingPortfolio.length === 0) {
+    return "";
+  }
+
+  return `
+    <div class="pending-photo-card">
+      ${pendingPortfolio.length} work photo${pendingPortfolio.length === 1 ? "" : "s"} pending TaskMint approval.
     </div>
   `;
 }
@@ -1016,7 +1111,7 @@ function renderProfile(profile, availability, reviews, completedJobs, portfolio,
         </div>
       </div>
  
-      ${renderWorkPhotoUploadBox(profile)}
+      ${renderWorkPhotoUpload(profile)}
       ${renderPendingPortfolio(pendingPortfolio, profile)}
       ${renderPortfolio(portfolio)}
     </div>
@@ -1042,51 +1137,62 @@ function renderProfile(profile, availability, reviews, completedJobs, portfolio,
 async function loadPublicProfile() {
   const page = document.getElementById("profilePage");
  
-  const workerId = await resolveWorkerId();
+  try {
+    const workerId = await resolveWorkerId();
  
-  if (!workerId) {
+    if (!workerId) {
+      page.innerHTML = `
+        <div class="card">
+          <div class="empty">
+            No worker profile was selected.
+          </div>
+        </div>
+      `;
+      return;
+    }
+ 
+    const profile = await loadWorkerProfile(workerId);
+ 
+    if (!profile) {
+      page.innerHTML = `
+        <div class="card">
+          <div class="empty">
+            Worker profile could not be found.
+          </div>
+        </div>
+      `;
+      return;
+    }
+ 
+    selectedWorkerProfile = profile;
+    selectedWorkerId = profile.id || workerId;
+ 
+    const availability = await loadAvailability(selectedWorkerId, profile);
+    const reviews = await loadReviews(selectedWorkerId);
+    const completedJobs = await loadCompletedJobs(selectedWorkerId, profile);
+    const portfolio = await loadPortfolio(selectedWorkerId);
+    const pendingPortfolio = await loadPendingPortfolio(selectedWorkerId, profile);
+ 
+    page.innerHTML = renderProfile(
+      profile,
+      availability,
+      reviews,
+      completedJobs,
+      portfolio,
+      pendingPortfolio
+    );
+  } catch (error) {
+    console.error(error);
     page.innerHTML = `
       <div class="card">
         <div class="empty">
-          No worker profile was selected.
+          Error loading worker profile.
         </div>
       </div>
     `;
-    return;
   }
- 
-  const profile = await loadWorkerProfile(workerId);
- 
-  if (!profile) {
-    page.innerHTML = `
-      <div class="card">
-        <div class="empty">
-          Worker profile could not be found.
-        </div>
-      </div>
-    `;
-    return;
-  }
- 
-  selectedWorkerProfile = profile;
-  selectedWorkerId = profile.id || workerId;
- 
-  const [availability, reviews, completedJobs, portfolio] = await Promise.all([
-    loadAvailability(selectedWorkerId, profile),
-    loadReviews(selectedWorkerId),
-    loadCompletedJobs(selectedWorkerId, profile),
-    loadPortfolio(selectedWorkerId)
-  ]);
- 
-  page.innerHTML = renderProfile(
-    profile,
-    availability,
-    reviews,
-    completedJobs,
-    portfolio
-  );
 }
- 
+
 async function uploadWorkPhoto(event) {
   const file = event.target.files[0];
   const status = document.getElementById("workPhotoUploadStatus");
@@ -1127,13 +1233,11 @@ async function uploadWorkPhoto(event) {
     .from("worker-portfolio")
     .getPublicUrl(filePath);
 
-  const photoUrl = publicUrlData.publicUrl;
-
   const { error: insertError } = await supabaseClient
     .from("worker_portfolio")
     .insert({
       worker_id: selectedWorkerId,
-      photo_url: photoUrl,
+      photo_url: publicUrlData.publicUrl,
       approval_status: "pending"
     });
 
@@ -1151,7 +1255,7 @@ async function uploadWorkPhoto(event) {
   }
 
   event.target.value = "";
-  loadPublicProfile();
+  await loadPublicProfile();
 }
 
 function messageWorker() {
@@ -1206,14 +1310,3 @@ loadPublicProfile();
 </body>
 </html>
  
-<script>
-function viewPublicProfile() {
-  const workerId =
-    typeof currentWorkerId !== "undefined" && currentWorkerId
-      ? currentWorkerId
-      : localStorage.getItem("taskmintUserId");
- 
-  localStorage.setItem("selectedWorkerId", workerId || "");
-  window.location.href = "worker-public-profile.html";
-}
-</script>

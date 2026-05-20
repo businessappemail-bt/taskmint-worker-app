@@ -283,6 +283,7 @@
     </div>
 
     <div id="activeDisputes">
+      <div id="disputeMessages"></div>
       <div class="empty">
         Loading disputes...
       </div>
@@ -591,6 +592,68 @@ async function loadDisputes(){
   renderDisputes(activeBox, active);
   renderDisputes(historyBox, history);
 
+  async function loadDisputeMessages(disputeId, containerId) {
+
+  const container =
+    document.getElementById(containerId);
+
+  const { data, error } =
+    await supabaseClient
+      .from("dispute_messages")
+      .select("*")
+      .eq("dispute_id", disputeId)
+      .or("visible_to.eq.worker,visible_to.eq.admin")
+      .order("created_at", {
+        ascending: true
+      });
+
+  if (error || !data) {
+    container.innerHTML =
+      "<div class='small-text'>Unable to load messages.</div>";
+    return;
+  }
+
+  if (data.length === 0) {
+    container.innerHTML =
+      "<div class='small-text'>No dispute messages yet.</div>";
+    return;
+  }
+
+  container.innerHTML = "";
+
+  data.forEach(message => {
+
+    let label = "";
+
+    if (message.sender_type === "admin") {
+      label = "TaskMint Support";
+    } else if (message.sender_type === "worker") {
+      label = "You";
+    }
+
+    container.innerHTML += `
+      <div class="admin-response">
+
+        <div class="response-title">
+          ${label}
+        </div>
+
+        <div>
+          ${message.message}
+        </div>
+
+        <div class="small-text">
+          ${new Date(message.created_at)
+            .toLocaleString()}
+        </div>
+
+      </div>
+    `;
+
+  });
+
+}
+
 }
 
 function renderDisputes(container, disputes){
@@ -655,14 +718,38 @@ function renderDisputes(container, disputes){
           : ""
         }
 
+        <div
+          id="messages-${dispute.id}"
+          style="margin-top:14px;"
+        ></div>
+
+        <textarea
+          id="reply-${dispute.id}"
+          placeholder="Reply to TaskMint support..."
+          style="margin-top:12px;"
+        ></textarea>
+
+        <button
+          onclick="sendWorkerReply('${dispute.id}')">
+          Send Reply
+        </button>
+
       </div>
 
     `;
 
+    setTimeout(() => {
+
+      loadDisputeMessages(
+        dispute.id,
+        `messages-${dispute.id}`
+      );
+
+    }, 100);
+
   });
 
 }
-
 init();
 
 </script>

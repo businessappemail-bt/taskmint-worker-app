@@ -1,151 +1,386 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Message Center - TaskMint</title>
+<title>Worker Message Center - TaskMint</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+* {
+  box-sizing: border-box;
+}
+
 body {
-margin: 0;
-font-family: Arial, sans-serif;
-background: #f5f5f5;
-color: #111;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(180deg, #e9f7ee 0%, #f5f5f5 100%);
+  color: #111;
+  padding-bottom: 80px;
 }
 
 .container {
-max-width: 420px;
-margin: 0 auto;
-padding: 20px;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 18px;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .back {
-color: green;
-font-weight: bold;
-cursor: pointer;
-margin-bottom: 20px;
+  color: #0b7a28;
+  font-weight: 900;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
 }
 
-.notice, .card {
-background: white;
-border-radius: 12px;
-padding: 14px;
-margin-bottom: 12px;
-box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+.refresh {
+  color: #0b7a28;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.hero {
+  background: linear-gradient(135deg, #0b7a28, #19a447);
+  color: white;
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 10px 28px rgba(11,122,40,0.22);
+}
+
+.hero-title {
+  font-size: 24px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.hero-sub {
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.95;
+}
+
+.notice,
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 15px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  border: 1px solid #edf1ee;
 }
 
 .notice {
-border-left: 4px solid green;
-color: #444;
-font-size: 14px;
+  border-left: 5px solid #0b7a28;
+  color: #444;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
-textarea, input {
-width: 100%;
-box-sizing: border-box;
-padding: 12px;
-margin-top: 10px;
-border: 1px solid #ccc;
-border-radius: 10px;
-font-size: 15px;
+.context-card {
+  background: #f7faf8;
+  border: 1px solid #e3eee6;
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.context-title {
+  font-size: 14px;
+  font-weight: 900;
+  color: #111;
+  margin-bottom: 4px;
+}
+
+.context-sub {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+textarea,
+input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px;
+  margin-top: 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 13px;
+  font-size: 15px;
+  font-family: Arial, sans-serif;
+  outline: none;
+  background: #fbfbfb;
+}
+
+textarea:focus,
+input:focus {
+  border-color: #0b7a28;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
+}
+
+textarea {
+  min-height: 105px;
+  resize: vertical;
 }
 
 button {
-width: 100%;
-padding: 13px;
-margin-top: 10px;
-border: none;
-border-radius: 10px;
-font-size: 15px;
-cursor: pointer;
+  width: 100%;
+  padding: 13px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 13px;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
 }
 
-.send { background: green; color: white; }
-.report { background: #b00020; color: white; }
-.block { background: #333; color: white; }
+.send {
+  background: #0b7a28;
+  color: white;
+}
+
+.report {
+  background: #b00020;
+  color: white;
+}
+
+.block {
+  background: #333;
+  color: white;
+}
+
+.secondary {
+  background: white;
+  color: #111;
+  border: 1px solid #dfe5e0;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 
 .message {
-background: white;
-padding: 12px;
-border-radius: 10px;
-margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  max-width: 86%;
+  border: 1px solid #e3eee6;
+}
+
+.message.mine {
+  background: #e7f7ec;
+  margin-left: auto;
+}
+
+.message.theirs {
+  background: white;
+  margin-right: auto;
+}
+
+.message-label {
+  font-size: 12px;
+  font-weight: 900;
+  color: #0b7a28;
+  margin-bottom: 4px;
+}
+
+.message-text {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.45;
+  white-space: pre-wrap;
 }
 
 .small {
-color: #777;
-font-size: 12px;
-margin-top: 5px;
+  color: #777;
+  font-size: 11px;
+  margin-top: 6px;
 }
 
 .error {
-color: #b00020;
-font-weight: bold;
+  color: #b00020;
+  font-weight: bold;
+}
+
+.success {
+  color: #0b7a28;
+  font-weight: bold;
 }
 
 img {
-max-width: 100%;
-border-radius: 10px;
-margin-top: 8px;
+  max-width: 100%;
+  border-radius: 10px;
+  margin-top: 8px;
+}
+
+.empty {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+  padding: 16px;
+}
+
+.quote-request-box {
+  display: none;
+  background: #fff7e6;
+  border: 1px solid #ffd27a;
+  color: #7a4b00;
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.quote-request-box.show {
+  display: block;
 }
 </style>
 </head>
 
 <body>
+
 <div class="container">
-<a class="back" href="worker-dashboard.html">← Back</a>
 
-<h1>Message Center</h1>
+  <div class="top-bar">
+    <a class="back" href="worker-dashboard.html">← Back</a>
+    <div class="refresh" onclick="loadMessageCenter()">Refresh</div>
+  </div>
 
-<div class="notice">
-Messages are monitored for safety. Do not share payment details, personal threats, or inappropriate content.
+  <div class="hero">
+    <div class="hero-title">Message Center</div>
+    <div class="hero-sub">
+      View customer messages, quote request conversations, and job-related image attachments.
+    </div>
+  </div>
+
+  <div class="notice">
+    Messages are monitored for safety. Do not share payment details, personal threats, or inappropriate content.
+  </div>
+
+  <div class="card">
+
+    <div id="conversationContext" class="context-card">
+      <div class="context-title">Conversation</div>
+      <div class="context-sub">Loading conversation details...</div>
+    </div>
+
+    <div id="quoteRequestBox" class="quote-request-box"></div>
+
+    <div id="messagesList">
+      <div class="empty">Loading messages...</div>
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <textarea id="messageInput" placeholder="Type your message..."></textarea>
+
+    <input id="imageInput" type="file" accept="image/*">
+
+    <button class="send" onclick="sendMessage()">Send Message</button>
+
+    <div class="action-grid">
+      <button class="report" onclick="reportUser()">Report</button>
+      <button class="block" onclick="blockUser()">Block</button>
+    </div>
+
+    <p id="status"></p>
+
+  </div>
+
 </div>
 
-<div id="messagesList" class="card">Loading messages...</div>
-
-<div class="card">
-<textarea id="messageInput" placeholder="Type your message..."></textarea>
-
-<input id="imageInput" type="file" accept="image/*">
-
-<button class="send" onclick="sendMessage()">Send Message</button>
-<button class="report" onclick="reportUser()">Report User</button>
-<button class="block" onclick="blockUser()">Block User</button>
-
-<p id="status"></p>
-</div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-const supabaseClient = supabase.createClient(
-"https://dbcthtjmtlumidpbucrc.supabase.co",
-"sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
 
 const params = new URLSearchParams(window.location.search);
-const receiverId = params.get("worker_id") || params.get("receiver_id");
-const taskId = params.get("task_id");
+
+let currentUser = null;
+let currentConversationId =
+  params.get("conversation_id") ||
+  localStorage.getItem("selectedConversationId") ||
+  "";
+
+let currentTaskId =
+  params.get("task_id") ||
+  localStorage.getItem("selectedTaskId") ||
+  "";
+
+let currentQuoteRequestId =
+  params.get("quote_request_id") ||
+  localStorage.getItem("selectedQuoteRequestId") ||
+  "";
+
+let currentCustomerId =
+  params.get("customer_id") ||
+  params.get("receiver_id") ||
+  localStorage.getItem("selectedCustomerId") ||
+  "";
+
+let currentWorkerId =
+  params.get("worker_id") ||
+  localStorage.getItem("selectedWorkerId") ||
+  "";
+
+let otherUserId = "";
 
 const blockedWords = [
-"fuck",
-"shit",
-"bitch",
-"asshole",
-"damn",
-"nigga",
-"nigger",
-"motherfucker",
-"motherfucka",
-"retard",
-"hoe",
-"cunt",
-"dick",
-"pussy"
+  "fuck",
+  "shit",
+  "bitch",
+  "asshole",
+  "damn",
+  "nigga",
+  "nigger",
+  "motherfucker",
+  "motherfucka",
+  "retard",
+  "hoe",
+  "cunt",
+  "dick",
+  "pussy"
 ];
 
 function containsBlockedWords(text) {
-const lowerText = text.toLowerCase();
-return blockedWords.some(word => lowerText.includes(word));
+  const lowerText = String(text || "").toLowerCase();
+  return blockedWords.some(word => lowerText.includes(word));
+}
+
+function escapeHTML(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function setStatus(message, type = "") {
+  const status = document.getElementById("status");
+  status.className = type;
+  status.innerText = message;
 }
 
 async function getCurrentUser() {
@@ -162,177 +397,444 @@ async function getCurrentUser() {
     return { id: savedUserId };
   }
 
-  window.location.href = "login.html";
+  window.location.href = "worker-login.html";
   return null;
 }
 
+async function getWorkerProfileId(user) {
+  if (currentWorkerId) {
+    return currentWorkerId;
+  }
+
+  const { data: workerProfile } = await supabaseClient
+    .from("worker_profiles")
+    .select("id")
+    .eq("email", user.email)
+    .maybeSingle();
+
+  if (workerProfile && workerProfile.id) {
+    currentWorkerId = workerProfile.id;
+    localStorage.setItem("selectedWorkerId", currentWorkerId);
+    return currentWorkerId;
+  }
+
+  currentWorkerId = user.id;
+  return currentWorkerId;
+}
+
+async function loadQuoteRequest() {
+  if (!currentQuoteRequestId) {
+    return null;
+  }
+
+  const { data } = await supabaseClient
+    .from("worker_quote_requests")
+    .select("*")
+    .eq("id", currentQuoteRequestId)
+    .maybeSingle();
+
+  return data || null;
+}
+
+async function ensureConversation(user) {
+  await getWorkerProfileId(user);
+
+  if (currentConversationId) {
+    const { data: existingConversation } = await supabaseClient
+      .from("task_conversations")
+      .select("*")
+      .eq("id", currentConversationId)
+      .maybeSingle();
+
+    if (existingConversation) {
+      currentConversationId = existingConversation.id;
+      currentTaskId = existingConversation.task_id || currentTaskId || "";
+      currentQuoteRequestId = existingConversation.quote_request_id || currentQuoteRequestId || "";
+      currentCustomerId = existingConversation.customer_id || currentCustomerId || "";
+      currentWorkerId = existingConversation.worker_id || currentWorkerId || "";
+      otherUserId =
+        String(user.id) === String(currentCustomerId)
+          ? currentWorkerId
+          : currentCustomerId;
+
+      return existingConversation;
+    }
+  }
+
+  let query = supabaseClient
+    .from("task_conversations")
+    .select("*");
+
+  if (currentQuoteRequestId) {
+    query = query.eq("quote_request_id", currentQuoteRequestId);
+  } else if (currentTaskId && currentCustomerId && currentWorkerId) {
+    query = query
+      .eq("task_id", currentTaskId)
+      .eq("customer_id", currentCustomerId)
+      .eq("worker_id", currentWorkerId);
+  } else {
+    return null;
+  }
+
+  const { data: foundConversation } = await query.maybeSingle();
+
+  if (foundConversation) {
+    currentConversationId = foundConversation.id;
+    currentTaskId = foundConversation.task_id || currentTaskId || "";
+    currentQuoteRequestId = foundConversation.quote_request_id || currentQuoteRequestId || "";
+    currentCustomerId = foundConversation.customer_id || currentCustomerId || "";
+    currentWorkerId = foundConversation.worker_id || currentWorkerId || "";
+    otherUserId =
+      String(user.id) === String(currentCustomerId)
+        ? currentWorkerId
+        : currentCustomerId;
+
+    localStorage.setItem("selectedConversationId", currentConversationId);
+    return foundConversation;
+  }
+
+  if (!currentCustomerId) {
+    currentCustomerId = user.id;
+  }
+
+  const { data: newConversation, error } = await supabaseClient
+    .from("task_conversations")
+    .insert({
+      task_id: currentTaskId || null,
+      quote_request_id: currentQuoteRequestId || null,
+      customer_id: currentCustomerId,
+      worker_id: currentWorkerId,
+      conversation_type: currentQuoteRequestId ? "quote_request" : "task",
+      updated_at: new Date().toISOString()
+    })
+    .select()
+    .single();
+
+  if (error) {
+    setStatus(error.message, "error");
+    return null;
+  }
+
+  currentConversationId = newConversation.id;
+  localStorage.setItem("selectedConversationId", currentConversationId);
+
+  otherUserId =
+    String(user.id) === String(currentCustomerId)
+      ? currentWorkerId
+      : currentCustomerId;
+
+  return newConversation;
+}
+
+async function updateContextBox(conversation) {
+  const context = document.getElementById("conversationContext");
+  const quoteBox = document.getElementById("quoteRequestBox");
+
+  quoteBox.classList.remove("show");
+  quoteBox.innerHTML = "";
+
+  if (!conversation) {
+    context.innerHTML = `
+      <div class="context-title">Conversation Not Found</div>
+      <div class="context-sub">Open this message from the inbox or quote request page.</div>
+    `;
+    return;
+  }
+
+  let title = "Customer Conversation";
+  let sub = "Messages connected to this customer.";
+
+  if (conversation.conversation_type === "quote_request") {
+    title = "Quote Request Conversation";
+    sub = "This conversation is connected to a customer quote request.";
+  } else if (conversation.task_id) {
+    title = "Task Conversation";
+    sub = "This conversation is tied to one task only.";
+  }
+
+  context.innerHTML = `
+    <div class="context-title">${escapeHTML(title)}</div>
+    <div class="context-sub">${escapeHTML(sub)}</div>
+  `;
+
+  const quoteRequest = await loadQuoteRequest();
+
+  if (quoteRequest) {
+    quoteBox.classList.add("show");
+    quoteBox.innerHTML = `
+      <strong>${escapeHTML(quoteRequest.title || "Quote Request")}</strong><br>
+      ${escapeHTML(quoteRequest.category || "Category not listed")} •
+      ${escapeHTML(quoteRequest.city || "City not listed")}${quoteRequest.state ? ", " + escapeHTML(quoteRequest.state) : ""}<br>
+      Date Needed: ${escapeHTML(quoteRequest.task_date || "Not listed")}<br>
+      <span>${escapeHTML(quoteRequest.description || "")}</span>
+    `;
+  }
+}
+
+async function markInboxItemRead() {
+  if (!currentConversationId) {
+    return;
+  }
+
+  await supabaseClient
+    .from("worker_inbox_items")
+    .update({ is_read: true })
+    .eq("conversation_id", currentConversationId);
+}
+
+async function markMessagesRead(user) {
+  if (!currentConversationId) {
+    return;
+  }
+
+  await supabaseClient
+    .from("task_messages")
+    .update({ is_read: true })
+    .eq("conversation_id", currentConversationId)
+    .neq("sender_id", user.id);
+}
+
 async function loadMessages() {
-const user = await getCurrentUser();
-if (!user) return;
+  const user = await getCurrentUser();
+  if (!user) return;
 
-const box = document.getElementById("messagesList");
+  currentUser = user;
 
-let query = supabaseClient
-.from("messages")
-.select("*")
-.or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-.order("created_at", { ascending: false });
+  const conversation = await ensureConversation(user);
+  await updateContextBox(conversation);
 
-if (taskId) {
-query = query.eq("task_id", taskId);
-}
+  const box = document.getElementById("messagesList");
 
-const { data: messages, error } = await query;
+  if (!conversation || !currentConversationId) {
+    box.innerHTML = `
+      <div class="empty">
+        No conversation selected. Open a message from the worker inbox.
+      </div>
+    `;
+    return;
+  }
 
-if (error) {
-box.innerHTML = `<p class="error">${error.message}</p>`;
-return;
-}
+  await markInboxItemRead();
+  await markMessagesRead(user);
 
-if (!messages || messages.length === 0) {
-box.innerHTML = "No messages yet.";
-return;
-}
+  const { data: messages, error } = await supabaseClient
+    .from("task_messages")
+    .select("*")
+    .eq("conversation_id", currentConversationId)
+    .order("created_at", { ascending: true });
 
-box.innerHTML = "";
+  if (error) {
+    box.innerHTML = `<p class="error">${error.message}</p>`;
+    return;
+  }
 
-messages.forEach(msg => {
-const div = document.createElement("div");
-div.className = "message";
+  if (!messages || messages.length === 0) {
+    box.innerHTML = `
+      <div class="empty">
+        No messages yet. Start the conversation below.
+      </div>
+    `;
+    return;
+  }
 
-div.innerHTML = `
-<div>${msg.message || ""}</div>
-${msg.image_url ? `<img src="${msg.image_url}">` : ""}
-<div class="small">${new Date(msg.created_at).toLocaleString()}</div>
-`;
+  box.innerHTML = "";
 
-box.appendChild(div);
-});
+  messages.forEach(msg => {
+    const isMine =
+      String(msg.sender_id) === String(user.id);
+
+    const div = document.createElement("div");
+    div.className =
+      isMine ? "message mine" : "message theirs";
+
+    div.innerHTML = `
+      <div class="message-label">
+        ${isMine ? "You" : "Customer"}
+      </div>
+
+      <div class="message-text">
+        ${escapeHTML(msg.message || "")}
+      </div>
+
+      ${msg.image_url ? `<img src="${escapeHTML(msg.image_url)}">` : ""}
+
+      <div class="small">
+        ${new Date(msg.created_at).toLocaleString()}
+      </div>
+    `;
+
+    box.appendChild(div);
+  });
 }
 
 async function uploadImage(file, userId) {
-const fileName = `${userId}-${Date.now()}-${file.name}`;
+  const fileName =
+    `${userId}-${Date.now()}-${file.name}`;
 
-const { error } = await supabaseClient.storage
-.from("message-images")
-.upload(fileName, file);
+  const { error } =
+    await supabaseClient.storage
+      .from("message-images")
+      .upload(fileName, file);
 
-if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
-const { data } = supabaseClient.storage
-.from("message-images")
-.getPublicUrl(fileName);
+  const { data } =
+    supabaseClient.storage
+      .from("message-images")
+      .getPublicUrl(fileName);
 
-return data.publicUrl;
+  return data.publicUrl;
 }
 
 async function sendMessage() {
-const status = document.getElementById("status");
-const message = document.getElementById("messageInput").value.trim();
-const imageFile = document.getElementById("imageInput").files[0];
+  const message = document.getElementById("messageInput").value.trim();
+  const imageFile = document.getElementById("imageInput").files[0];
 
-status.innerText = "";
+  setStatus("");
 
-const user = await getCurrentUser();
-if (!user) return;
+  const user = await getCurrentUser();
+  if (!user) return;
 
-if (!receiverId) {
-status.innerHTML = `<span class="error">No receiver selected.</span>`;
-return;
-}
+  const conversation = await ensureConversation(user);
 
-if (!message && !imageFile) {
-status.innerHTML = `<span class="error">Enter a message or attach a job-related image.</span>`;
-return;
-}
+  if (!conversation || !currentConversationId) {
+    setStatus("No conversation selected.", "error");
+    return;
+  }
 
-if (containsBlockedWords(message)) {
-status.innerHTML = `<span class="error">Message contains prohibited language. Please revise before sending.</span>`;
-return;
-}
+  if (!message && !imageFile) {
+    setStatus("Enter a message or attach a job-related image.", "error");
+    return;
+  }
 
-let imageUrl = null;
+  if (containsBlockedWords(message)) {
+    setStatus("Message contains prohibited language. Please revise before sending.", "error");
+    return;
+  }
 
-try {
-if (imageFile) {
-imageUrl = await uploadImage(imageFile, user.id);
-}
+  let imageUrl = null;
 
-const { error } = await supabaseClient
-.from("messages")
-.insert([{
-sender_id: user.id,
-receiver_id: receiverId,
-task_id: taskId || null,
-message: message,
-image_url: imageUrl,
-is_read: false,
-is_reported: false,
-is_blocked: false
-}]);
+  try {
+    if (imageFile) {
+      imageUrl = await uploadImage(imageFile, user.id);
+    }
 
-if (error) {
-status.innerHTML = `<span class="error">${error.message}</span>`;
-return;
-}
+    const senderType =
+      String(user.id) === String(currentWorkerId)
+        ? "worker"
+        : "customer";
 
-document.getElementById("messageInput").value = "";
-document.getElementById("imageInput").value = "";
-status.innerText = "Message sent.";
-loadMessages();
+    const { error } = await supabaseClient
+      .from("task_messages")
+      .insert({
+        conversation_id: currentConversationId,
+        task_id: currentTaskId || null,
+        sender_id: user.id,
+        sender_type: senderType,
+        message: message,
+        image_url: imageUrl,
+        is_read: false
+      });
 
-} catch (err) {
-status.innerHTML = `<span class="error">${err.message}</span>`;
-}
+    if (error) {
+      setStatus(error.message, "error");
+      return;
+    }
+
+    await supabaseClient
+      .from("task_conversations")
+      .update({
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", currentConversationId);
+
+    const receiverForInbox =
+      String(user.id) === String(currentWorkerId)
+        ? currentCustomerId
+        : currentWorkerId;
+
+    if (receiverForInbox) {
+      await supabaseClient
+        .from("worker_inbox_items")
+        .insert({
+          worker_id: currentWorkerId,
+          customer_id: currentCustomerId || user.id,
+          conversation_id: currentConversationId,
+          task_id: currentTaskId || null,
+          quote_request_id: currentQuoteRequestId || null,
+          item_type: currentQuoteRequestId ? "quote_request_message" : "message",
+          title: currentQuoteRequestId ? "Quote Request Message" : "New Message",
+          preview: message || "Image attachment",
+          is_read: false
+        });
+    }
+
+    document.getElementById("messageInput").value = "";
+    document.getElementById("imageInput").value = "";
+
+    setStatus("Message sent.", "success");
+
+    loadMessages();
+
+  } catch (err) {
+    setStatus(err.message, "error");
+  }
 }
 
 async function reportUser() {
-const status = document.getElementById("status");
-const user = await getCurrentUser();
-if (!user) return;
+  const user = await getCurrentUser();
+  if (!user) return;
 
-if (!receiverId) {
-status.innerHTML = `<span class="error">No user selected to report.</span>`;
-return;
-}
+  if (!currentConversationId) {
+    setStatus("No conversation selected to report.", "error");
+    return;
+  }
 
-const { error } = await supabaseClient
-.from("messages")
-.update({ is_reported: true })
-.or(`sender_id.eq.${receiverId},receiver_id.eq.${receiverId}`);
+  const { error } = await supabaseClient
+    .from("task_messages")
+    .update({ is_reported: true })
+    .eq("conversation_id", currentConversationId)
+    .neq("sender_id", user.id);
 
-if (error) {
-status.innerHTML = `<span class="error">${error.message}</span>`;
-return;
-}
+  if (error) {
+    setStatus(error.message, "error");
+    return;
+  }
 
-status.innerText = "User reported.";
+  setStatus("Conversation reported.", "success");
 }
 
 async function blockUser() {
-const status = document.getElementById("status");
-const user = await getCurrentUser();
-if (!user) return;
+  const user = await getCurrentUser();
+  if (!user) return;
 
-if (!receiverId) {
-status.innerHTML = `<span class="error">No user selected to block.</span>`;
-return;
+  if (!currentConversationId) {
+    setStatus("No conversation selected to block.", "error");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("task_messages")
+    .update({ is_blocked: true })
+    .eq("conversation_id", currentConversationId)
+    .neq("sender_id", user.id);
+
+  if (error) {
+    setStatus(error.message, "error");
+    return;
+  }
+
+  setStatus("Conversation blocked.", "success");
 }
 
-const { error } = await supabaseClient
-.from("messages")
-.update({ is_blocked: true })
-.or(`sender_id.eq.${receiverId},receiver_id.eq.${receiverId}`);
-
-if (error) {
-status.innerHTML = `<span class="error">${error.message}</span>`;
-return;
+async function loadMessageCenter() {
+  await loadMessages();
 }
 
-status.innerText = "User blocked.";
-}
-
-loadMessages();
+loadMessageCenter();
 </script>
+
 </body>
 </html>

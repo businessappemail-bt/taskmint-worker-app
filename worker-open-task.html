@@ -795,12 +795,12 @@ async function loadTasks() {
   const selectedCity =
     document.getElementById("cityFilter").value.trim().toLowerCase();
  
-  let query = supabaseClient
+let query = supabaseClient
   .from("tasks")
   .select("*")
   .eq("status", "open")
-  .neq("quote_accepted", true);
-    .order("created_at", { ascending: false });
+  .or("quote_accepted.is.false,quote_accepted.is.null")
+  .order("created_at", { ascending: false });
  
   if (selectedCategory) {
     query = query.eq("category", selectedCategory);

@@ -1,75 +1,7 @@
-<html>
-<head>
-  <title>Worker Dashboard - TaskMint</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(180deg, #e9f7ee 0%, #f5f5f5 100%);
-      color: #111;
-      padding-bottom: 90px;
-      overflow-x: hidden;
-    }
-
-    .container {
-      max-width: 420px;
-      margin: 0 auto;
-      min-height: 100vh;
-      padding: 18px;
-      position: relative;
-    }
-
-    .floating-bg {
-      position: absolute;
-      width: 260px;
-      height: 260px;
-      background: rgba(11,122,40,0.08);
-      border-radius: 50%;
-      top: -120px;
-      right: -120px;
-      filter: blur(10px);
-      z-index: 0;
-    }
-
-    .floating-bg2 {
-      position: absolute;
-      width: 180px;
-      height: 180px;
-      background: rgba(45,199,86,0.08);
-      border-radius: 50%;
-      bottom: 140px;
-      left: -80px;
-      filter: blur(10px);
-      z-index: 0;
-    }
-
-    .top-hero {
-      position: relative;
-      z-index: 2;
-      background: linear-gradient(135deg, #0b7a28, #19a447);
-      color: white;
-      border-radius: 26px;
-      padding: 22px;
-      margin-bottom: 16px;
-      box-shadow: 0 10px 28px rgba(11,122,40,0.22);
-      animation: fadeUp 0.45s ease;
-    }
-
-    .hero-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+n;
       gap: 12px;
     }
-
+ 
     .logo-mini {
       width: 110px;
       object-fit: contain;
@@ -78,7 +10,7 @@
       padding: 6px;
       mix-blend-mode: normal;
     }
-
+ 
     .settings-circle {
       width: 42px;
       height: 42px;
@@ -91,7 +23,7 @@
       font-size: 22px;
       font-weight: bold;
     }
-
+ 
     .hero-title {
       font-size: 25px;
       font-weight: 800;
@@ -99,13 +31,13 @@
       margin-bottom: 6px;
       letter-spacing: -0.4px;
     }
-
+ 
     .hero-sub {
       font-size: 14px;
       line-height: 1.5;
       opacity: 0.95;
     }
-
+ 
     .card {
       position: relative;
       z-index: 2;
@@ -117,13 +49,13 @@
       border: 1px solid #eee;
       animation: fadeUp 0.55s ease;
     }
-
+ 
     .profile-row {
       display: flex;
       align-items: center;
       gap: 14px;
     }
-
+ 
     .profile-pic {
       width: 78px;
       height: 78px;
@@ -132,46 +64,46 @@
       background: #e7f7ec;
       border: 3px solid #0b7a28;
     }
-
+ 
     .worker-name {
       font-size: 19px;
       font-weight: 800;
       color: #111;
     }
-
+ 
     .small-text {
       color: #666;
       font-size: 14px;
       margin-top: 5px;
       line-height: 1.45;
     }
-
+ 
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 14px;
     }
-
+ 
     .section-title {
       font-size: 18px;
       font-weight: 800;
       color: #111;
     }
-
+ 
     .section-link {
       font-size: 13px;
       font-weight: bold;
       color: #0b7a28;
       cursor: pointer;
     }
-
+ 
     .stats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
-
+ 
     .stat-box {
       background: #f7faf8;
       border-radius: 18px;
@@ -181,12 +113,12 @@
       cursor: pointer;
       transition: 0.2s;
     }
-
+ 
     .stat-box:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 14px rgba(0,0,0,0.08);
     }
-
+ 
     .stat-icon {
       width: 38px;
       height: 38px;
@@ -200,20 +132,20 @@
       font-size: 20px;
       font-weight: bold;
     }
-
+ 
     .stat-number {
       font-size: 22px;
       font-weight: 800;
       color: #0b7a28;
       margin-bottom: 5px;
     }
-
+ 
     .stat-label {
       font-size: 13px;
       color: #555;
       line-height: 1.3;
     }
-
+ 
     .notice {
       margin-top: 14px;
       padding: 12px;
@@ -224,13 +156,13 @@
       border: 1px solid #ffd27a;
       color: #7a4b00;
     }
-
+ 
     .quick-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
-
+ 
     .quick-card {
       background: #f7faf8;
       border: 1px solid #e3eee6;
@@ -240,15 +172,83 @@
       transition: 0.2s;
       min-height: 112px;
       display: flex;
-      flex-direction: column;
+      flex-direction: column;<html>
+<head>
+  <title>Worker Dashboard - TaskMint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ 
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+ 
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #e9f7ee 0%, #f5f5f5 100%);
+      color: #111;
+      padding-bottom: 90px;
+      overflow-x: hidden;
+    }
+ 
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 18px;
+      position: relative;
+    }
+ 
+    .floating-bg {
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      background: rgba(11,122,40,0.08);
+      border-radius: 50%;
+      top: -120px;
+      right: -120px;
+      filter: blur(10px);
+      z-index: 0;
+    }
+ 
+    .floating-bg2 {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      background: rgba(45,199,86,0.08);
+      border-radius: 50%;
+      bottom: 140px;
+      left: -80px;
+      filter: blur(10px);
+      z-index: 0;
+    }
+ 
+    .top-hero {
+      position: relative;
+      z-index: 2;
+      background: linear-gradient(135deg, #0b7a28, #19a447);
+      color: white;
+      border-radius: 26px;
+      padding: 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 28px rgba(11,122,40,0.22);
+      animation: fadeUp 0.45s ease;
+    }
+ 
+    .hero-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-betwee
       justify-content: space-between;
     }
-
+ 
     .quick-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 14px rgba(0,0,0,0.08);
     }
-
+ 
     .quick-icon {
       width: 42px;
       height: 42px;
@@ -261,25 +261,25 @@
       font-size: 22px;
       margin-bottom: 10px;
     }
-
+ 
     .quick-title {
       font-size: 14px;
       font-weight: 800;
       color: #111;
       margin-bottom: 4px;
     }
-
+ 
     .quick-sub {
       font-size: 12px;
       color: #666;
       line-height: 1.35;
     }
-
+ 
     .tool-list {
       display: grid;
       gap: 10px;
     }
-
+ 
     .tool-row {
       display: flex;
       align-items: center;
@@ -293,18 +293,18 @@
       transition: 0.2s;
       position: relative;
     }
-
+ 
     .tool-row:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     }
-
+ 
     .tool-left {
       display: flex;
       align-items: center;
       gap: 12px;
     }
-
+ 
     .tool-icon {
       width: 42px;
       height: 42px;
@@ -317,25 +317,25 @@
       font-size: 21px;
       flex-shrink: 0;
     }
-
+ 
     .tool-title {
       font-size: 14px;
       font-weight: 800;
       color: #111;
     }
-
+ 
     .tool-sub {
       font-size: 12px;
       color: #666;
       margin-top: 2px;
     }
-
+ 
     .arrow {
       color: #0b7a28;
       font-size: 24px;
       font-weight: bold;
     }
-
+ 
     .red-dot {
       width: 11px;
       height: 11px;
@@ -346,7 +346,7 @@
       right: 38px;
       display: none;
     }
-
+ 
     .quote-card {
       background: #f7faf8;
       border: 1px solid #e3eee6;
@@ -354,21 +354,53 @@
       padding: 14px;
       margin-top: 12px;
     }
-
+ 
+    .schedule-card {
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 18px;
+      padding: 14px;
+      margin-top: 10px;
+    }
+ 
+    .schedule-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #111;
+      margin-bottom: 5px;
+    }
+ 
+    .schedule-meta {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.45;
+    }
+ 
+    .schedule-badge {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #e7f7ec;
+      color: #0b7a28;
+      font-size: 12px;
+      font-weight: 800;
+    }
+ 
     .quote-amount {
       font-size: 22px;
       font-weight: 800;
       color: #0b7a28;
       margin-top: 4px;
     }
-
+ 
     .quote-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
       margin-top: 12px;
     }
-
+ 
     button {
       width: 100%;
       padding: 14px;
@@ -381,46 +413,46 @@
       cursor: pointer;
       transition: 0.2s;
     }
-
+ 
     button:hover {
       transform: translateY(-1px);
     }
-
+ 
     button.secondary {
       background: white;
       color: #111;
       border: 1px solid #ddd;
     }
-
+ 
     button.danger {
       background: #b00020;
       color: white;
     }
-
+ 
     .logout-row {
       background: #fff5f5;
       border: 1px solid #ffd8d8;
       border-radius: 18px;
       padding: 14px;
     }
-
+ 
     .logout {
       background: #b00020;
     }
-
+ 
     .loading {
       text-align: center;
       margin-top: 100px;
       color: #555;
       font-size: 16px;
     }
-
+ 
     @keyframes fadeUp {
       from {
         opacity: 0;
         transform: translateY(14px);
       }
-
+ 
       to {
         opacity: 1;
         transform: translateY(0);
@@ -428,41 +460,41 @@
     }
   </style>
 </head>
-
+ 
 <body>
-
+ 
 <div class="container" id="dashboard" style="display:none;">
-
+ 
   <div class="floating-bg"></div>
   <div class="floating-bg2"></div>
-
+ 
   <div class="top-hero">
-
+ 
     <div class="hero-top">
       <img
         class="logo-mini"
         src="https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true"
         alt="TaskMint Logo"
       >
-
+ 
       <div class="settings-circle"
         onclick="window.location.href='worker-settings.html'">
         ⚙
       </div>
     </div>
-
+ 
     <div class="hero-title">
       Worker Dashboard
     </div>
-
+ 
     <div class="hero-sub">
       Manage quotes, accepted jobs, earnings, messages, disputes, and payouts from one clean workspace.
     </div>
-
+ 
   </div>
-
+ 
   <div class="card">
-
+ 
     <div class="profile-row">
       <img
         class="profile-pic"
@@ -470,82 +502,82 @@
         src="https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true"
         alt="Worker Profile"
       >
-
+ 
       <div>
         <div class="worker-name" id="workerName">
           Worker Profile
         </div>
-
+ 
         <div class="small-text">
           Keep your profile complete so customers feel confident choosing you.
         </div>
       </div>
     </div>
-
+ 
     <div id="profileNotice"></div>
-
+ 
     <button class="secondary"
       onclick="window.location.href='worker-profile-edit.html'">
       Edit Worker Profile
     </button>
-
+ 
   </div>
-
+ 
   <div class="card">
-
+ 
     <div class="section-header">
       <div class="section-title">
         Overview
       </div>
-
+ 
       <div class="section-link"
-        onclick="window.location.href='worker-earnings.html'">
-        View Earnings
+        onclick="window.location.href='worker-payout-status.html'">
+        Payout Status
       </div>
     </div>
-
+ 
     <div class="stats-grid">
-
+ 
       <div class="stat-box"
-        onclick="window.location.href='worker-earnings.html'">
+        onclick="window.location.href='worker-payout-status.html'">
         <div class="stat-icon">$</div>
         <div class="stat-number" id="earningsAmount">Loading...</div>
         <div class="stat-label">Money Earned</div>
       </div>
-
+ 
       <div class="stat-box"
         onclick="window.location.href='worker-completed-tasks.html'">
         <div class="stat-icon">✓</div>
         <div class="stat-number" id="completedTasks">0</div>
         <div class="stat-label">Completed Tasks</div>
       </div>
-
+ 
       <div class="stat-box"
         onclick="window.location.href='worker-reviews.html'">
         <div class="stat-icon">★</div>
         <div class="stat-number" id="ratingScore">0.0</div>
         <div class="stat-label">Rating</div>
       </div>
-
+ 
       <div class="stat-box"
         onclick="scrollToPendingQuotes()">
         <div class="stat-icon">⌛</div>
         <div class="stat-number" id="pendingQuotes">0</div>
         <div class="stat-label">Pending Quotes</div>
       </div>
-
+ 
     </div>
-
+ 
   </div>
-
+ 
   <div class="card">
-
+ 
     <div class="section-title">
       Quick Actions
     </div>
-
+ 
     <div class="quick-grid">
-
+ 
       <div class="quick-card"
         onclick="window.location.href='worker-open-task.html'">
         <div>
@@ -554,7 +586,7 @@
           <div class="quick-sub">Browse available customer tasks.</div>
         </div>
       </div>
-
+ 
       <div class="quick-card"
         onclick="window.location.href='my-jobs.html'">
         <div>
@@ -563,16 +595,16 @@
           <div class="quick-sub">View accepted and active jobs.</div>
         </div>
       </div>
-
+ 
       <div class="quick-card"
-        onclick="window.location.href='worker-calendar.html'">
+        onclick="window.location.href='worker-payout-status.html'">
         <div>
-          <div class="quick-icon">📅</div>
-          <div class="quick-title">Schedule</div>
-          <div class="quick-sub">See today and upcoming work.</div>
+          <div class="quick-icon">💵</div>
+          <div class="quick-title">Payout Status</div>
+          <div class="quick-sub">Track pending, processing, and paid payouts.</div>
         </div>
       </div>
-
+ 
       <div class="quick-card"
         onclick="window.location.href='worker-message-center.html'">
         <div>
@@ -581,57 +613,57 @@
           <div class="quick-sub">Chat with customers safely.</div>
         </div>
       </div>
-
+ 
     </div>
-
+ 
   </div>
-
+ 
   <div class="card">
-
+ 
     <div class="section-header">
       <div class="section-title">
         Today’s Schedule
       </div>
-
+ 
       <div class="section-link"
         onclick="window.location.href='worker-calendar.html'">
         Full Schedule
       </div>
     </div>
-
+ 
     <div id="todayScheduleList" class="small-text">
-      No jobs scheduled for today.
+      Loading today’s scheduled work...
     </div>
-
+ 
   </div>
-
+ 
   <div class="card" id="pendingQuotesCard">
-
+ 
     <div class="section-header">
       <div class="section-title">
         Pending Quotes
       </div>
-
+ 
       <div class="section-link"
         onclick="window.location.href='worker-open-task.html'">
         Browse More
       </div>
     </div>
-
+ 
     <div id="pendingQuotesList" class="small-text">
       Loading pending quotes...
     </div>
-
+ 
   </div>
-
+ 
   <div class="card">
-
+ 
     <div class="section-title">
       Worker Tools
     </div>
-
+ 
     <div class="tool-list">
-
+ 
       <div class="tool-row"
         onclick="window.location.href='worker-availability.html'">
         <div class="tool-left">
@@ -643,7 +675,7 @@
         </div>
         <div class="arrow">›</div>
       </div>
-
+ 
       <div class="tool-row"
         onclick="window.location.href='worker-payout-info.html'">
         <div class="tool-left">
@@ -655,7 +687,7 @@
         </div>
         <div class="arrow">›</div>
       </div>
-
+ 
       <div class="tool-row"
         onclick="window.location.href='worker-tax-center.html'">
         <div class="tool-left">
@@ -667,7 +699,7 @@
         </div>
         <div class="arrow">›</div>
       </div>
-
+ 
       <div class="tool-row"
         onclick="window.location.href='worker-reviews.html'">
         <div class="tool-left">
@@ -679,11 +711,11 @@
         </div>
         <div class="arrow">›</div>
       </div>
-
+ 
       <div class="tool-row"
         onclick="window.location.href='worker-disputes.html'">
         <div class="red-dot" id="disputeDot"></div>
-
+ 
         <div class="tool-left">
           <div class="tool-icon">⚠️</div>
           <div>
@@ -693,7 +725,7 @@
         </div>
         <div class="arrow">›</div>
       </div>
-
+ 
       <div class="tool-row"
         onclick="window.location.href='worker-settings.html'">
         <div class="tool-left">
@@ -705,73 +737,73 @@
         </div>
         <div class="arrow">›</div>
       </div>
-
+ 
     </div>
-
+ 
   </div>
-
+ 
   <div class="card logout-row">
-
+ 
     <div class="section-title">
       Account
     </div>
-
+ 
     <button class="logout" onclick="logout()">
       Log Out
     </button>
-
+ 
   </div>
-
+ 
 </div>
-
+ 
 <div class="loading" id="loading">
   Loading worker dashboard...
 </div>
-
+ 
 <script>
-
+ 
 const SUPABASE_URL =
   "https://dbcthtjmtlumidpbucrc.supabase.co";
-
+ 
 const SUPABASE_ANON_KEY =
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
-
+ 
 const supabaseClient =
   supabase.createClient(
     SUPABASE_URL,
     SUPABASE_ANON_KEY
   );
-
+ 
 let currentWorkerId = null;
-
+ 
 async function loadDashboard() {
-
+ 
   const { data, error } =
     await supabaseClient.auth.getSession();
-
+ 
   if (error || !data.session) {
     document.getElementById("loading").innerText =
       "No active worker session found. Log in again from the worker login page.";
     return;
   }
-
+ 
   const user =
     data.session.user;
-
+ 
   const { data: profile } =
     await supabaseClient
       .from("profiles")
       .select("*")
       .eq("email", user.email)
       .maybeSingle();
-
+ 
   const { data: workerRecord } =
     await supabaseClient
       .from("workers")
       .select("*")
       .eq("email", user.email)
       .maybeSingle();
-
+ 
   if (workerRecord && workerRecord.id) {
     currentWorkerId = workerRecord.id;
   } else if (profile && profile.id) {
@@ -779,14 +811,14 @@ async function loadDashboard() {
   } else {
     currentWorkerId = user.id;
   }
-
+ 
   if (profile) {
-
+ 
     document.getElementById("workerName").innerText =
       profile.full_name ||
       `${profile.first_name || ""} ${profile.last_name || ""}`.trim() ||
       "Worker Profile";
-
+ 
     if (
       profile.profile_photo_url &&
       profile.profile_photo_url.trim() !== ""
@@ -794,21 +826,21 @@ async function loadDashboard() {
       document.getElementById("profilePic").src =
         profile.profile_photo_url;
     }
-
+ 
     document.getElementById("completedTasks").innerText =
       profile.total_jobs || 0;
-
+ 
     const hasPhoto =
       profile.profile_photo_url &&
       profile.profile_photo_url.trim() !== "";
-
+ 
     const hasExperience =
       profile.experience &&
       profile.experience.trim() !== "";
-
+ 
     const profileNotice =
       document.getElementById("profileNotice");
-
+ 
     if (!hasPhoto || !hasExperience) {
       profileNotice.innerHTML = `
         <div class="notice">
@@ -818,76 +850,77 @@ async function loadDashboard() {
     } else {
       profileNotice.innerHTML = "";
     }
-
+ 
   }
-
+ 
   await loadPendingQuotesByEmail(user.email);
   await loadWorkerRating(currentWorkerId);
   await loadWorkerEarnings(currentWorkerId);
+  await loadTodaySchedule(currentWorkerId);
   await loadUnreadDisputeDot(currentWorkerId);
-
+ 
   document.getElementById("loading").style.display =
     "none";
-
+ 
   document.getElementById("dashboard").style.display =
     "block";
-
+ 
 }
-
+ 
 async function logout() {
-
+ 
   await supabaseClient.auth.signOut();
-
+ 
   localStorage.removeItem("taskmintUserId");
   localStorage.removeItem("selectedQuoteId");
   localStorage.removeItem("selectedJobId");
   localStorage.removeItem("stripeAccountId");
-
+ 
   window.location.href =
     "worker-login.html";
-
+ 
 }
-
+ 
 async function loadWorkerRating(workerId) {
-
+ 
   const { data: reviews, error } =
     await supabaseClient
       .from("reviews")
       .select("rating")
       .eq("worker_id", workerId);
-
+ 
   if (error || !reviews || reviews.length === 0) {
     document.getElementById("ratingScore").innerText =
       "0.0";
     return;
   }
-
+ 
   let total = 0;
-
+ 
   reviews.forEach((review) => {
     total += Number(review.rating || 0);
   });
-
+ 
   const average =
     total / reviews.length;
-
+ 
   document.getElementById("ratingScore").innerText =
     average.toFixed(1);
-
+ 
 }
-
+ 
 async function loadPendingQuotesByEmail(email) {
-
+ 
   const container =
     document.getElementById("pendingQuotesList");
-
+ 
   const { data: workerProfile, error: workerError } =
     await supabaseClient
       .from("workers")
       .select("id")
       .eq("email", email)
       .maybeSingle();
-
+ 
   if (workerError || !workerProfile) {
     container.innerHTML = `
       <div class="small-text">
@@ -896,7 +929,7 @@ async function loadPendingQuotesByEmail(email) {
     `;
     return;
   }
-
+ 
   const { data: quotes, error } =
     await supabaseClient
       .from("worker_quotes")
@@ -904,7 +937,7 @@ async function loadPendingQuotesByEmail(email) {
       .eq("worker_id", workerProfile.id)
       .ilike("status", "pending")
       .order("created_at", { ascending: false });
-
+ 
   if (error) {
     container.innerHTML = `
       <div class="small-text">
@@ -913,11 +946,11 @@ async function loadPendingQuotesByEmail(email) {
     `;
     return;
   }
-
+ 
   if (!quotes || quotes.length === 0) {
     document.getElementById("pendingQuotes").innerText =
       "0";
-
+ 
     container.innerHTML = `
       <div class="small-text">
         No pending quotes yet. Browse available tasks to send your next quote.
@@ -925,150 +958,292 @@ async function loadPendingQuotesByEmail(email) {
     `;
     return;
   }
-
+ 
   document.getElementById("pendingQuotes").innerText =
     quotes.length;
-
+ 
   container.innerHTML = "";
-
+ 
   quotes.forEach((quote) => {
-
+ 
     container.innerHTML += `
       <div class="quote-card">
-
+ 
         <div class="small-text">
           Quote Amount
         </div>
-
+ 
         <div class="quote-amount">
           $${quote.quote_amount || "0.00"}
         </div>
-
+ 
         <div class="small-text" style="margin-top:8px;">
           Status: Pending
         </div>
-
+ 
         <div class="quote-actions">
-
+ 
           <button
             class="secondary"
             onclick="editQuote('${quote.id}')">
             Edit
           </button>
-
+ 
           <button
             class="danger"
             onclick="cancelQuote('${quote.id}')">
             Cancel
           </button>
-
+ 
         </div>
-
+ 
       </div>
     `;
-
+ 
   });
-
+ 
 }
-
+ 
 async function cancelQuote(quoteId) {
-
+ 
   const confirmed =
     confirm(
       "Are you sure you want to cancel this quote?"
     );
-
+ 
   if (!confirmed) {
     return;
   }
-
+ 
   const { error } =
     await supabaseClient
       .from("worker_quotes")
       .update({ status: "canceled" })
       .eq("id", quoteId);
-
+ 
   if (error) {
     alert(error.message);
     return;
   }
-
+ 
   alert("Quote canceled.");
-
+ 
   location.reload();
-
+ 
 }
-
+ 
 function editQuote(quoteId) {
-
+ 
   localStorage.setItem(
     "selectedQuoteId",
     quoteId
   );
-
+ 
   window.location.href =
     "edit-quote.html";
-
+ 
 }
-
+ 
 async function loadWorkerEarnings(workerId) {
-
+ 
   const { data, error } =
     await supabaseClient
       .from("worker_earnings")
       .select("worker_payout")
       .eq("worker_id", workerId);
-
+ 
   if (error || !data) {
     document.getElementById("earningsAmount").innerText =
       "$0.00";
     return;
   }
-
+ 
   let total = 0;
-
+ 
   data.forEach((item) => {
     total += Number(item.worker_payout || 0);
   });
-
+ 
   document.getElementById("earningsAmount").innerText =
     `$${total.toFixed(2)}`;
-
+ 
 }
-
+ 
+ 
+function formatScheduleTime(value) {
+ 
+  if (!value) {
+    return "Time not set";
+  }
+ 
+  const date = new Date(value);
+ 
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+ 
+  return date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit"
+  });
+ 
+}
+ 
+function getTaskTitle(task) {
+ 
+  return (
+    task.title ||
+    task.task_title ||
+    task.job_title ||
+    task.category ||
+    task.service_type ||
+    "Scheduled Task"
+  );
+ 
+}
+ 
+function getTaskLocation(task) {
+ 
+  return (
+    task.address ||
+    task.task_address ||
+    task.location ||
+    task.city ||
+    "Location not listed"
+  );
+ 
+}
+ 
+async function loadTodaySchedule(workerId) {
+ 
+  const container =
+    document.getElementById("todayScheduleList");
+ 
+  const today = new Date();
+  const start = new Date(today);
+  start.setHours(0, 0, 0, 0);
+ 
+  const end = new Date(today);
+  end.setHours(23, 59, 59, 999);
+ 
+  const startIso = start.toISOString();
+  const endIso = end.toISOString();
+ 
+  let tasks = [];
+  let lastError = null;
+ 
+  const tableOptions = [
+    "tasks",
+    "jobs"
+  ];
+ 
+  for (const tableName of tableOptions) {
+ 
+    const { data, error } =
+      await supabaseClient
+        .from(tableName)
+        .select("*")
+        .eq("worker_id", workerId)
+        .gte("scheduled_start", startIso)
+        .lte("scheduled_start", endIso)
+        .in("status", [
+          "accepted",
+          "in_progress",
+          "scheduled"
+        ])
+        .order("scheduled_start", { ascending: true });
+ 
+    if (!error && data) {
+      tasks = data;
+      lastError = null;
+      break;
+    }
+ 
+    lastError = error;
+ 
+  }
+ 
+  if (lastError && tasks.length === 0) {
+    container.innerHTML = `
+      <div class="small-text">
+        No scheduled jobs are showing here yet. Once an accepted job has today’s date and time saved, it will appear here.
+      </div>
+    `;
+    return;
+  }
+ 
+  if (!tasks || tasks.length === 0) {
+    container.innerHTML = `
+      <div class="small-text">
+        No jobs scheduled for today. Accepted jobs for today will show the task name, time, location, and current status here.
+      </div>
+    `;
+    return;
+  }
+ 
+  container.innerHTML = "";
+ 
+  tasks.forEach((task) => {
+ 
+    const title = getTaskTitle(task);
+    const location = getTaskLocation(task);
+    const time = formatScheduleTime(task.scheduled_start);
+    const status = task.status || "scheduled";
+ 
+    container.innerHTML += `
+      <div class="schedule-card">
+        <div class="schedule-title">
+          ${title}
+        </div>
+ 
+        <div class="schedule-meta">
+          Time: ${time}<br>
+          Location: ${location}
+        </div>
+ 
+        <div class="schedule-badge">
+          ${status.replaceAll("_", " ")}
+        </div>
+      </div>
+    `;
+ 
+  });
+ 
+}
+ 
 async function loadUnreadDisputeDot(workerId) {
-
+ 
   const dot =
     document.getElementById("disputeDot");
-
+ 
   const { data, error } =
     await supabaseClient
       .from("disputes")
       .select("id")
       .eq("worker_id", workerId)
       .eq("worker_has_unread_update", true);
-
+ 
   if (!error && data && data.length > 0) {
     dot.style.display = "block";
   } else {
     dot.style.display = "none";
   }
-
+ 
 }
-
+ 
 function scrollToPendingQuotes() {
-
+ 
   document.getElementById("pendingQuotesCard")
     .scrollIntoView({
       behavior: "smooth",
       block: "start"
     });
-
+ 
 }
-
+ 
 loadDashboard();
-
+ 
 </script>
-
+ 
 </body>
 </html>

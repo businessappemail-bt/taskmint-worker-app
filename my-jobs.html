@@ -3,349 +3,1319 @@
 <head>
   <title>My Jobs - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+ 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+ 
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      background: linear-gradient(180deg, #e9f7ee 0%, #f5f5f5 100%);
       color: #111;
-      padding-bottom: 80px;
+      padding-bottom: 90px;
+      overflow-x: hidden;
     }
-
+ 
     .container {
       max-width: 420px;
       margin: 0 auto;
-      padding: 30px 20px 100px;
-    }
-
-    .back {
-      color: #0b7a28;
-      font-size: 15px;
-      margin-bottom: 20px;
-      cursor: pointer;
-      font-weight: bold;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 8px;
-      color: #0b7a28;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #555;
-      margin-bottom: 20px;
-    }
-
-    .job-card {
-      background: white;
       padding: 18px;
-      border-radius: 14px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-
-    .job-card h3 {
-      margin: 0 0 8px;
+ 
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+ 
+    .back,
+    .refresh-link {
+      color: #0b7a28;
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+ 
+    .hero {
+      background: linear-gradient(135deg, #0b7a28, #19a447);
+      color: white;
+      border-radius: 26px;
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 10px 28px rgba(11,122,40,0.22);
+    }
+ 
+    .hero-title {
+      font-size: 25px;
+      font-weight: 900;
+      margin-bottom: 6px;
+      letter-spacing: -0.4px;
+    }
+ 
+    .hero-sub {
+      font-size: 13px;
+      line-height: 1.45;
+      opacity: 0.95;
+    }
+ 
+    .summary-card,
+    .filter-card,
+    .job-card,
+    .empty {
+      background: white;
+      border-radius: 20px;
+      padding: 15px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      border: 1px solid #edf1ee;
+    }
+ 
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+ 
+    .summary-box {
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 15px;
+      padding: 10px;
+      text-align: center;
+    }
+ 
+    .summary-number {
+      color: #0b7a28;
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 3px;
+    }
+ 
+    .summary-label {
+      font-size: 11px;
+      color: #666;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+ 
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+ 
+    select,
+    input,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 13px;
+      border: 1px solid #dfe5e0;
+      font-size: 14px;
+      font-family: Arial, sans-serif;
+      outline: none;
+      background: white;
+    }
+ 
+    select:focus,
+    input:focus,
+    textarea:focus {
+      border-color: #0b7a28;
+      box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
+    }
+ 
+    .job-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+ 
+    .job-title {
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.25;
+      color: #111;
+      margin-bottom: 4px;
+    }
+ 
+    .job-sub {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.35;
+    }
+ 
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+      text-transform: capitalize;
+    }
+ 
+    .pill.green {
+      background: #e7f7ec;
+      color: #0b7a28;
+    }
+ 
+    .pill.orange {
+      background: #fff7e6;
+      color: #7a4b00;
+    }
+ 
+    .pill.gray {
+      background: #f1f1f1;
+      color: #444;
+    }
+ 
+    .customer-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 15px;
+      margin-bottom: 10px;
+    }
+ 
+    .customer-photo {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #e7f7ec;
+      border: 2px solid #e7f7ec;
+      flex-shrink: 0;
+    }
+ 
+    .customer-name {
+      font-size: 13px;
+      font-weight: 900;
       color: #111;
     }
-
-    .job-card p {
-      text-align: left;
-      margin: 6px 0;
-      font-size: 14px;
-      color: #444;
-      line-height: 1.4;
+ 
+    .customer-meta {
+      font-size: 12px;
+      color: #666;
+      margin-top: 2px;
     }
-
-    .status {
-      font-weight: bold;
+ 
+    .job-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+ 
+    .info-box {
+      background: #fbfbfb;
+      border: 1px solid #eeeeee;
+      border-radius: 14px;
+      padding: 10px;
+      min-height: 64px;
+    }
+ 
+    .info-label {
       color: #0b7a28;
-      margin-top: 10px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 4px;
     }
-
-    .locked-address {
+ 
+    .info-value {
+      color: #111;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+ 
+    .details-toggle {
+      color: #0b7a28;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      margin: 8px 0;
+      display: inline-block;
+    }
+ 
+    .details-box {
+      display: none;
+      background: #fbfbfb;
+      border: 1px solid #eeeeee;
+      border-radius: 14px;
+      padding: 11px;
+      margin-bottom: 10px;
+      color: #444;
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+ 
+    .address-note {
       background: #fff7e6;
       border: 1px solid #ffd27a;
       color: #7a4b00;
-      border-radius: 10px;
+      border-radius: 14px;
       padding: 10px;
-      margin-top: 10px;
-      font-size: 13px;
+      margin-bottom: 10px;
+      font-size: 12px;
       line-height: 1.4;
     }
-
+ 
     .arrival-box {
-      background: #f7f7f7;
-      border-radius: 12px;
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 16px;
       padding: 12px;
-      margin-top: 14px;
-      border: 1px solid #e5e5e5;
+      margin-top: 10px;
+      display: none;
     }
-
-    input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 15px;
-      margin-top: 8px;
+ 
+    .arrival-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #111;
+      margin-bottom: 4px;
     }
-
+ 
+    .arrival-text {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+ 
+    .verified-box {
+      background: #e7f7ec;
+      border: 1px solid #bde8ca;
+      color: #0b7a28;
+      border-radius: 14px;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+ 
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+ 
     button {
       width: 100%;
-      padding: 13px;
-      margin-top: 10px;
+      padding: 12px;
       border: none;
-      border-radius: 10px;
+      border-radius: 13px;
       background: #0b7a28;
       color: white;
-      font-size: 15px;
-      font-weight: bold;
+      font-size: 13px;
+      font-weight: 900;
       cursor: pointer;
+      transition: 0.2s;
     }
-
-    .empty {
+ 
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.10);
+    }
+ 
+    button.secondary {
       background: white;
-      padding: 20px;
-      border-radius: 12px;
+      color: #111;
+      border: 1px solid #dfe5e0;
+    }
+ 
+    button.warning {
+      background: #fff7e6;
+      color: #7a4b00;
+      border: 1px solid #ffd27a;
+    }
+ 
+    button.full {
+      grid-column: 1 / -1;
+    }
+ 
+    .empty {
       text-align: center;
-      color: #555;
+      color: #666;
+      line-height: 1.5;
+    }
+ 
+    .loading-spinner {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 3px solid #dfe5e0;
+      border-top-color: #0b7a28;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+ 
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
   </style>
 </head>
-
+ 
 <body>
-
+ 
 <div class="container">
-
-  <a class="back" href="worker-dashboard.html">← Back</a>
-
-  <h1>My Jobs</h1>
-  <p class="subtitle">View your accepted and active jobs.</p>
-
-  <div id="jobsList">
+ 
+  <div class="top-bar">
+    <a class="back" href="worker-dashboard.html">← Back</a>
+    <div class="refresh-link" onclick="loadMyJobs()">Refresh</div>
+  </div>
+ 
+  <div class="hero">
+    <div class="hero-title">My Jobs</div>
+    <div class="hero-sub">
+      Track accepted jobs, verify arrival codes, message customers, and manage active work.
+    </div>
+  </div>
+ 
+  <div class="summary-card">
+    <div class="summary-grid">
+      <div class="summary-box">
+        <div class="summary-number" id="activeCount">0</div>
+        <div class="summary-label">Active</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-number" id="todayCount">0</div>
+        <div class="summary-label">Today</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-number" id="pendingPayCount">0</div>
+        <div class="summary-label">Pending Pay</div>
+      </div>
+    </div>
+  </div>
+ 
+  <div class="filter-card">
+    <div class="filter-row">
+      <select id="statusFilter" onchange="renderJobs()">
+        <option value="">All Jobs</option>
+        <option value="accepted">Accepted</option>
+        <option value="in_progress">In Progress</option>
+        <option value="completed">Completed</option>
+        <option value="paid">Paid</option>
+      </select>
+ 
+      <select id="dateFilter" onchange="renderJobs()">
+        <option value="">Any Date</option>
+        <option value="today">Today</option>
+        <option value="upcoming">Upcoming</option>
+        <option value="past">Past</option>
+      </select>
+    </div>
+  </div>
+ 
+  <div id="jobsList" class="empty">
+    <div class="loading-spinner"></div>
     Loading jobs...
   </div>
-
+ 
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+ 
 <script>
 const supabaseClient = window.supabase.createClient(
   "https://dbcthtjmtlumidpbucrc.supabase.co",
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
-
+ 
+const DEFAULT_PROFILE_PHOTO =
+  "https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true";
+ 
+let currentUser = null;
+let currentWorkerIds = [];
 let currentWorkerId = null;
-
-async function loadMyJobs() {
+let loadedJobs = [];
+ 
+function cleanText(value, fallback = "Not specified") {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+ 
+  const text = String(value).trim();
+  return text === "" ? fallback : text;
+}
+ 
+function escapeHTML(value) {
+  return cleanText(value, "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+ 
+function getFirstAvailable(record, keys, fallback = "") {
+  if (!record) {
+    return fallback;
+  }
+ 
+  for (const key of keys) {
+    if (
+      record[key] !== null &&
+      record[key] !== undefined &&
+      String(record[key]).trim() !== ""
+    ) {
+      return record[key];
+    }
+  }
+ 
+  return fallback;
+}
+ 
+function formatDate(value) {
+  if (!value) {
+    return "Not scheduled";
+  }
+ 
+  const date = new Date(value);
+ 
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+ 
+  return date.toLocaleDateString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+ 
+function getDateObject(value) {
+  if (!value) {
+    return null;
+  }
+ 
+  const date = new Date(value);
+ 
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+ 
+  return date;
+}
+ 
+function isSameDay(dateOne, dateTwo) {
+  return (
+    dateOne.getFullYear() === dateTwo.getFullYear() &&
+    dateOne.getMonth() === dateTwo.getMonth() &&
+    dateOne.getDate() === dateTwo.getDate()
+  );
+}
+ 
+function getTaskDate(task) {
+  return getFirstAvailable(task, [
+    "task_date",
+    "date_needed",
+    "needed_by",
+    "scheduled_date",
+    "scheduled_start",
+    "due_date"
+  ], "");
+}
+ 
+function getTaskTitle(task) {
+  return getFirstAvailable(task, [
+    "title",
+    "task_title",
+    "job_title",
+    "category",
+    "service_type"
+  ], "Untitled Job");
+}
+ 
+function getTaskDetails(task) {
+  return getFirstAvailable(task, [
+    "description",
+    "details",
+    "task_details",
+    "notes",
+    "special_instructions"
+  ], "No additional task details were provided.");
+}
+ 
+function getTaskCategory(task) {
+  return getFirstAvailable(task, [
+    "category",
+    "task_category",
+    "service_type"
+  ], "Not listed");
+}
+ 
+function getCityState(task) {
+  const city = getFirstAvailable(task, [
+    "city",
+    "task_city",
+    "service_city"
+  ], "City not listed");
+ 
+  const state = getFirstAvailable(task, [
+    "state",
+    "task_state",
+    "service_state"
+  ], "");
+ 
+  return state ? `${city}, ${state}` : city;
+}
+ 
+function getFullAddress(task) {
+  const street = getFirstAvailable(task, [
+    "street_address",
+    "full_address",
+    "address",
+    "task_address",
+    "service_address"
+  ], "Address not listed");
+ 
+  const unit = getFirstAvailable(task, ["unit", "apt", "apartment", "suite"], "");
+  const city = getFirstAvailable(task, ["city", "task_city", "service_city"], "");
+  const state = getFirstAvailable(task, ["state", "task_state", "service_state"], "");
+  const zip = getFirstAvailable(task, ["zip_code", "zip", "postal_code"], "");
+ 
+  const unitLine = unit ? `, Unit ${unit}` : "";
+  const locationLine = [city, state, zip].filter(Boolean).join(" ");
+ 
+  return `${street}${unitLine}${locationLine ? `<br>${locationLine}` : ""}`;
+}
+ 
+function getCustomerId(task, quote, assignment) {
+  return getFirstAvailable(assignment, ["customer_id", "client_id"], "") ||
+    getFirstAvailable(quote, ["customer_id", "client_id"], "") ||
+    getFirstAvailable(task, [
+      "customer_id",
+      "client_id",
+      "posted_by",
+      "created_by",
+      "user_id",
+      "profile_id"
+    ], "");
+}
+ 
+function getCustomerDisplayName(profile) {
+  if (!profile) {
+    return "Customer";
+  }
+ 
+  const firstName = getFirstAvailable(profile, ["first_name", "firstName"], "Customer");
+  const lastName = getFirstAvailable(profile, ["last_name", "lastName"], "");
+  const lastInitial = lastName ? `${String(lastName).trim().charAt(0)}.` : "";
+ 
+  return `${firstName} ${lastInitial}`.trim();
+}
+ 
+function getCustomerPhoto(profile) {
+  return getFirstAvailable(profile, [
+    "profile_photo_url",
+    "photo_url",
+    "avatar_url"
+  ], DEFAULT_PROFILE_PHOTO);
+}
+ 
+function getDaysUntil(task) {
+  const taskDate = getDateObject(getTaskDate(task));
+ 
+  if (!taskDate) {
+    return null;
+  }
+ 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+ 
+  taskDate.setHours(0, 0, 0, 0);
+ 
+  const difference = taskDate.getTime() - today.getTime();
+  return Math.ceil(difference / (1000 * 60 * 60 * 24));
+}
+ 
+function getCountdownText(task) {
+  const daysUntil = getDaysUntil(task);
+ 
+  if (daysUntil === null) {
+    return "Date not set";
+  }
+ 
+  if (daysUntil === 0) {
+    return "Today";
+  }
+ 
+  if (daysUntil === 1) {
+    return "Tomorrow";
+  }
+ 
+  if (daysUntil > 1) {
+    return `In ${daysUntil} days`;
+  }
+ 
+  return `${Math.abs(daysUntil)} day${Math.abs(daysUntil) === 1 ? "" : "s"} ago`;
+}
+ 
+function normalizeStatus(value) {
+  return cleanText(value, "accepted").toLowerCase().replaceAll(" ", "_");
+}
+ 
+function prettyStatus(value) {
+  return normalizeStatus(value).replaceAll("_", " ");
+}
+ 
+function isPaymentRecorded(task, quote) {
+  const paymentStatus = String(getFirstAvailable(task, [
+    "payment_status",
+    "quote_payment_status",
+    "escrow_status"
+  ], "")).toLowerCase();
+ 
+  const quotePaymentStatus = String(getFirstAvailable(quote, [
+    "payment_status",
+    "escrow_status"
+  ], "")).toLowerCase();
+ 
+  const acceptedQuoteId = getFirstAvailable(task, [
+    "accepted_quote_id",
+    "paid_quote_id",
+    "selected_quote_id"
+  ], "");
+ 
+  return ["paid", "escrowed", "authorized", "held"].includes(paymentStatus) ||
+    ["paid", "escrowed", "authorized", "held"].includes(quotePaymentStatus) ||
+    acceptedQuoteId;
+}
+ 
+function canShowFullAddress(task, quote) {
+  const daysUntil = getDaysUntil(task);
+ 
+  return (
+    daysUntil !== null &&
+    daysUntil <= 7 &&
+    isPaymentRecorded(task, quote)
+  );
+}
+ 
+function getAddressSection(task, quote) {
+  if (canShowFullAddress(task, quote)) {
+    return `
+      <div class="info-box">
+        <div class="info-label">Address</div>
+        <div class="info-value">${getFullAddress(task)}</div>
+      </div>
+    `;
+  }
+ 
+  return `
+    <div class="info-box">
+      <div class="info-label">Location</div>
+      <div class="info-value">${escapeHTML(getCityState(task))}</div>
+    </div>
+  `;
+}
+ 
+function getAddressNote(task, quote) {
+  if (canShowFullAddress(task, quote)) {
+    return `
+      <div class="address-note">
+        Full address is visible because payment is recorded and the job is within 7 days.
+      </div>
+    `;
+  }
+ 
+  return `
+    <div class="address-note">
+      Full address unlocks when payment is recorded and the job is within 7 days. Until then, only city and state are shown.
+    </div>
+  `;
+}
+ 
+function getStatusPill(status, assignment) {
+  const normalized = normalizeStatus(status);
+ 
+  if (assignment && assignment.arrival_verified === true) {
+    return `<div class="pill green">In Progress</div>`;
+  }
+ 
+  if (normalized === "paid") {
+    return `<div class="pill green">Paid</div>`;
+  }
+ 
+  if (normalized === "completed") {
+    return `<div class="pill orange">Awaiting Pay</div>`;
+  }
+ 
+  if (normalized === "in_progress") {
+    return `<div class="pill green">In Progress</div>`;
+  }
+ 
+  return `<div class="pill gray">${escapeHTML(prettyStatus(status))}</div>`;
+}
+ 
+function shouldShowArrivalBox(quote, assignment) {
+  const status = normalizeStatus(quote.status);
+ 
+  if (["completed", "paid"].includes(status)) {
+    return false;
+  }
+ 
+  if (assignment && assignment.arrival_verified === true) {
+    return false;
+  }
+ 
+  return true;
+}
+ 
+function getArrivalSection(job) {
+  const task = job.task;
+  const quote = job.quote;
+  const assignment = job.assignment;
+ 
+  if (assignment && assignment.arrival_verified === true) {
+    return `
+      <div class="verified-box">
+        Arrival verified. This job is marked in progress.
+      </div>
+    `;
+  }
+ 
+  if (!shouldShowArrivalBox(quote, assignment)) {
+    return "";
+  }
+ 
+  return `
+    <button class="warning full" onclick="toggleArrivalBox('${task.id}')">
+      Enter Arrival Code
+    </button>
+ 
+    <div class="arrival-box" id="arrivalBox-${task.id}">
+      <div class="arrival-title">Arrival Verification</div>
+      <div class="arrival-text">
+        Ask the customer for the arrival code assigned to this task. Entering the correct code starts the job.
+      </div>
+ 
+      <input
+        id="arrivalCode-${task.id}"
+        type="text"
+        placeholder="Enter arrival code"
+        maxlength="6"
+        inputmode="numeric"
+      >
+ 
+      <button onclick="verifyArrivalCode('${task.id}', '${quote.id}')">
+        Verify / Start Task
+      </button>
+    </div>
+  `;
+}
+ 
+function setLoading() {
   const jobsList = document.getElementById("jobsList");
-
-  const {
-    data: { user }
-  } = await supabaseClient.auth.getUser();
-
-  if (!user) {
-    jobsList.innerHTML = `
-      <div class="empty">
-        No active worker session found. Please log in again.
-      </div>
-    `;
-    return;
+ 
+  jobsList.className = "empty";
+  jobsList.innerHTML = `
+    <div class="loading-spinner"></div>
+    Loading jobs...
+  `;
+}
+ 
+function showEmpty(message) {
+  const jobsList = document.getElementById("jobsList");
+ 
+  jobsList.className = "empty";
+  jobsList.innerHTML = message;
+}
+ 
+function updateSummary(jobs) {
+  const active = jobs.filter(job => {
+    const status = normalizeStatus(job.quote.status);
+    return ["accepted", "in_progress"].includes(status);
+  }).length;
+ 
+  const today = new Date();
+ 
+  const todayJobs = jobs.filter(job => {
+    const taskDate = getDateObject(getTaskDate(job.task));
+    return taskDate && isSameDay(taskDate, today);
+  }).length;
+ 
+  const pendingPay = jobs.filter(job => {
+    const status = normalizeStatus(job.quote.status);
+    return status === "completed";
+  }).length;
+ 
+  document.getElementById("activeCount").innerText = active;
+  document.getElementById("todayCount").innerText = todayJobs;
+  document.getElementById("pendingPayCount").innerText = pendingPay;
+}
+ 
+async function loadCurrentWorker() {
+  const { data, error } = await supabaseClient.auth.getUser();
+ 
+  if (error || !data || !data.user) {
+    showEmpty("No active worker session found. Please log in again.");
+    return false;
   }
-
-  const { data: workerProfile, error: profileError } = await supabaseClient
+ 
+  currentUser = data.user;
+ 
+  const ids = [currentUser.id];
+ 
+  const { data: profile } = await supabaseClient
     .from("profiles")
-    .select("id")
-    .eq("email", user.email)
+    .select("id, email")
+    .eq("email", currentUser.email)
     .maybeSingle();
-
-  if (profileError || !workerProfile) {
-    jobsList.innerHTML = `
-      <div class="empty">
-        Worker profile not found.
-      </div>
-    `;
-    return;
+ 
+  if (profile && profile.id) {
+    ids.push(profile.id);
   }
-
-  currentWorkerId = workerProfile.id;
-
-  const { data: quotes, error: quoteError } = await supabaseClient
+ 
+  const { data: workerRecord } = await supabaseClient
+    .from("workers")
+    .select("id, email")
+    .eq("email", currentUser.email)
+    .maybeSingle();
+ 
+  if (workerRecord && workerRecord.id) {
+    ids.push(workerRecord.id);
+  }
+ 
+  currentWorkerIds = [...new Set(ids.filter(Boolean).map(String))];
+  currentWorkerId = currentWorkerIds[0];
+ 
+  return true;
+}
+ 
+async function fetchAcceptedQuotes() {
+  const { data, error } = await supabaseClient
     .from("worker_quotes")
     .select("*")
-    .eq("worker_id", currentWorkerId)
+    .in("worker_id", currentWorkerIds)
     .in("status", ["accepted", "in_progress", "completed", "paid"])
     .order("created_at", { ascending: false });
-
-  if (quoteError) {
-    jobsList.innerHTML =
-      "Error loading jobs: " + quoteError.message;
-    return;
+ 
+  if (error) {
+    throw error;
   }
-
-  if (!quotes || quotes.length === 0) {
-    jobsList.innerHTML = `
-      <div class="empty">
-        No accepted or active jobs yet.
-      </div>
-    `;
-    return;
+ 
+  return data || [];
+}
+ 
+async function fetchTasksForQuotes(quotes) {
+  const taskIds = [...new Set(quotes.map(quote => quote.task_id).filter(Boolean))];
+ 
+  if (taskIds.length === 0) {
+    return {};
   }
-
-  const taskIds = quotes.map(q => q.task_id);
-
-  const { data: tasks, error: taskError } = await supabaseClient
+ 
+  const { data, error } = await supabaseClient
     .from("tasks")
     .select("*")
     .in("id", taskIds);
-
-  if (taskError) {
-    jobsList.innerHTML =
-      "Error loading task details: " + taskError.message;
-    return;
+ 
+  if (error) {
+    throw error;
   }
-
+ 
   const taskMap = {};
-
-  tasks.forEach(task => {
+ 
+  (data || []).forEach(task => {
     taskMap[task.id] = task;
   });
-
-  jobsList.innerHTML = "";
-
-  quotes.forEach(quote => {
-    const task = taskMap[quote.task_id];
-
-    if (!task) {
+ 
+  return taskMap;
+}
+ 
+async function fetchAssignments(taskIds) {
+  if (taskIds.length === 0) {
+    return {};
+  }
+ 
+  let data = null;
+  let error = null;
+ 
+  const firstAttempt = await supabaseClient
+    .from("task_assignments")
+    .select("*")
+    .in("task_id", taskIds)
+    .in("worker_user_id", currentWorkerIds);
+ 
+  if (!firstAttempt.error) {
+    data = firstAttempt.data;
+  } else {
+    error = firstAttempt.error;
+ 
+    const secondAttempt = await supabaseClient
+      .from("task_assignments")
+      .select("*")
+      .in("task_id", taskIds)
+      .in("worker_id", currentWorkerIds);
+ 
+    if (!secondAttempt.error) {
+      data = secondAttempt.data;
+      error = null;
+    }
+  }
+ 
+  if (error) {
+    console.warn("Task assignments could not be loaded.", error);
+    return {};
+  }
+ 
+  const assignmentMap = {};
+ 
+  (data || []).forEach(assignment => {
+    assignmentMap[assignment.task_id] = assignment;
+  });
+ 
+  return assignmentMap;
+}
+ 
+async function fetchCustomerProfiles(jobs) {
+  const customerIds = [
+    ...new Set(
+      jobs
+        .map(job => getCustomerId(job.task, job.quote, job.assignment))
+        .filter(Boolean)
+    )
+  ];
+ 
+  if (customerIds.length === 0) {
+    return {};
+  }
+ 
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
+    .in("id", customerIds);
+ 
+  if (error || !data) {
+    return {};
+  }
+ 
+  const profileMap = {};
+ 
+  data.forEach(profile => {
+    profileMap[profile.id] = profile;
+  });
+ 
+  return profileMap;
+}
+ 
+async function loadMyJobs() {
+  setLoading();
+ 
+  const workerLoaded = await loadCurrentWorker();
+ 
+  if (!workerLoaded) {
+    return;
+  }
+ 
+  try {
+    const quotes = await fetchAcceptedQuotes();
+ 
+    if (!quotes || quotes.length === 0) {
+      loadedJobs = [];
+      updateSummary(loadedJobs);
+      showEmpty("No accepted or active jobs yet.");
       return;
     }
-
-    const taskDate = task.task_date
-      ? new Date(task.task_date)
-      : null;
-
-    const today = new Date();
-
-    let daysUntilJob = null;
-
-    if (taskDate) {
-      const difference =
-        taskDate.getTime() - today.getTime();
-
-      daysUntilJob =
-        Math.ceil(difference / (1000 * 60 * 60 * 24));
-    }
-
-    const canShowFullAddress =
-      daysUntilJob !== null && daysUntilJob <= 7;
-
-    const addressSection = canShowFullAddress
-      ? `
-        <p><strong>Address:</strong> ${task.street_address || "Not listed"}</p>
-        <p><strong>Unit:</strong> ${task.unit || "N/A"}</p>
-        <p><strong>Location:</strong> ${task.city || ""}, ${task.state || ""} ${task.zip_code || ""}</p>
-      `
-      : `
-        <p><strong>Location:</strong> ${task.city || ""}, ${task.state || ""}</p>
-        <div class="locked-address">
-          Full address will be shown 7 days before the scheduled job date.
+ 
+    const taskMap = await fetchTasksForQuotes(quotes);
+    const taskIds = [...new Set(quotes.map(quote => quote.task_id).filter(Boolean))];
+    const assignmentMap = await fetchAssignments(taskIds);
+ 
+    loadedJobs = quotes
+      .map(quote => {
+        const task = taskMap[quote.task_id];
+ 
+        if (!task) {
+          return null;
+        }
+ 
+        return {
+          quote: quote,
+          task: task,
+          assignment: assignmentMap[quote.task_id] || null,
+          customerProfile: null
+        };
+      })
+      .filter(Boolean);
+ 
+    const customerProfiles = await fetchCustomerProfiles(loadedJobs);
+ 
+    loadedJobs = loadedJobs.map(job => {
+      const customerId = getCustomerId(job.task, job.quote, job.assignment);
+      job.customerProfile = customerProfiles[customerId] || null;
+      return job;
+    });
+ 
+    updateSummary(loadedJobs);
+    renderJobs();
+  } catch (error) {
+    console.error(error);
+    showEmpty(`Error loading jobs: ${escapeHTML(error.message || "Unknown error")}`);
+  }
+}
+ 
+function jobMatchesFilters(job) {
+  const selectedStatus = document.getElementById("statusFilter").value;
+  const selectedDate = document.getElementById("dateFilter").value;
+  const status = normalizeStatus(job.quote.status);
+ 
+  if (selectedStatus && status !== selectedStatus) {
+    return false;
+  }
+ 
+  if (!selectedDate) {
+    return true;
+  }
+ 
+  const taskDate = getDateObject(getTaskDate(job.task));
+ 
+  if (!taskDate) {
+    return false;
+  }
+ 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  taskDate.setHours(0, 0, 0, 0);
+ 
+  if (selectedDate === "today") {
+    return isSameDay(taskDate, today);
+  }
+ 
+  if (selectedDate === "upcoming") {
+    return taskDate.getTime() > today.getTime();
+  }
+ 
+  if (selectedDate === "past") {
+    return taskDate.getTime() < today.getTime();
+  }
+ 
+  return true;
+}
+ 
+function renderJobs() {
+  const jobsList = document.getElementById("jobsList");
+  const jobs = loadedJobs.filter(jobMatchesFilters);
+ 
+  if (jobs.length === 0) {
+    showEmpty("No jobs match this filter.");
+    return;
+  }
+ 
+  jobsList.className = "";
+  jobsList.innerHTML = "";
+ 
+  jobs.forEach(job => {
+    const task = job.task;
+    const quote = job.quote;
+    const assignment = job.assignment;
+    const customerId = getCustomerId(task, quote, assignment);
+    const customerName = getCustomerDisplayName(job.customerProfile);
+    const customerPhoto = getCustomerPhoto(job.customerProfile);
+    const status = assignment && assignment.arrival_verified === true ? "in_progress" : quote.status;
+    const taskDate = formatDate(getTaskDate(task));
+    const countdown = getCountdownText(task);
+    const quoteAmount = quote.quote_amount || quote.amount || "0";
+ 
+    const div = document.createElement("div");
+    div.className = "job-card";
+ 
+    div.innerHTML = `
+      <div class="job-head">
+        <div>
+          <div class="job-title">${escapeHTML(getTaskTitle(task))}</div>
+          <div class="job-sub">${escapeHTML(getTaskCategory(task))} • ${escapeHTML(countdown)}</div>
         </div>
-      `;
-
-    jobsList.innerHTML += `
-      <div class="job-card">
-
-        <h3>${task.title || "Untitled Job"}</h3>
-
-        <p>${task.description || ""}</p>
-
-        <p><strong>Category:</strong> ${task.category || "Not listed"}</p>
-
-        <p><strong>Quote:</strong> $${quote.quote_amount || "0"}</p>
-
-        <p><strong>Scheduled Date:</strong> ${task.task_date || "Not scheduled"}</p>
-
-        ${addressSection}
-
-        <p class="status">Status: ${quote.status || "accepted"}</p>
-
-        <div class="arrival-box">
-          <strong>Arrival Verification</strong>
-
-          <p>
-            When you arrive, ask the customer for the arrival code and enter it below.
-          </p>
-
-          <input
-            id="arrivalCode-${quote.task_id}"
-            type="text"
-            placeholder="Enter arrival code"
-            maxlength="6"
-          >
-
-          <button onclick="verifyArrivalCode('${quote.task_id}')">
-            Verify Arrival / Start Task
-          </button>
+        ${getStatusPill(status, assignment)}
+      </div>
+ 
+      <div class="customer-row">
+        <img
+          class="customer-photo"
+          src="${escapeHTML(customerPhoto)}"
+          alt="Customer profile photo"
+          onerror="this.src='${DEFAULT_PROFILE_PHOTO}'"
+        >
+        <div>
+          <div class="customer-name">${escapeHTML(customerName)}</div>
+          <div class="customer-meta">Customer for this task</div>
         </div>
-
+      </div>
+ 
+      <div class="job-grid">
+        <div class="info-box">
+          <div class="info-label">Date</div>
+          <div class="info-value">${escapeHTML(taskDate)}</div>
+        </div>
+ 
+        <div class="info-box">
+          <div class="info-label">Quote</div>
+          <div class="info-value">$${escapeHTML(quoteAmount)}</div>
+        </div>
+ 
+        ${getAddressSection(task, quote)}
+ 
+        <div class="info-box">
+          <div class="info-label">Status</div>
+          <div class="info-value">${escapeHTML(prettyStatus(status))}</div>
+        </div>
+      </div>
+ 
+      ${getAddressNote(task, quote)}
+ 
+      <span class="details-toggle" onclick="toggleDetails('${task.id}')">
+        View task details
+      </span>
+ 
+      <div class="details-box" id="details-${task.id}">
+        ${escapeHTML(getTaskDetails(task))}
+      </div>
+ 
+      <div class="button-grid">
+        <button class="secondary" onclick="messageCustomer('${task.id}', '${customerId}')">
+          Message
+        </button>
+ 
+        <button class="secondary" onclick="viewJob('${task.id}')">
+          Details
+        </button>
+ 
+        ${getArrivalSection(job)}
       </div>
     `;
+ 
+    jobsList.appendChild(div);
   });
 }
-
-async function verifyArrivalCode(taskId) {
-  const codeInput =
-    document.getElementById(`arrivalCode-${taskId}`);
-
-  const code =
-    codeInput.value.trim();
-
+ 
+function toggleDetails(taskId) {
+  const details = document.getElementById(`details-${taskId}`);
+ 
+  if (!details) {
+    return;
+  }
+ 
+  details.style.display = details.style.display === "block" ? "none" : "block";
+}
+ 
+function toggleArrivalBox(taskId) {
+  const box = document.getElementById(`arrivalBox-${taskId}`);
+ 
+  if (!box) {
+    return;
+  }
+ 
+  box.style.display = box.style.display === "block" ? "none" : "block";
+}
+ 
+async function verifyArrivalCode(taskId, quoteId) {
+  const codeInput = document.getElementById(`arrivalCode-${taskId}`);
+  const code = codeInput ? codeInput.value.trim() : "";
+ 
   if (!code) {
     alert("Enter the arrival code from the customer.");
     return;
   }
-
-  const { data, error } = await supabaseClient
+ 
+  let assignment = null;
+  let assignmentError = null;
+ 
+  const firstAttempt = await supabaseClient
     .from("task_assignments")
     .select("*")
     .eq("task_id", taskId)
-    .eq("worker_user_id", currentWorkerId)
+    .in("worker_user_id", currentWorkerIds)
     .eq("arrival_code", code)
     .maybeSingle();
-
-  if (error || !data) {
+ 
+  if (!firstAttempt.error && firstAttempt.data) {
+    assignment = firstAttempt.data;
+  } else {
+    assignmentError = firstAttempt.error;
+ 
+    const secondAttempt = await supabaseClient
+      .from("task_assignments")
+      .select("*")
+      .eq("task_id", taskId)
+      .in("worker_id", currentWorkerIds)
+      .eq("arrival_code", code)
+      .maybeSingle();
+ 
+    if (!secondAttempt.error && secondAttempt.data) {
+      assignment = secondAttempt.data;
+      assignmentError = null;
+    }
+  }
+ 
+  if (assignmentError || !assignment) {
     alert("Invalid arrival code.");
     return;
   }
-
-  const { error: updateError } = await supabaseClient
+ 
+  const { error: updateAssignmentError } = await supabaseClient
     .from("task_assignments")
     .update({
       arrival_verified: true,
       assignment_status: "in_progress",
       arrived_at: new Date().toISOString()
     })
-    .eq("id", data.id);
-
-  if (updateError) {
+    .eq("id", assignment.id);
+ 
+  if (updateAssignmentError) {
     alert("Error verifying arrival.");
     return;
   }
-
+ 
+  await supabaseClient
+    .from("worker_quotes")
+    .update({ status: "in_progress" })
+    .eq("id", quoteId);
+ 
+  await supabaseClient
+    .from("tasks")
+    .update({ status: "in_progress" })
+    .eq("id", taskId);
+ 
   alert("Arrival verified. Task started.");
   loadMyJobs();
 }
-
+ 
+function messageCustomer(taskId, customerId) {
+  localStorage.setItem("selectedMessageTaskId", taskId);
+  localStorage.setItem("selectedTaskId", taskId);
+  localStorage.setItem("selectedCustomerId", customerId || "");
+  localStorage.setItem("messageContext", "task");
+  window.location.href = "worker-task-message.html";
+}
+ 
+function viewJob(taskId) {
+  localStorage.setItem("selectedJobId", taskId);
+  localStorage.setItem("selectedTaskId", taskId);
+  window.location.href = "job-details.html";
+}
+ 
 loadMyJobs();
 </script>
-
+ 
 </body>
 </html>

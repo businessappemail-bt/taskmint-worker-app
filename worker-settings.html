@@ -7,208 +7,893 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    body { margin:0; font-family:Arial, sans-serif; background:#f5f5f5; color:#111; padding-bottom:60px; }
-    .container { max-width:420px; margin:0 auto; padding:20px; }
-    .back { color:#0b7a28; font-weight:bold; text-decoration:none; display:inline-block; margin-bottom:18px; }
-    h1 { text-align:center; color:#0b7a28; margin-bottom:18px; }
-    .card { background:white; border-radius:14px; padding:18px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
-    .section-title { font-size:18px; font-weight:bold; margin-bottom:12px; }
-    .row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid #eee; cursor:pointer; }
-    .row:last-child { border-bottom:none; }
-    .row-text { font-size:15px; font-weight:bold; }
-    .row-sub { font-size:13px; color:#666; margin-top:3px; line-height:1.4; }
-    .arrow { color:#0b7a28; font-size:22px; font-weight:bold; }
-    .toggle-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee; }
-    .toggle-row:last-child { border-bottom:none; }
-    input[type="checkbox"] { width:22px; height:22px; accent-color:#0b7a28; }
-    button { width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; background:#0b7a28; color:white; font-size:15px; font-weight:bold; cursor:pointer; }
-    .secondary { background:white; color:#111; border:1px solid #ddd; }
-    .danger { background:#b00020; }
-    .faq-question { width:100%; text-align:left; background:white; color:#111; border:1px solid #ddd; padding:14px; margin-top:10px; border-radius:10px; font-weight:bold; }
-    .faq-answer { display:none; font-size:14px; color:#555; line-height:1.5; padding:10px 4px 0; }
-    .status { font-size:13px; color:#666; margin-top:10px; text-align:center; }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #e9f7ee 0%, #f5f5f5 45%, #f5f5f5 100%);
+      color: #111;
+      padding-bottom: 70px;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 18px;
+      position: relative;
+    }
+
+    .floating-bg {
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      background: rgba(11, 122, 40, 0.08);
+      border-radius: 50%;
+      top: -115px;
+      right: -110px;
+      filter: blur(10px);
+      z-index: 0;
+    }
+
+    .floating-bg2 {
+      position: absolute;
+      width: 175px;
+      height: 175px;
+      background: rgba(45, 199, 86, 0.08);
+      border-radius: 50%;
+      top: 420px;
+      left: -90px;
+      filter: blur(10px);
+      z-index: 0;
+    }
+
+    .top-bar {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .back {
+      color: #0b7a28;
+      font-weight: 800;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #dcefe1;
+      padding: 9px 12px;
+      border-radius: 999px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .status-pill {
+      font-size: 12px;
+      font-weight: 800;
+      color: #0b7a28;
+      background: #e7f7ec;
+      border: 1px solid #cfe9d6;
+      padding: 8px 10px;
+      border-radius: 999px;
+    }
+
+    .hero {
+      position: relative;
+      z-index: 2;
+      background: linear-gradient(135deg, #0b7a28, #19a447);
+      color: white;
+      border-radius: 26px;
+      padding: 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 28px rgba(11, 122, 40, 0.22);
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.11);
+      right: -38px;
+      top: -34px;
+    }
+
+    .hero-label {
+      position: relative;
+      z-index: 2;
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.16);
+      padding: 7px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      position: relative;
+      z-index: 2;
+      margin: 0 0 8px;
+      font-size: 27px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-sub {
+      position: relative;
+      z-index: 2;
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      opacity: 0.95;
+    }
+
+    .save-strip {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #111;
+      color: white;
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+    }
+
+    .save-strip.show {
+      display: flex;
+    }
+
+    .save-strip-text {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .save-strip button {
+      width: auto;
+      min-width: 86px;
+      margin: 0;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: #19a447;
+      color: white;
+    }
+
+    .search-card {
+      position: relative;
+      z-index: 2;
+      background: white;
+      border: 1px solid #e3eee6;
+      border-radius: 20px;
+      padding: 12px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+    }
+
+    .search-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      padding: 10px 10px;
+      background: #f7faf8;
+      border-radius: 14px;
+    }
+
+    .quick-grid {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .quick-card {
+      background: white;
+      border: 1px solid #e3eee6;
+      border-radius: 20px;
+      padding: 14px;
+      min-height: 104px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+      transition: 0.2s;
+    }
+
+    .quick-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.10);
+    }
+
+    .quick-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: #e7f7ec;
+      color: #0b7a28;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .quick-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #111;
+      margin-bottom: 4px;
+    }
+
+    .quick-sub {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.35;
+    }
+
+    .card {
+      position: relative;
+      z-index: 2;
+      background: white;
+      border-radius: 22px;
+      padding: 0;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+      border: 1px solid #eee;
+      overflow: hidden;
+    }
+
+    .section-header {
+      width: 100%;
+      border: none;
+      background: white;
+      color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px;
+      margin: 0;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .section-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .section-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: #e7f7ec;
+      color: #0b7a28;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #111;
+      margin-bottom: 2px;
+    }
+
+    .section-sub {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.35;
+    }
+
+    .chevron {
+      color: #0b7a28;
+      font-size: 22px;
+      font-weight: 800;
+      transition: 0.2s;
+    }
+
+    .card.closed .chevron {
+      transform: rotate(-90deg);
+    }
+
+    .section-body {
+      padding: 0 18px 18px;
+      display: block;
+    }
+
+    .card.closed .section-body {
+      display: none;
+    }
+
+    .row,
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid #e3eee6;
+      border-radius: 16px;
+      background: #f7faf8;
+      margin-bottom: 10px;
+    }
+
+    .row {
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .row:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .row-text {
+      font-size: 14px;
+      font-weight: 800;
+      color: #111;
+    }
+
+    .row-sub {
+      font-size: 12px;
+      color: #666;
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    .arrow {
+      color: #0b7a28;
+      font-size: 24px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 30px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #cfd8d2;
+      border-radius: 999px;
+      transition: 0.2s;
+    }
+
+    .slider::before {
+      position: absolute;
+      content: "";
+      height: 24px;
+      width: 24px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.2s;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .switch input:checked + .slider {
+      background: #0b7a28;
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(20px);
+    }
+
+    .danger-card {
+      border-color: #ffd8d8;
+      background: #fffafa;
+    }
+
+    .danger-card .section-header {
+      background: #fffafa;
+    }
+
+    .button-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: #0b7a28;
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s;
+      font-family: Arial, sans-serif;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button.secondary {
+      background: white;
+      color: #111;
+      border: 1px solid #ddd;
+    }
+
+    button.danger {
+      background: #b00020;
+      color: white;
+    }
+
+    .status {
+      font-size: 13px;
+      color: #666;
+      margin-top: 10px;
+      text-align: center;
+      min-height: 18px;
+      font-weight: 700;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%) translateY(90px);
+      background: #111;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+      opacity: 0;
+      transition: 0.25s;
+      z-index: 50;
+      width: calc(100% - 40px);
+      max-width: 380px;
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.82);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      color: #0b7a28;
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .no-results {
+      position: relative;
+      z-index: 2;
+      display: none;
+      background: white;
+      border-radius: 18px;
+      border: 1px solid #e3eee6;
+      padding: 16px;
+      margin-bottom: 16px;
+      color: #666;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 360px) {
+      .quick-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header,
+      .section-body {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+    }
   </style>
 </head>
 
 <body>
 
+<div class="loading-overlay" id="loadingOverlay">
+  Loading worker settings...
+</div>
+
 <div class="container">
 
-  <a class="back" href="worker-dashboard.html">← Back to Dashboard</a>
+  <div class="floating-bg"></div>
+  <div class="floating-bg2"></div>
 
-  <h1>Worker Settings</h1>
+  <div class="top-bar">
+    <a class="back" href="worker-dashboard.html">← Dashboard</a>
+    <div class="status-pill" id="profileStatusPill">Worker</div>
+  </div>
 
-  <div class="card">
-    <div class="section-title">Account</div>
+  <div class="hero">
+    <div class="hero-label">Worker Settings</div>
+    <h1>Manage Your Account</h1>
+    <p class="hero-sub">
+      Control your worker profile, availability, payouts, alerts, safety tools, and account access.
+    </p>
+  </div>
 
-    <div class="row" onclick="goTo('worker-profile-edit.html')">
-      <div>
-        <div class="row-text">Edit Profile</div>
-        <div class="row-sub">Update photo, experience, services, and service area.</div>
-      </div>
-      <div class="arrow">›</div>
+  <div class="save-strip" id="saveStrip">
+    <div class="save-strip-text">You have unsaved setting changes.</div>
+    <button type="button" onclick="saveSettings()">Save</button>
+  </div>
+
+  <div class="search-card">
+    <input
+      class="search-input"
+      id="settingsSearch"
+      type="text"
+      placeholder="Search settings..."
+      oninput="filterSettings()"
+    >
+  </div>
+
+  <div class="quick-grid">
+    <div class="quick-card" onclick="goTo('worker-profile-edit.html')" data-search="edit profile photo experience services service area account">
+      <div class="quick-icon">👤</div>
+      <div class="quick-title">Edit Profile</div>
+      <div class="quick-sub">Update your worker profile details.</div>
     </div>
 
-    <div class="row" onclick="goTo('worker-verification.html')">
-      <div>
-        <div class="row-text">Verification Status</div>
-        <div class="row-sub">View ID, approval, and background check status.</div>
-      </div>
-      <div class="arrow">›</div>
+    <div class="quick-card" onclick="goTo('worker-availability.html')" data-search="availability schedule working days blocked dates work preferences">
+      <div class="quick-icon">🕒</div>
+      <div class="quick-title">Availability</div>
+      <div class="quick-sub">Set your working days and times.</div>
+    </div>
+
+    <div class="quick-card" onclick="goTo('worker-payout-info.html')" data-search="payout information ach debit card earnings payments">
+      <div class="quick-icon">🏦</div>
+      <div class="quick-title">Payout Info</div>
+      <div class="quick-sub">Manage where payouts are sent.</div>
+    </div>
+
+    <div class="quick-card" onclick="goTo('worker-support.html')" data-search="support help contact disputes account issues">
+      <div class="quick-icon">❓</div>
+      <div class="quick-title">Support</div>
+      <div class="quick-sub">Get help with your account.</div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="section-title">Work Preferences</div>
+  <div class="no-results" id="noResults">
+    No settings match that search.
+  </div>
 
-    <div class="row" onclick="goTo('worker-availability.html')">
-      <div>
-        <div class="row-text">Availability Schedule</div>
-        <div class="row-sub">Set working days, times, and blocked dates.</div>
+  <div class="card settings-section" data-search="account edit profile verification approval background check photo experience services service area">
+    <button class="section-header" type="button" onclick="toggleSection(this)">
+      <div class="section-left">
+        <div class="section-icon">👤</div>
+        <div>
+          <div class="section-title">Account</div>
+          <div class="section-sub">Profile details and verification status.</div>
+        </div>
       </div>
-      <div class="arrow">›</div>
-    </div>
+      <div class="chevron">⌄</div>
+    </button>
 
-    <div class="toggle-row">
-      <div>
-        <div class="row-text">Pause Worker Profile</div>
-        <div class="row-sub">Hide your profile from new quote requests.</div>
+    <div class="section-body">
+      <div class="row" onclick="goTo('worker-profile-edit.html')">
+        <div>
+          <div class="row-text">Edit Profile</div>
+          <div class="row-sub">Update photo, experience, services, and service area.</div>
+        </div>
+        <div class="arrow">›</div>
       </div>
-      <input type="checkbox" id="pauseMode" onchange="saveSettings()">
-    </div>
 
-    <div class="toggle-row">
-      <div>
-        <div class="row-text">Profile Visible</div>
-        <div class="row-sub">Allow customers to view your public worker profile.</div>
+      <div class="row" onclick="goTo('worker-verification.html')">
+        <div>
+          <div class="row-text">Verification Status</div>
+          <div class="row-sub">View ID, approval, and background check status.</div>
+        </div>
+        <div class="arrow">›</div>
       </div>
-      <input type="checkbox" id="profileVisible" checked onchange="saveSettings()">
     </div>
   </div>
 
-  <div class="card">
-    <div class="section-title">Payments & Earnings</div>
-
-    <div class="row" onclick="goTo('worker-payout-info.html')">
-      <div>
-        <div class="row-text">Payout Information</div>
-        <div class="row-sub">Update ACH or debit card payout setup.</div>
+  <div class="card settings-section" data-search="work preferences availability schedule pause worker profile visible hide public profile">
+    <button class="section-header" type="button" onclick="toggleSection(this)">
+      <div class="section-left">
+        <div class="section-icon">🧰</div>
+        <div>
+          <div class="section-title">Work Preferences</div>
+          <div class="section-sub">Availability, pause mode, and profile visibility.</div>
+        </div>
       </div>
-      <div class="arrow">›</div>
-    </div>
+      <div class="chevron">⌄</div>
+    </button>
 
-    <div class="row" onclick="goTo('worker-earnings.html')">
-      <div>
-        <div class="row-text">Earnings History</div>
-        <div class="row-sub">Review payouts, completed jobs, and TaskMint fees.</div>
+    <div class="section-body">
+      <div class="row" onclick="goTo('worker-availability.html')">
+        <div>
+          <div class="row-text">Availability Schedule</div>
+          <div class="row-sub">Set working days, times, and blocked dates.</div>
+        </div>
+        <div class="arrow">›</div>
       </div>
-      <div class="arrow">›</div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="row-text">Pause Worker Profile</div>
+          <div class="row-sub">Hide your profile from new quote requests.</div>
+        </div>
+        <label class="switch" aria-label="Pause Worker Profile">
+          <input type="checkbox" id="pauseMode" onchange="markUnsaved()">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="row-text">Profile Visible</div>
+          <div class="row-sub">Allow customers to view your public worker profile.</div>
+        </div>
+        <label class="switch" aria-label="Profile Visible">
+          <input type="checkbox" id="profileVisible" checked onchange="markUnsaved()">
+          <span class="slider"></span>
+        </label>
+      </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="section-title">Notifications</div>
-
-    <div class="toggle-row">
-      <div>
-        <div class="row-text">Email Notifications</div>
-        <div class="row-sub">Receive job, quote, message, and payout updates.</div>
+  <div class="card settings-section" data-search="payments earnings payout information payout status ach debit card history completed jobs taskmint fees tax center">
+    <button class="section-header" type="button" onclick="toggleSection(this)">
+      <div class="section-left">
+        <div class="section-icon">💵</div>
+        <div>
+          <div class="section-title">Payments & Earnings</div>
+          <div class="section-sub">Payout setup, status, earnings, and tax info.</div>
+        </div>
       </div>
-      <input type="checkbox" id="emailNotifications" checked onchange="saveSettings()">
-    </div>
+      <div class="chevron">⌄</div>
+    </button>
 
-    <div class="toggle-row">
-      <div>
-        <div class="row-text">SMS Alerts</div>
-        <div class="row-sub">Receive urgent job and schedule updates by text.</div>
+    <div class="section-body">
+      <div class="row" onclick="goTo('worker-payout-info.html')">
+        <div>
+          <div class="row-text">Payout Information</div>
+          <div class="row-sub">Update ACH or debit card payout setup.</div>
+        </div>
+        <div class="arrow">›</div>
       </div>
-      <input type="checkbox" id="smsNotifications" onchange="saveSettings()">
-    </div>
 
-    <div class="toggle-row">
-      <div>
-        <div class="row-text">New Job Alerts</div>
-        <div class="row-sub">Get notified when nearby jobs match your services.</div>
+      <div class="row" onclick="goTo('worker-payout-status.html')">
+        <div>
+          <div class="row-text">Payout Status</div>
+          <div class="row-sub">Track pending, processing, and paid payouts.</div>
+        </div>
+        <div class="arrow">›</div>
       </div>
-      <input type="checkbox" id="jobAlerts" checked onchange="saveSettings()">
+
+      <div class="row" onclick="goTo('worker-earnings.html')">
+        <div>
+          <div class="row-text">Earnings History</div>
+          <div class="row-sub">Review completed jobs, payouts, and TaskMint fees.</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="row" onclick="goTo('worker-tax-center.html')">
+        <div>
+          <div class="row-text">Tax Center</div>
+          <div class="row-sub">View tax details and worker documents.</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="section-title">Trust & Safety</div>
-
-    <div class="row" onclick="goTo('worker-disputes.html')">
-      <div>
-        <div class="row-text">Dispute Center</div>
-        <div class="row-sub">View or respond to job-related disputes.</div>
+  <div class="card settings-section" data-search="notifications email sms text alerts new job nearby jobs quote message payout updates">
+    <button class="section-header" type="button" onclick="toggleSection(this)">
+      <div class="section-left">
+        <div class="section-icon">🔔</div>
+        <div>
+          <div class="section-title">Notifications</div>
+          <div class="section-sub">Control how TaskMint contacts you.</div>
+        </div>
       </div>
-      <div class="arrow">›</div>
-    </div>
+      <div class="chevron">⌄</div>
+    </button>
 
-    <div class="row" onclick="goTo('worker-blocked-customers.html')">
-      <div>
-        <div class="row-text">Blocked Customers</div>
-        <div class="row-sub">Manage customers you do not want to work with again.</div>
+    <div class="section-body">
+      <div class="toggle-row">
+        <div>
+          <div class="row-text">Email Notifications</div>
+          <div class="row-sub">Receive job, quote, message, and payout updates.</div>
+        </div>
+        <label class="switch" aria-label="Email Notifications">
+          <input type="checkbox" id="emailNotifications" checked onchange="markUnsaved()">
+          <span class="slider"></span>
+        </label>
       </div>
-      <div class="arrow">›</div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="row-text">SMS Alerts</div>
+          <div class="row-sub">Receive urgent job and schedule updates by text.</div>
+        </div>
+        <label class="switch" aria-label="SMS Alerts">
+          <input type="checkbox" id="smsNotifications" onchange="markUnsaved()">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="row-text">New Job Alerts</div>
+          <div class="row-sub">Get notified when nearby jobs match your services.</div>
+        </div>
+        <label class="switch" aria-label="New Job Alerts">
+          <input type="checkbox" id="jobAlerts" checked onchange="markUnsaved()">
+          <span class="slider"></span>
+        </label>
+      </div>
     </div>
   </div>
 
-  <div class="card">
+  <div class="card settings-section" data-search="trust safety dispute center blocked customers report customer job dispute updates">
+    <button class="section-header" type="button" onclick="toggleSection(this)">
+      <div class="section-left">
+        <div class="section-icon">🛡️</div>
+        <div>
+          <div class="section-title">Trust & Safety</div>
+          <div class="section-sub">Disputes, blocked customers, and safety controls.</div>
+        </div>
+      </div>
+      <div class="chevron">⌄</div>
+    </button>
 
-  <div class="section-title">
-    Worker Help
-  </div>
-
-  <div class="row"
-    onclick="goTo('worker-how-taskmint-works.html')">
-
-    <div>
-      <div class="row-text">
-        How TaskMint Works for Workers
+    <div class="section-body">
+      <div class="row" onclick="goTo('worker-disputes.html')">
+        <div>
+          <div class="row-text">Dispute Center</div>
+          <div class="row-sub">View or respond to job-related disputes.</div>
+        </div>
+        <div class="arrow">›</div>
       </div>
 
-      <div class="row-sub">
-        Learn about quotes, jobs, payouts, disputes, cancellations, scheduling, ratings, and worker policies.
+      <div class="row" onclick="goTo('worker-blocked-customers.html')">
+        <div>
+          <div class="row-text">Blocked Customers</div>
+          <div class="row-sub">Manage customers you do not want to work with again.</div>
+        </div>
+        <div class="arrow">›</div>
       </div>
     </div>
+  </div>
 
-    <div class="arrow">›</div>
+  <div class="card settings-section" data-search="worker help how taskmint works quotes jobs payouts disputes cancellations scheduling ratings policies support">
+    <button class="section-header" type="button" onclick="toggleSection(this)">
+      <div class="section-left">
+        <div class="section-icon">📘</div>
+        <div>
+          <div class="section-title">Worker Help</div>
+          <div class="section-sub">Guides, policies, and how the worker side works.</div>
+        </div>
+      </div>
+      <div class="chevron">⌄</div>
+    </button>
 
+    <div class="section-body">
+      <div class="row" onclick="goTo('worker-how-taskmint-works.html')">
+        <div>
+          <div class="row-text">How TaskMint Works for Workers</div>
+          <div class="row-sub">Learn about quotes, jobs, payouts, disputes, cancellations, scheduling, ratings, and worker policies.</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card settings-section" data-search="legal support contact support terms worker agreement policies account issues payments disputes jobs">
+    <button class="section-header" type="button" onclick="toggleSection(this)">
+      <div class="section-left">
+        <div class="section-icon">⚖️</div>
+        <div>
+          <div class="section-title">Legal & Support</div>
+          <div class="section-sub">Contact support and review worker terms.</div>
+        </div>
+      </div>
+      <div class="chevron">⌄</div>
+    </button>
+
+    <div class="section-body">
+      <div class="row" onclick="goTo('worker-support.html')">
+        <div>
+          <div class="row-text">Contact Support</div>
+          <div class="row-sub">Get help with jobs, payments, disputes, or account issues.</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="row" onclick="goTo('worker-terms.html')">
+        <div>
+          <div class="row-text">Terms & Worker Agreement</div>
+          <div class="row-sub">Review TaskMint worker terms and policies.</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card danger-card settings-section" data-search="danger zone deactivate worker profile log out logout account pause profile visible">
+    <button class="section-header" type="button" onclick="toggleSection(this)">
+      <div class="section-left">
+        <div class="section-icon">⚠️</div>
+        <div>
+          <div class="section-title">Danger Zone</div>
+          <div class="section-sub">Deactivate your worker profile or log out.</div>
+        </div>
+      </div>
+      <div class="chevron">⌄</div>
+    </button>
+
+    <div class="section-body">
+      <div class="button-grid">
+        <button class="secondary" type="button" onclick="deactivateWorkerProfile()">
+          Deactivate Worker Profile
+        </button>
+
+        <button class="danger" type="button" onclick="logout()">
+          Log Out
+        </button>
+      </div>
+
+      <div class="status" id="statusMessage"></div>
+    </div>
   </div>
 
 </div>
-  
-  <div class="card">
-    <div class="section-title">Legal & Support</div>
 
-    <div class="row" onclick="goTo('worker-support.html')">
-      <div>
-        <div class="row-text">Contact Support</div>
-        <div class="row-sub">Get help with jobs, payments, disputes, or account issues.</div>
-      </div>
-      <div class="arrow">›</div>
-    </div>
-
-    <div class="row" onclick="goTo('worker-terms.html')">
-      <div>
-        <div class="row-text">Terms & Worker Agreement</div>
-        <div class="row-sub">Review TaskMint worker terms and policies.</div>
-      </div>
-      <div class="arrow">›</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="section-title">Danger Zone</div>
-
-    <button class="secondary" onclick="deactivateWorkerProfile()">Deactivate Worker Profile</button>
-    <button class="danger" onclick="logout()">Log Out</button>
-
-    <div class="status" id="statusMessage"></div>
-  </div>
-
-</div>
+<div class="toast" id="toast"></div>
 
 <script>
 const supabaseClient = window.supabase.createClient(
@@ -217,43 +902,79 @@ const supabaseClient = window.supabase.createClient(
 );
 
 let currentUser = null;
+let saveTimer = null;
 
 async function loadSettings() {
-  const { data } = await supabaseClient.auth.getUser();
+  const overlay = document.getElementById("loadingOverlay");
 
-  if (!data || !data.user) {
-    window.location.href = "login.html";
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (error || !data || !data.user) {
+    window.location.href = "worker-login.html";
     return;
   }
 
   currentUser = data.user;
 
-  const { data: profile } = await supabaseClient
+  const { data: profile, error: profileError } = await supabaseClient
     .from("profiles")
-    .select("pause_mode, profile_visible, email_notifications, sms_notifications, job_alerts")
+    .select("pause_mode, profile_visible, email_notifications, sms_notifications, job_alerts, is_worker_approved")
     .eq("id", currentUser.id)
     .maybeSingle();
 
-  if (!profile) return;
+  if (profileError) {
+    console.error(profileError);
+    showToast("Unable to load settings.");
+    overlay.classList.add("hidden");
+    return;
+  }
 
-  document.getElementById("pauseMode").checked =
-    profile.pause_mode === true;
+  if (profile) {
+    document.getElementById("pauseMode").checked =
+      profile.pause_mode === true;
 
-  document.getElementById("profileVisible").checked =
-    profile.profile_visible !== false;
+    document.getElementById("profileVisible").checked =
+      profile.profile_visible !== false;
 
-  document.getElementById("emailNotifications").checked =
-    profile.email_notifications !== false;
+    document.getElementById("emailNotifications").checked =
+      profile.email_notifications !== false;
 
-  document.getElementById("smsNotifications").checked =
-    profile.sms_notifications === true;
+    document.getElementById("smsNotifications").checked =
+      profile.sms_notifications === true;
 
-  document.getElementById("jobAlerts").checked =
-    profile.job_alerts !== false;
+    document.getElementById("jobAlerts").checked =
+      profile.job_alerts !== false;
+
+    document.getElementById("profileStatusPill").innerText =
+      profile.is_worker_approved === true ? "Approved" : "Worker";
+  }
+
+  overlay.classList.add("hidden");
+  hideUnsavedBar();
+}
+
+function markUnsaved() {
+  document.getElementById("saveStrip").classList.add("show");
+
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+  }
+
+  saveTimer = setTimeout(() => {
+    saveSettings();
+  }, 900);
 }
 
 async function saveSettings() {
-  if (!currentUser) return;
+  if (!currentUser) {
+    showToast("Log in again to save settings.");
+    return;
+  }
+
+  const status = document.getElementById("statusMessage");
+
+  status.style.color = "#666";
+  status.innerText = "Saving settings...";
 
   const { error } = await supabaseClient
     .from("profiles")
@@ -268,22 +989,73 @@ async function saveSettings() {
       account_type: "worker"
     });
 
-  const status = document.getElementById("statusMessage");
-
   if (error) {
+    console.error(error);
     status.style.color = "#b00020";
     status.innerText = "Error saving settings.";
+    showToast("Settings could not be saved.");
     return;
   }
 
   status.style.color = "#0b7a28";
   status.innerText = "Settings saved.";
+  hideUnsavedBar();
+  showToast("Settings saved.");
 }
 
-function toggleFAQ(button) {
-  const answer = button.nextElementSibling;
-  answer.style.display =
-    answer.style.display === "block" ? "none" : "block";
+function hideUnsavedBar() {
+  document.getElementById("saveStrip").classList.remove("show");
+}
+
+function toggleSection(button) {
+  const card = button.closest(".card");
+  card.classList.toggle("closed");
+}
+
+function filterSettings() {
+  const searchValue = document
+    .getElementById("settingsSearch")
+    .value
+    .trim()
+    .toLowerCase();
+
+  const sections = document.querySelectorAll(".settings-section");
+  const quickCards = document.querySelectorAll(".quick-card");
+  let visibleCount = 0;
+
+  sections.forEach((section) => {
+    const text = section.getAttribute("data-search") || section.innerText;
+    const isMatch = text.toLowerCase().includes(searchValue);
+
+    section.classList.toggle("hidden", !isMatch);
+
+    if (isMatch) {
+      visibleCount += 1;
+      if (searchValue !== "") {
+        section.classList.remove("closed");
+      }
+    }
+  });
+
+  quickCards.forEach((card) => {
+    const text = card.getAttribute("data-search") || card.innerText;
+    const isMatch = text.toLowerCase().includes(searchValue);
+    card.classList.toggle("hidden", searchValue !== "" && !isMatch);
+  });
+
+  document.getElementById("noResults").style.display =
+    visibleCount === 0 ? "block" : "none";
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+
+  toast.innerText = message;
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2200);
 }
 
 function goTo(page) {
@@ -291,11 +1063,18 @@ function goTo(page) {
 }
 
 async function deactivateWorkerProfile() {
+  if (!currentUser) {
+    showToast("Log in again to update your profile.");
+    return;
+  }
+
   const confirmDeactivate = confirm(
     "Deactivate your worker profile? Customers will not be able to send you new job requests."
   );
 
-  if (!confirmDeactivate) return;
+  if (!confirmDeactivate) {
+    return;
+  }
 
   const { error } = await supabaseClient
     .from("profiles")
@@ -306,18 +1085,22 @@ async function deactivateWorkerProfile() {
     .eq("id", currentUser.id);
 
   if (error) {
-    alert("Error deactivating profile.");
+    console.error(error);
+    showToast("Error deactivating profile.");
     return;
   }
 
-  alert("Worker profile deactivated.");
-  loadSettings();
+  document.getElementById("pauseMode").checked = true;
+  document.getElementById("profileVisible").checked = false;
+
+  showToast("Worker profile deactivated.");
+  hideUnsavedBar();
 }
 
 async function logout() {
   await supabaseClient.auth.signOut();
   localStorage.clear();
-  window.location.href = "login.html";
+  window.location.href = "worker-login.html";
 }
 
 loadSettings();

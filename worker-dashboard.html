@@ -441,6 +441,149 @@
       font-size: 16px;
     }
  
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .notification-wrap {
+      position: relative;
+    }
+
+    .notification-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 21px;
+      font-weight: bold;
+      position: relative;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      min-width: 19px;
+      height: 19px;
+      padding: 0 5px;
+      background: #d50000;
+      color: white;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid white;
+    }
+
+    .notification-panel {
+      position: relative;
+      z-index: 3;
+      background: white;
+      border-radius: 20px;
+      padding: 14px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.10);
+      border: 1px solid #e3eee6;
+      display: none;
+      animation: fadeUp 0.25s ease;
+    }
+
+    .notification-panel.show {
+      display: block;
+    }
+
+    .notification-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .notification-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: #111;
+    }
+
+    .notification-refresh {
+      font-size: 12px;
+      font-weight: 800;
+      color: #0b7a28;
+      cursor: pointer;
+    }
+
+    .notification-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .notification-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 16px;
+      padding: 11px;
+      cursor: pointer;
+    }
+
+    .notification-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .notification-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 13px;
+      background: #e7f7ec;
+      color: #0b7a28;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .notification-main {
+      font-size: 13px;
+      font-weight: 900;
+      color: #111;
+    }
+
+    .notification-sub {
+      font-size: 12px;
+      color: #666;
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    .notification-count {
+      min-width: 25px;
+      height: 25px;
+      border-radius: 999px;
+      background: #0b7a28;
+      color: white;
+      font-size: 12px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 7px;
+    }
+
     @keyframes fadeUp {
       from {
         opacity: 0;
@@ -471,9 +614,26 @@
         alt="TaskMint Logo"
       >
  
-      <div class="settings-circle"
-        onclick="window.location.href='worker-settings.html'">
-        ⚙
+      <div class="hero-actions">
+
+        <div class="notification-wrap">
+          <div
+            class="notification-circle"
+            onclick="toggleNotificationPanel()">
+            🔔
+            <div
+              class="notification-badge"
+              id="notificationBadge">
+              0
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-circle"
+          onclick="window.location.href='worker-settings.html'">
+          ⚙
+        </div>
+
       </div>
     </div>
  
@@ -774,6 +934,7 @@ const supabaseClient =
   );
  
 let currentWorkerId = null;
+let currentUser = null;
  
 async function loadDashboard() {
  
@@ -788,6 +949,8 @@ async function loadDashboard() {
  
   const user =
     data.session.user;
+
+  currentUser = user;
  
   const { data: profile } =
     await supabaseClient
@@ -857,6 +1020,7 @@ async function loadDashboard() {
   await loadWorkerEarnings(currentWorkerId);
   await loadTodaySchedule(currentWorkerId);
   await loadUnreadDisputeDot(currentWorkerId);
+  await loadWorkerNotifications();
  
   document.getElementById("loading").style.display =
     "none";
@@ -1210,25 +1374,257 @@ async function loadTodaySchedule(workerId) {
 }
  
 async function loadUnreadDisputeDot(workerId) {
- 
+
   const dot =
     document.getElementById("disputeDot");
- 
-  const { data, error } =
+
+  const { count, error } =
     await supabaseClient
       .from("disputes")
-      .select("id")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
       .eq("worker_id", workerId)
-      .eq("worker_has_unread_update", true);
- 
-  if (!error && data && data.length > 0) {
+      .in("status", [
+        "open",
+        "reviewing"
+      ]);
+
+  if (!error && count && count > 0) {
     dot.style.display = "block";
   } else {
     dot.style.display = "none";
   }
- 
+
 }
- 
+
+function toggleNotificationPanel() {
+
+  const panel =
+    document.getElementById("notificationPanel");
+
+  panel.classList.toggle("show");
+
+}
+
+function setNotificationCount(elementId, count) {
+
+  const element =
+    document.getElementById(elementId);
+
+  if (element) {
+    element.innerText = count || 0;
+  }
+
+}
+
+async function getExactCount(queryBuilder) {
+
+  const { count, error } =
+    await queryBuilder;
+
+  if (error || count === null || count === undefined) {
+    return 0;
+  }
+
+  return count;
+
+}
+
+async function countUnreadMessages() {
+
+  if (!currentUser || !currentWorkerId) {
+    return 0;
+  }
+
+  try {
+    const count =
+      await getExactCount(
+        supabaseClient
+          .from("messages")
+          .select("id", {
+            count: "exact",
+            head: true
+          })
+          .eq("recipient_id", currentUser.id)
+          .eq("is_read", false)
+      );
+
+    if (count > 0) {
+      return count;
+    }
+  } catch (error) {
+    console.warn("messages recipient_id count not available.", error);
+  }
+
+  try {
+    const count =
+      await getExactCount(
+        supabaseClient
+          .from("messages")
+          .select("id", {
+            count: "exact",
+            head: true
+          })
+          .eq("receiver_id", currentUser.id)
+          .eq("is_read", false)
+      );
+
+    if (count > 0) {
+      return count;
+    }
+  } catch (error) {
+    console.warn("messages receiver_id count not available.", error);
+  }
+
+  try {
+    const count =
+      await getExactCount(
+        supabaseClient
+          .from("task_conversations")
+          .select("id", {
+            count: "exact",
+            head: true
+          })
+          .eq("worker_id", currentWorkerId)
+          .eq("worker_has_unread", true)
+      );
+
+    return count;
+  } catch (error) {
+    console.warn("task_conversations unread count not available.", error);
+    return 0;
+  }
+
+}
+
+async function countDisputeNotifications() {
+
+  if (!currentWorkerId) {
+    return 0;
+  }
+
+  let activeDisputeCount = 0;
+  let taskMintReplyCount = 0;
+
+  try {
+    activeDisputeCount =
+      await getExactCount(
+        supabaseClient
+          .from("disputes")
+          .select("id", {
+            count: "exact",
+            head: true
+          })
+          .eq("worker_id", currentWorkerId)
+          .in("status", [
+            "open",
+            "reviewing"
+          ])
+      );
+  } catch (error) {
+    console.warn("active dispute count not available.", error);
+  }
+
+  try {
+    const { data: workerDisputes, error: disputeError } =
+      await supabaseClient
+        .from("disputes")
+        .select("id")
+        .eq("worker_id", currentWorkerId);
+
+    if (!disputeError && workerDisputes && workerDisputes.length > 0) {
+
+      const disputeIds =
+        workerDisputes.map(dispute => dispute.id);
+
+      taskMintReplyCount =
+        await getExactCount(
+          supabaseClient
+            .from("dispute_messages")
+            .select("id", {
+              count: "exact",
+              head: true
+            })
+            .in("dispute_id", disputeIds)
+            .eq("visible_to", "worker")
+            .eq("sender_type", "admin")
+        );
+
+    }
+  } catch (error) {
+    console.warn("dispute message count not available.", error);
+  }
+
+  return activeDisputeCount + taskMintReplyCount;
+
+}
+
+async function countOpenJobs() {
+
+  try {
+    return await getExactCount(
+      supabaseClient
+        .from("tasks")
+        .select("id", {
+          count: "exact",
+          head: true
+        })
+        .eq("status", "open")
+        .or("quote_accepted.is.false,quote_accepted.is.null")
+    );
+  } catch (error) {
+    console.warn("open job count not available.", error);
+    return 0;
+  }
+
+}
+
+async function loadWorkerNotifications() {
+
+  const messageCount =
+    await countUnreadMessages();
+
+  const disputeCount =
+    await countDisputeNotifications();
+
+  const jobCount =
+    await countOpenJobs();
+
+  const total =
+    messageCount + disputeCount + jobCount;
+
+  setNotificationCount(
+    "messageNotificationCount",
+    messageCount
+  );
+
+  setNotificationCount(
+    "disputeNotificationCount",
+    disputeCount
+  );
+
+  setNotificationCount(
+    "jobNotificationCount",
+    jobCount
+  );
+
+  const badge =
+    document.getElementById("notificationBadge");
+
+  if (badge) {
+    if (total > 0) {
+      badge.style.display = "flex";
+      badge.innerText = total > 99 ? "99+" : total;
+    } else {
+      badge.style.display = "none";
+      badge.innerText = "0";
+    }
+  }
+
+}
+
 function scrollToPendingQuotes() {
  
   document.getElementById("pendingQuotesCard")

@@ -442,6 +442,7 @@
     }
  
 
+
     .hero-actions {
       display: flex;
       align-items: center;
@@ -464,6 +465,15 @@
       font-size: 21px;
       font-weight: bold;
       position: relative;
+      border: none;
+      color: white;
+      padding: 0;
+      margin: 0;
+    }
+
+    .notification-circle:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.26);
     }
 
     .notification-badge {
@@ -536,6 +546,12 @@
       border-radius: 16px;
       padding: 11px;
       cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .notification-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
     }
 
     .notification-left {
@@ -617,16 +633,18 @@
       <div class="hero-actions">
 
         <div class="notification-wrap">
-          <div
+          <button
+            type="button"
             class="notification-circle"
-            onclick="toggleNotificationPanel()">
+            onclick="toggleNotificationPanel()"
+            aria-label="Worker notifications">
             🔔
-            <div
+            <span
               class="notification-badge"
               id="notificationBadge">
               0
-            </div>
-          </div>
+            </span>
+          </button>
         </div>
 
         <div class="settings-circle"
@@ -645,6 +663,57 @@
       Manage quotes, accepted jobs, earnings, messages, disputes, and payouts from one clean workspace.
     </div>
  
+  </div>
+
+  <div id="notificationPanel" class="notification-panel">
+
+    <div class="notification-header">
+      <div class="notification-title">
+        Notifications
+      </div>
+
+      <div class="notification-refresh" onclick="loadWorkerNotifications()">
+        Refresh
+      </div>
+    </div>
+
+    <div class="notification-list" id="notificationList">
+
+      <div class="notification-item" onclick="window.location.href='worker-message-center.html'">
+        <div class="notification-left">
+          <div class="notification-icon">💬</div>
+          <div>
+            <div class="notification-main">Messages</div>
+            <div class="notification-sub">Unread task or customer messages.</div>
+          </div>
+        </div>
+        <div class="notification-count" id="messageNotificationCount">0</div>
+      </div>
+
+      <div class="notification-item" onclick="window.location.href='worker-disputes.html'">
+        <div class="notification-left">
+          <div class="notification-icon">⚠️</div>
+          <div>
+            <div class="notification-main">Disputes</div>
+            <div class="notification-sub">Open disputes or TaskMint replies.</div>
+          </div>
+        </div>
+        <div class="notification-count" id="disputeNotificationCount">0</div>
+      </div>
+
+      <div class="notification-item" onclick="window.location.href='worker-open-task.html'">
+        <div class="notification-left">
+          <div class="notification-icon">🔎</div>
+          <div>
+            <div class="notification-main">New Jobs</div>
+            <div class="notification-sub">Open customer tasks available to quote.</div>
+          </div>
+        </div>
+        <div class="notification-count" id="jobNotificationCount">0</div>
+      </div>
+
+    </div>
+
   </div>
  
   <div class="card">
@@ -933,8 +1002,8 @@ const supabaseClient =
     SUPABASE_ANON_KEY
   );
  
-let currentWorkerId = null;
 let currentUser = null;
+let currentWorkerId = null;
  
 async function loadDashboard() {
  
@@ -1378,6 +1447,10 @@ async function loadUnreadDisputeDot(workerId) {
   const dot =
     document.getElementById("disputeDot");
 
+  if (!dot || !workerId) {
+    return;
+  }
+
   const { count, error } =
     await supabaseClient
       .from("disputes")
@@ -1404,6 +1477,10 @@ function toggleNotificationPanel() {
   const panel =
     document.getElementById("notificationPanel");
 
+  if (!panel) {
+    return;
+  }
+
   panel.classList.toggle("show");
 
 }
@@ -1419,83 +1496,46 @@ function setNotificationCount(elementId, count) {
 
 }
 
-async function getExactCount(queryBuilder) {
+function updateNotificationBadge(total) {
+
+  const badge =
+    document.getElementById("notificationBadge");
+
+  if (!badge) {
+    return;
+  }
+
+  if (total > 0) {
+    badge.style.display = "flex";
+    badge.innerText = total > 99 ? "99+" : total;
+  } else {
+    badge.style.display = "none";
+    badge.innerText = "0";
+  }
+
+}
+
+async function countUnreadMessages() {
+
+  if (!currentUser) {
+    return 0;
+  }
 
   const { count, error } =
-    await queryBuilder;
+    await supabaseClient
+      .from("messages")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("receiver_id", currentUser.id)
+      .eq("is_read", false);
 
   if (error || count === null || count === undefined) {
     return 0;
   }
 
   return count;
-
-}
-
-async function countUnreadMessages() {
-
-  if (!currentUser || !currentWorkerId) {
-    return 0;
-  }
-
-  try {
-    const count =
-      await getExactCount(
-        supabaseClient
-          .from("messages")
-          .select("id", {
-            count: "exact",
-            head: true
-          })
-          .eq("recipient_id", currentUser.id)
-          .eq("is_read", false)
-      );
-
-    if (count > 0) {
-      return count;
-    }
-  } catch (error) {
-    console.warn("messages recipient_id count not available.", error);
-  }
-
-  try {
-    const count =
-      await getExactCount(
-        supabaseClient
-          .from("messages")
-          .select("id", {
-            count: "exact",
-            head: true
-          })
-          .eq("receiver_id", currentUser.id)
-          .eq("is_read", false)
-      );
-
-    if (count > 0) {
-      return count;
-    }
-  } catch (error) {
-    console.warn("messages receiver_id count not available.", error);
-  }
-
-  try {
-    const count =
-      await getExactCount(
-        supabaseClient
-          .from("task_conversations")
-          .select("id", {
-            count: "exact",
-            head: true
-          })
-          .eq("worker_id", currentWorkerId)
-          .eq("worker_has_unread", true)
-      );
-
-    return count;
-  } catch (error) {
-    console.warn("task_conversations unread count not available.", error);
-    return 0;
-  }
 
 }
 
@@ -1508,53 +1548,49 @@ async function countDisputeNotifications() {
   let activeDisputeCount = 0;
   let taskMintReplyCount = 0;
 
-  try {
-    activeDisputeCount =
-      await getExactCount(
-        supabaseClient
-          .from("disputes")
-          .select("id", {
-            count: "exact",
-            head: true
-          })
-          .eq("worker_id", currentWorkerId)
-          .in("status", [
-            "open",
-            "reviewing"
-          ])
-      );
-  } catch (error) {
-    console.warn("active dispute count not available.", error);
+  const { count: activeCount, error: activeError } =
+    await supabaseClient
+      .from("disputes")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("worker_id", currentWorkerId)
+      .in("status", [
+        "open",
+        "reviewing"
+      ]);
+
+  if (!activeError && activeCount) {
+    activeDisputeCount = activeCount;
   }
 
-  try {
-    const { data: workerDisputes, error: disputeError } =
+  const { data: workerDisputes, error: disputeError } =
+    await supabaseClient
+      .from("disputes")
+      .select("id")
+      .eq("worker_id", currentWorkerId);
+
+  if (!disputeError && workerDisputes && workerDisputes.length > 0) {
+
+    const disputeIds =
+      workerDisputes.map(dispute => dispute.id);
+
+    const { count: replyCount, error: replyError } =
       await supabaseClient
-        .from("disputes")
-        .select("id")
-        .eq("worker_id", currentWorkerId);
+        .from("dispute_messages")
+        .select("id", {
+          count: "exact",
+          head: true
+        })
+        .in("dispute_id", disputeIds)
+        .eq("visible_to", "worker")
+        .eq("sender_type", "admin");
 
-    if (!disputeError && workerDisputes && workerDisputes.length > 0) {
-
-      const disputeIds =
-        workerDisputes.map(dispute => dispute.id);
-
-      taskMintReplyCount =
-        await getExactCount(
-          supabaseClient
-            .from("dispute_messages")
-            .select("id", {
-              count: "exact",
-              head: true
-            })
-            .in("dispute_id", disputeIds)
-            .eq("visible_to", "worker")
-            .eq("sender_type", "admin")
-        );
-
+    if (!replyError && replyCount) {
+      taskMintReplyCount = replyCount;
     }
-  } catch (error) {
-    console.warn("dispute message count not available.", error);
+
   }
 
   return activeDisputeCount + taskMintReplyCount;
@@ -1563,21 +1599,21 @@ async function countDisputeNotifications() {
 
 async function countOpenJobs() {
 
-  try {
-    return await getExactCount(
-      supabaseClient
-        .from("tasks")
-        .select("id", {
-          count: "exact",
-          head: true
-        })
-        .eq("status", "open")
-        .or("quote_accepted.is.false,quote_accepted.is.null")
-    );
-  } catch (error) {
-    console.warn("open job count not available.", error);
+  const { count, error } =
+    await supabaseClient
+      .from("tasks")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("status", "open")
+      .or("quote_accepted.is.false,quote_accepted.is.null");
+
+  if (error || count === null || count === undefined) {
     return 0;
   }
+
+  return count;
 
 }
 
@@ -1610,18 +1646,7 @@ async function loadWorkerNotifications() {
     jobCount
   );
 
-  const badge =
-    document.getElementById("notificationBadge");
-
-  if (badge) {
-    if (total > 0) {
-      badge.style.display = "flex";
-      badge.innerText = total > 99 ? "99+" : total;
-    } else {
-      badge.style.display = "none";
-      badge.innerText = "0";
-    }
-  }
+  updateNotificationBadge(total);
 
 }
 

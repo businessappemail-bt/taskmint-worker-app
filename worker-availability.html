@@ -519,7 +519,7 @@ async function getCurrentWorker() {
  
  const { data: workerProfile, error: profileError } =
   await supabaseClient
-    .from("profiles")
+    .from("worker_profiles")
     .select("id")
     .eq("email", currentUser.email)
     .maybeSingle();

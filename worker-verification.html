@@ -1,403 +1,859 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Verification Status - TaskMint</title>
+  <title>Worker Approval Status - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+ 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+ 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+ 
     body {
-      margin:0;
-      font-family:Arial, sans-serif;
-      background:#f5f5f5;
-      color:#111;
-      padding-bottom:60px;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #e9f7ee 0%, #f6f7f6 45%, #f5f5f5 100%);
+      color: #111;
+      padding-bottom: 70px;
+      overflow-x: hidden;
     }
-
+ 
     .container {
-      max-width:420px;
-      margin:0 auto;
-      padding:20px;
+      max-width: 420px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 18px;
+      position: relative;
     }
-
+ 
+    .floating-bg {
+      position: absolute;
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background: rgba(11, 122, 40, 0.08);
+      top: -130px;
+      right: -120px;
+      filter: blur(10px);
+      z-index: 0;
+    }
+ 
     .back {
-      color:#0b7a28;
-      font-weight:bold;
-      text-decoration:none;
-      display:inline-block;
-      margin-bottom:18px;
+      position: relative;
+      z-index: 2;
+      color: #0b7a28;
+      font-weight: 800;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 14px;
+      font-size: 14px;
     }
-
+ 
+    .hero {
+      position: relative;
+      z-index: 2;
+      background: linear-gradient(135deg, #0b7a28, #18a348);
+      color: white;
+      border-radius: 26px;
+      padding: 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 28px rgba(11, 122, 40, 0.22);
+    }
+ 
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+ 
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+ 
     h1 {
-      text-align:center;
-      color:#0b7a28;
-      margin-bottom:18px;
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.15;
+      letter-spacing: -0.5px;
     }
-
+ 
+    .hero-sub {
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      opacity: 0.95;
+    }
+ 
+    .approval-pill {
+      flex-shrink: 0;
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      white-space: nowrap;
+    }
+ 
     .card {
-      background:white;
-      border-radius:14px;
-      padding:18px;
-      margin-bottom:16px;
-      box-shadow:0 2px 8px rgba(0,0,0,0.08);
+      position: relative;
+      z-index: 2;
+      background: white;
+      border-radius: 22px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+      border: 1px solid #eee;
     }
-
+ 
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+ 
     .section-title {
-      font-size:18px;
-      font-weight:bold;
-      margin-bottom:12px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #111;
     }
-
-    .verify-row {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:14px 0;
-      border-bottom:1px solid #eee;
+ 
+    .section-link {
+      color: #0b7a28;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
     }
-
-    .verify-row:last-child {
-      border-bottom:none;
+ 
+    .status-panel {
+      border-radius: 20px;
+      padding: 16px;
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
     }
-
-    .verify-title {
-      font-weight:bold;
-      font-size:15px;
+ 
+    .status-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-
-    .verify-sub {
-      font-size:13px;
-      color:#666;
-      margin-top:4px;
-      line-height:1.4;
+ 
+    .status-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      background: #e7f7ec;
+      color: #0b7a28;
+      flex-shrink: 0;
     }
-
-    .status {
-      font-size:13px;
-      font-weight:bold;
-      padding:6px 10px;
-      border-radius:999px;
+ 
+    .status-title {
+      font-size: 17px;
+      font-weight: 900;
+      margin-bottom: 4px;
     }
-
-    .complete {
-      background:#e7f7ec;
-      color:#0b7a28;
+ 
+    .status-text {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.45;
     }
-
-    .incomplete {
-      background:#fff4e5;
-      color:#a15c00;
+ 
+    .progress-wrap {
+      margin-top: 14px;
     }
-
-    .danger {
-      background:#ffe5e5;
-      color:#b00020;
+ 
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 800;
     }
-
-    button {
-      width:100%;
-      padding:14px;
-      margin-top:12px;
-      border:none;
-      border-radius:10px;
-      background:#0b7a28;
-      color:white;
-      font-size:15px;
-      font-weight:bold;
-      cursor:pointer;
+ 
+    .progress-track {
+      width: 100%;
+      height: 12px;
+      background: #e5e5e5;
+      border-radius: 999px;
+      overflow: hidden;
     }
-
-    .secondary {
-      background:white;
-      color:#111;
-      border:1px solid #ddd;
+ 
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #0b7a28, #20b955);
+      border-radius: 999px;
+      transition: width 0.35s ease;
     }
-
-    .note {
-      font-size:13px;
-      color:#666;
-      line-height:1.5;
-      margin-top:10px;
+ 
+    .review-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 16px;
+      background: #fff7e6;
+      border: 1px solid #ffd27a;
+      color: #7a4b00;
+      font-size: 13px;
+      line-height: 1.45;
+      display: none;
     }
-
+ 
+    .denial-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 16px;
+      background: #fff0f0;
+      border: 1px solid #ffc7c7;
+      color: #8a0018;
+      font-size: 13px;
+      line-height: 1.45;
+      display: none;
+    }
+ 
+    .check-list {
+      display: grid;
+      gap: 10px;
+    }
+ 
+    .check-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 17px;
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+    }
+ 
+    .check-left {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+ 
+    .check-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e7f7ec;
+      color: #0b7a28;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+ 
+    .check-title {
+      font-size: 14px;
+      font-weight: 900;
+      color: #111;
+    }
+ 
+    .check-sub {
+      margin-top: 3px;
+      color: #666;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+ 
+    .badge {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+ 
+    .badge.complete {
+      background: #e7f7ec;
+      color: #0b7a28;
+    }
+ 
+    .badge.pending {
+      background: #fff4e5;
+      color: #a15c00;
+    }
+ 
+    .badge.denied {
+      background: #ffe5e5;
+      color: #b00020;
+    }
+ 
+    .upload-zone {
+      border: 2px dashed #b9d8c1;
+      background: #f7faf8;
+      border-radius: 20px;
+      padding: 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+ 
+    .upload-zone:hover {
+      border-color: #0b7a28;
+      transform: translateY(-1px);
+    }
+ 
+    .upload-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      background: #e7f7ec;
+      color: #0b7a28;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 25px;
+      margin: 0 auto 10px;
+    }
+ 
+    .upload-title {
+      font-size: 15px;
+      font-weight: 900;
+      margin-bottom: 5px;
+    }
+ 
+    .upload-sub {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.45;
+    }
+ 
+    .hidden-input {
+      display: none;
+    }
+ 
     .upload-preview {
-      width:90px;
-      height:90px;
-      object-fit:cover;
-      border-radius:10px;
-      margin-top:10px;
-      border:1px solid #ddd;
-      display:none;
+      width: 100%;
+      max-height: 210px;
+      object-fit: cover;
+      border-radius: 16px;
+      margin-top: 12px;
+      border: 1px solid #ddd;
+      display: none;
     }
-
+ 
+    .note {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+ 
     .status-message {
-      text-align:center;
-      margin-top:10px;
-      font-size:14px;
-      font-weight:bold;
+      text-align: center;
+      margin-top: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      min-height: 18px;
+    }
+ 
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+ 
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: #0b7a28;
+      color: white;
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+ 
+    button:hover {
+      transform: translateY(-1px);
+    }
+ 
+    button.secondary {
+      background: white;
+      color: #111;
+      border: 1px solid #ddd;
+    }
+ 
+    button.danger {
+      background: #b00020;
+      color: white;
+    }
+ 
+    .info-list {
+      display: grid;
+      gap: 10px;
+    }
+ 
+    .info-row {
+      padding: 13px;
+      border-radius: 16px;
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.45;
+    }
+ 
+    .info-row strong {
+      color: #111;
+    }
+ 
+    .loading {
+      text-align: center;
+      margin-top: 90px;
+      color: #555;
+      font-size: 15px;
+      font-weight: 700;
     }
   </style>
 </head>
-
+ 
 <body>
-
-<div class="container">
-
+ 
+<div class="container" id="pageContent" style="display:none;">
+ 
+  <div class="floating-bg"></div>
+ 
   <a class="back" href="worker-settings.html">
     ← Back to Settings
   </a>
-
-  <h1>Verification Status</h1>
-
-  <div class="card">
-
-    <div class="section-title">
-      Worker Verification
-    </div>
-
-    <div class="verify-row">
+ 
+  <div class="hero">
+    <div class="hero-top">
       <div>
-        <div class="verify-title">Profile Photo</div>
-        <div class="verify-sub">
-          Upload a clear profile picture customers can recognize.
-        </div>
+        <div class="eyebrow">Worker Verification</div>
+        <h1>Approval Status</h1>
       </div>
-
-      <div id="photoStatus" class="status incomplete">
-        Incomplete
+      <div class="approval-pill" id="approvalPill">
+        Loading
       </div>
     </div>
-
-    <div class="verify-row">
-      <div>
-        <div class="verify-title">Experience Description</div>
-        <div class="verify-sub">
-          Tell customers about your work experience and skills.
-        </div>
-      </div>
-
-      <div id="experienceStatus" class="status incomplete">
-        Incomplete
-      </div>
+ 
+    <div class="hero-sub" id="heroSubText">
+      Complete the required steps so your worker account can be reviewed.
     </div>
-
-    <div class="verify-row">
-      <div>
-        <div class="verify-title">Service Area</div>
-        <div class="verify-sub">
-          Set the cities or areas where you accept jobs.
-        </div>
-      </div>
-
-      <div id="serviceAreaStatus" class="status incomplete">
-        Incomplete
-      </div>
-    </div>
-
-    <div class="verify-row">
-      <div>
-        <div class="verify-title">Government ID</div>
-        <div class="verify-sub">
-          Upload a valid ID for account verification and fraud prevention.
-        </div>
-      </div>
-
-      <div id="idStatus" class="status incomplete">
-        Incomplete
-      </div>
-    </div>
-
   </div>
-
+ 
   <div class="card">
-
     <div class="section-title">
-      Upload Government ID
+      Account Decision
     </div>
-
+ 
+    <div class="status-panel">
+      <div class="status-main">
+        <div class="status-icon" id="approvalIcon">⏳</div>
+        <div>
+          <div class="status-title" id="approvalTitle">
+            Review Pending
+          </div>
+          <div class="status-text" id="approvalText">
+            Your approval status will appear here after your worker profile and ID are reviewed.
+          </div>
+        </div>
+      </div>
+ 
+      <div class="progress-wrap">
+        <div class="progress-top">
+          <span>Verification Progress</span>
+          <span id="completionPercent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+ 
+      <div class="review-box" id="reviewBox">
+        Your account is ready for review. TaskMint can approve or deny the worker account after checking your profile and ID details.
+      </div>
+ 
+      <div class="denial-box" id="denialBox">
+        Your worker account was not approved. Review the reason below, update your information, then contact support or resubmit if available.
+      </div>
+    </div>
+  </div>
+ 
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">
+        Required Items
+      </div>
+      <div class="section-link" onclick="window.location.href='worker-profile-edit.html'">
+        Edit Profile
+      </div>
+    </div>
+ 
+    <div class="check-list">
+ 
+      <div class="check-row">
+        <div class="check-left">
+          <div class="check-icon">👤</div>
+          <div>
+            <div class="check-title">Profile Photo</div>
+            <div class="check-sub">A clear photo customers can recognize.</div>
+          </div>
+        </div>
+        <div id="photoStatus" class="badge pending">Needed</div>
+      </div>
+ 
+      <div class="check-row">
+        <div class="check-left">
+          <div class="check-icon">🧰</div>
+          <div>
+            <div class="check-title">Experience</div>
+            <div class="check-sub">Work history, skills, and reliability details.</div>
+          </div>
+        </div>
+        <div id="experienceStatus" class="badge pending">Needed</div>
+      </div>
+ 
+      <div class="check-row">
+        <div class="check-left">
+          <div class="check-icon">📍</div>
+          <div>
+            <div class="check-title">Service Area</div>
+            <div class="check-sub">Main city or area where you accept jobs.</div>
+          </div>
+        </div>
+        <div id="serviceAreaStatus" class="badge pending">Needed</div>
+      </div>
+ 
+      <div class="check-row">
+        <div class="check-left">
+          <div class="check-icon">🪪</div>
+          <div>
+            <div class="check-title">Government ID</div>
+            <div class="check-sub">Required for account review and fraud prevention.</div>
+          </div>
+        </div>
+        <div id="idStatus" class="badge pending">Needed</div>
+      </div>
+ 
+    </div>
+  </div>
+ 
+  <div class="card">
+    <div class="section-title">
+      Government ID
+    </div>
+ 
+    <div class="upload-zone" onclick="document.getElementById('idUpload').click()">
+      <div class="upload-icon">⬆</div>
+      <div class="upload-title" id="uploadTitle">
+        Upload Government ID
+      </div>
+      <div class="upload-sub">
+        Driver's license, state ID, or passport image. Use a clear photo with all corners visible.
+      </div>
+    </div>
+ 
     <input
       type="file"
       id="idUpload"
+      class="hidden-input"
       accept="image/*"
       onchange="uploadGovernmentId(event)"
     >
-
+ 
     <img
       id="idPreview"
       class="upload-preview"
+      alt="Government ID Preview"
     >
-
+ 
     <div class="note">
-      Accepted IDs include driver's licenses, state IDs, and passports. Information is used only for verification and fraud prevention.
+      This page is mainly for worker approval status and ID verification. Profile edits, notifications, payout setup, and preferences stay on the settings/profile pages so this page does not repeat everything.
     </div>
-
+ 
     <div class="status-message" id="uploadStatus"></div>
-
   </div>
-
+ 
   <div class="card">
-
     <div class="section-title">
-      Account Approval
+      What Happens Next
     </div>
-
-    <div class="note">
-      Workers must complete profile setup and ID verification before sending quotes and receiving payouts.
+ 
+    <div class="info-list">
+      <div class="info-row">
+        <strong>Pending:</strong> Your profile or ID still needs to be completed or reviewed.
+      </div>
+      <div class="info-row">
+        <strong>Approved:</strong> Your worker account is approved and you can continue using worker features allowed by your app setup.
+      </div>
+      <div class="info-row">
+        <strong>Denied:</strong> Your account needs action before you can work. Check the decision reason and update missing information.
+      </div>
     </div>
-
-    <button onclick="window.location.href='worker-profile-edit.html'">
-      Complete Worker Profile
-    </button>
-
-    <button class="secondary"
-      onclick="window.location.href='worker-dashboard.html'">
-      Back to Dashboard
-    </button>
-
+ 
+    <div class="action-grid">
+      <button onclick="window.location.href='worker-profile-edit.html'">
+        Fix Profile
+      </button>
+      <button class="secondary" onclick="window.location.href='worker-dashboard.html'">
+        Dashboard
+      </button>
+    </div>
   </div>
-
+ 
 </div>
-
+ 
+<div class="loading" id="loadingMessage">
+  Loading verification status...
+</div>
+ 
 <script>
 const supabaseClient = window.supabase.createClient(
   "https://dbcthtjmtlumidpbucrc.supabase.co",
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
-
+ 
 let currentUser = null;
-
-async function loadVerificationStatus() {
-
-  const { data } =
-    await supabaseClient.auth.getUser();
-
-  if (!data || !data.user) {
-    window.location.href = "login.html";
+let currentProfile = null;
+ 
+function hasValue(value) {
+  return value !== null &&
+    value !== undefined &&
+    String(value).trim() !== "";
+}
+ 
+function setBadge(id, isComplete) {
+  const element = document.getElementById(id);
+ 
+  element.classList.remove("complete", "pending", "denied");
+ 
+  if (isComplete) {
+    element.classList.add("complete");
+    element.innerText = "Done";
+  } else {
+    element.classList.add("pending");
+    element.innerText = "Needed";
+  }
+}
+ 
+function getApprovalStatus(profile) {
+  const rawStatus =
+    profile.worker_approval_status ||
+    profile.approval_status ||
+    profile.worker_status ||
+    "";
+ 
+  const normalized = String(rawStatus).toLowerCase().trim();
+ 
+  if (
+    profile.is_worker_approved === true ||
+    normalized === "approved"
+  ) {
+    return "approved";
+  }
+ 
+  if (
+    profile.is_worker_approved === false &&
+    (
+      normalized === "denied" ||
+      normalized === "rejected" ||
+      hasValue(profile.worker_denial_reason)
+    )
+  ) {
+    return "denied";
+  }
+ 
+  if (normalized === "denied" || normalized === "rejected") {
+    return "denied";
+  }
+ 
+  if (
+    normalized === "pending" ||
+    normalized === "under_review" ||
+    normalized === "reviewing"
+  ) {
+    return "pending";
+  }
+ 
+  return "not_submitted";
+}
+ 
+function updateApprovalPanel(profile, completionPercent) {
+  const approvalPill = document.getElementById("approvalPill");
+  const approvalIcon = document.getElementById("approvalIcon");
+  const approvalTitle = document.getElementById("approvalTitle");
+  const approvalText = document.getElementById("approvalText");
+  const heroSubText = document.getElementById("heroSubText");
+  const reviewBox = document.getElementById("reviewBox");
+  const denialBox = document.getElementById("denialBox");
+ 
+  const status = getApprovalStatus(profile);
+ 
+  reviewBox.style.display = "none";
+  denialBox.style.display = "none";
+ 
+  if (status === "approved") {
+    approvalPill.innerText = "Approved";
+    approvalIcon.innerText = "✅";
+    approvalTitle.innerText = "Worker Account Approved";
+    approvalText.innerText = "Your worker account has been approved. You can continue using worker tools and accepted worker features.";
+    heroSubText.innerText = "Your worker account is approved and ready.";
     return;
   }
-
+ 
+  if (status === "denied") {
+    const reason =
+      profile.worker_denial_reason ||
+      profile.denial_reason ||
+      "No denial reason has been added yet.";
+ 
+    approvalPill.innerText = "Denied";
+    approvalIcon.innerText = "⚠️";
+    approvalTitle.innerText = "Worker Account Not Approved";
+    approvalText.innerText = reason;
+    heroSubText.innerText = "Review the decision reason and update anything missing.";
+    denialBox.style.display = "block";
+    return;
+  }
+ 
+  if (completionPercent === 100) {
+    approvalPill.innerText = "Ready for Review";
+    approvalIcon.innerText = "📋";
+    approvalTitle.innerText = "Ready for Review";
+    approvalText.innerText = "Your required items are complete. Your approval decision will show here once reviewed.";
+    heroSubText.innerText = "Your required items are complete and ready for review.";
+    reviewBox.style.display = "block";
+    return;
+  }
+ 
+  approvalPill.innerText = "Incomplete";
+  approvalIcon.innerText = "⏳";
+  approvalTitle.innerText = "Setup Not Complete";
+  approvalText.innerText = "Finish the required items below before your worker account can be reviewed.";
+  heroSubText.innerText = "Complete your required items so your worker account can move toward approval.";
+}
+ 
+function updateCompletion(profile) {
+  const checks = [
+    hasValue(profile.profile_photo_url),
+    hasValue(profile.experience),
+    hasValue(profile.service_area),
+    hasValue(profile.government_id_url)
+  ];
+ 
+  setBadge("photoStatus", checks[0]);
+  setBadge("experienceStatus", checks[1]);
+  setBadge("serviceAreaStatus", checks[2]);
+  setBadge("idStatus", checks[3]);
+ 
+  const completeCount = checks.filter(Boolean).length;
+  const percent = Math.round((completeCount / checks.length) * 100);
+ 
+  document.getElementById("completionPercent").innerText = `${percent}%`;
+  document.getElementById("progressFill").style.width = `${percent}%`;
+ 
+  if (hasValue(profile.government_id_url)) {
+    document.getElementById("idPreview").style.display = "block";
+    document.getElementById("idPreview").src = profile.government_id_url;
+    document.getElementById("uploadTitle").innerText = "Replace Government ID";
+  }
+ 
+  updateApprovalPanel(profile, percent);
+}
+ 
+async function loadVerificationStatus() {
+  const { data, error } =
+    await supabaseClient.auth.getUser();
+ 
+  if (error || !data || !data.user) {
+    window.location.href = "worker-login.html";
+    return;
+  }
+ 
   currentUser = data.user;
-
-  const { data: profile } =
+ 
+  const { data: profile, error: profileError } =
     await supabaseClient
       .from("profiles")
-      .select(`
-        profile_photo_url,
-        experience,
-        service_area,
-        government_id_url
-      `)
+      .select("*")
       .eq("id", currentUser.id)
       .maybeSingle();
-
-  if (!profile) return;
-
-  if (
-    profile.profile_photo_url &&
-    profile.profile_photo_url.trim() !== ""
-  ) {
-    setComplete("photoStatus");
+ 
+  if (profileError) {
+    document.getElementById("loadingMessage").innerText =
+      "Error loading verification status.";
+    return;
   }
-
-  if (
-    profile.experience &&
-    profile.experience.trim() !== ""
-  ) {
-    setComplete("experienceStatus");
-  }
-
-  if (
-    profile.service_area &&
-    profile.service_area.trim() !== ""
-  ) {
-    setComplete("serviceAreaStatus");
-  }
-
-  if (
-    profile.government_id_url &&
-    profile.government_id_url.trim() !== ""
-  ) {
-    setComplete("idStatus");
-
-    document.getElementById("idPreview").style.display =
-      "block";
-
-    document.getElementById("idPreview").src =
-      profile.government_id_url;
-  }
-
+ 
+  currentProfile = profile || {
+    id: currentUser.id,
+    email: currentUser.email
+  };
+ 
+  updateCompletion(currentProfile);
+ 
+  document.getElementById("loadingMessage").style.display = "none";
+  document.getElementById("pageContent").style.display = "block";
 }
-
-function setComplete(id) {
-
-  const element =
-    document.getElementById(id);
-
-  element.classList.remove("incomplete");
-
-  element.classList.add("complete");
-
-  element.innerText = "Verified";
-
-}
-
+ 
 async function uploadGovernmentId(event) {
-
-  const file =
-    event.target.files[0];
-
+  const file = event.target.files[0];
+ 
   if (!file || !currentUser) {
     return;
   }
-
-  const fileExt =
-    file.name.split(".").pop();
-
-  const filePath =
-    `government-ids/${currentUser.id}-${Date.now()}.${fileExt}`;
-
-  const uploadStatus =
-    document.getElementById("uploadStatus");
-
-  uploadStatus.style.color =
-    "#111";
-
-  uploadStatus.innerText =
-    "Uploading ID...";
-
+ 
+  const uploadStatus = document.getElementById("uploadStatus");
+ 
+  uploadStatus.style.color = "#111";
+  uploadStatus.innerText = "Uploading ID...";
+ 
+  const fileExt = file.name.split(".").pop();
+  const filePath = `government-ids/${currentUser.id}-${Date.now()}.${fileExt}`;
+ 
   const { error: uploadError } =
     await supabaseClient.storage
       .from("worker-ids")
-      .upload(filePath, file);
-
+      .upload(filePath, file, {
+        upsert: false
+      });
+ 
   if (uploadError) {
-
     console.error(uploadError);
-
-    uploadStatus.style.color =
-      "#b00020";
-
-    uploadStatus.innerText =
-      "Error uploading ID.";
-
+    uploadStatus.style.color = "#b00020";
+    uploadStatus.innerText = "Error uploading ID. Check the worker-ids storage bucket and policies.";
     return;
   }
-
+ 
   const { data } =
     supabaseClient.storage
       .from("worker-ids")
       .getPublicUrl(filePath);
-
-  const publicUrl =
-    data.publicUrl;
-
-  document.getElementById("idPreview").src =
-    publicUrl;
-
-  document.getElementById("idPreview").style.display =
-    "block";
-
+ 
+  const publicUrl = data.publicUrl;
+ 
+  document.getElementById("idPreview").src = publicUrl;
+  document.getElementById("idPreview").style.display = "block";
+  document.getElementById("uploadTitle").innerText = "Replace Government ID";
+ 
   const { error: updateError } =
     await supabaseClient
       .from("profiles")
@@ -405,34 +861,31 @@ async function uploadGovernmentId(event) {
         id: currentUser.id,
         email: currentUser.email,
         government_id_url: publicUrl,
-        account_type: "worker"
+        account_type: "worker",
+        worker_approval_status: "pending"
       });
-
+ 
   if (updateError) {
-
     console.error(updateError);
-
-    uploadStatus.style.color =
-      "#b00020";
-
-    uploadStatus.innerText =
-      "ID uploaded but failed to save.";
-
+    uploadStatus.style.color = "#b00020";
+    uploadStatus.innerText = "ID uploaded, but it failed to save to your profile.";
     return;
   }
-
-  setComplete("idStatus");
-
-  uploadStatus.style.color =
-    "#0b7a28";
-
-  uploadStatus.innerText =
-    "Government ID uploaded successfully.";
-
+ 
+  currentProfile = {
+    ...currentProfile,
+    government_id_url: publicUrl,
+    worker_approval_status: "pending"
+  };
+ 
+  updateCompletion(currentProfile);
+ 
+  uploadStatus.style.color = "#0b7a28";
+  uploadStatus.innerText = "Government ID uploaded successfully.";
 }
-
+ 
 loadVerificationStatus();
 </script>
-
+ 
 </body>
 </html>

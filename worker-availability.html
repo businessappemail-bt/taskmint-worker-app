@@ -14,159 +14,157 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: linear-gradient(180deg, #e9f7ee 0%, #f5f5f5 100%);
+      background: #f4f4f4;
       color: #111;
       padding-bottom: 90px;
-      overflow-x: hidden;
     }
  
     .container {
       max-width: 420px;
       margin: 0 auto;
-      padding: 18px;
-    }
- 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-    }
- 
-    .back,
-    .top-link {
-      color: #0b7a28;
-      font-size: 14px;
-      font-weight: 800;
-      text-decoration: none;
-      cursor: pointer;
-    }
- 
-    .hero {
-      background: linear-gradient(135deg, #0b7a28, #19a447);
-      color: white;
-      border-radius: 24px;
       padding: 20px;
-      margin-bottom: 14px;
-      box-shadow: 0 10px 28px rgba(11,122,40,0.22);
     }
  
-    .hero-title {
-      font-size: 24px;
-      font-weight: 900;
-      margin-bottom: 5px;
-      letter-spacing: -0.4px;
+    .back {
+      color: #0b7a28;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 15px;
     }
  
-    .hero-sub {
-      font-size: 13px;
-      line-height: 1.45;
-      opacity: 0.95;
+    h1 {
+      text-align: center;
+      color: #0b7a28;
+      margin: 0 0 8px;
+    }
+ 
+    .subtitle {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      line-height: 1.4;
+      margin: 0 0 18px;
     }
  
     .card {
       background: white;
-      border-radius: 20px;
-      padding: 15px;
+      border-radius: 14px;
+      padding: 16px;
       margin-bottom: 14px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-      border: 1px solid #edf1ee;
-    }
- 
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
  
     .section-title {
-      font-size: 17px;
-      font-weight: 900;
-      color: #111;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 12px;
     }
  
-    .section-sub {
-      font-size: 12px;
-      color: #666;
-      line-height: 1.4;
-      margin-bottom: 10px;
+    .availability-row {
+      padding: 11px 0;
+      border-bottom: 1px solid #eee;
+    }
+ 
+    .availability-row:last-child {
+      border-bottom: none;
+    }
+ 
+    .availability-row label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+ 
+    .availability-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: #0b7a28;
+    }
+ 
+    .day-times {
+      display: flex;
+      gap: 8px;
+    }
+ 
+    .day-times input {
+      flex: 1;
+    }
+ 
+    input,
+    select {
+      width: 100%;
+      padding: 11px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      box-sizing: border-box;
+      background: white;
+    }
+ 
+    input:disabled {
+      background: #eeeeee;
+      color: #999;
+    }
+ 
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: #0b7a28;
+      box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
+    }
+ 
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border: none;
+      border-radius: 12px;
+      background: #0b7a28;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+ 
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+ 
+    .secondary {
+      background: white;
+      color: #111;
+      border: 1px solid #ddd;
+    }
+ 
+    .danger {
+      background: #b00020;
+      color: white;
     }
  
     .quick-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
  
-    .mini-btn {
-      padding: 10px;
-      border-radius: 12px;
-      font-size: 12px;
-      margin: 0;
-    }
- 
-    .day-list {
-      display: grid;
-      gap: 8px;
-    }
- 
-    .day-row {
-      display: grid;
-      grid-template-columns: 90px 1fr;
-      gap: 8px;
-      align-items: center;
-      background: #f7faf8;
-      border: 1px solid #e3eee6;
-      border-radius: 16px;
-      padding: 10px;
-    }
- 
-    .day-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .quick-actions button {
+      margin-top: 0;
+      padding: 11px;
       font-size: 13px;
-      font-weight: 900;
-      color: #111;
     }
  
-    input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      margin: 0;
-      accent-color: #0b7a28;
-      flex-shrink: 0;
-    }
- 
-    .day-times {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 7px;
-    }
- 
-    input,
-    select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 12px;
-      border: 1px solid #dfe5e0;
+    .note {
       font-size: 13px;
-      background: white;
-      outline: none;
-    }
- 
-    input:focus,
-    select:focus {
-      border-color: #0b7a28;
-      box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
-    }
- 
-    input:disabled {
-      background: #eeeeee;
-      color: #999;
+      color: #666;
+      line-height: 1.5;
+      margin-top: 10px;
     }
  
     .blocked-grid {
@@ -176,53 +174,16 @@
       margin-top: 8px;
     }
  
-    label.small-label {
+    .small-label {
       display: block;
-      color: #555;
       font-size: 12px;
-      font-weight: 800;
+      font-weight: bold;
+      color: #555;
       margin-bottom: 5px;
     }
  
-    button {
-      width: 100%;
-      padding: 13px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 14px;
-      background: #0b7a28;
-      color: white;
-      font-size: 14px;
-      font-weight: 900;
-      cursor: pointer;
-      transition: 0.2s;
-    }
- 
-    button:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 5px 12px rgba(0,0,0,0.10);
-    }
- 
-    button:disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
-    }
- 
-    button.secondary {
-      background: white;
-      color: #111;
-      border: 1px solid #dfe5e0;
-    }
- 
-    button.danger {
-      background: #b00020;
-      color: white;
-    }
- 
     .blocked-list {
-      display: grid;
-      gap: 8px;
-      margin-top: 10px;
+      margin-top: 12px;
     }
  
     .blocked-date-item {
@@ -230,49 +191,44 @@
       justify-content: space-between;
       align-items: center;
       gap: 8px;
-      background: #f7faf8;
-      border: 1px solid #e3eee6;
-      border-radius: 14px;
-      padding: 9px 10px;
-      font-size: 13px;
-      color: #333;
+      background: #f7f7f7;
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 8px;
+      font-size: 14px;
     }
  
     .blocked-date-item button {
       width: auto;
-      min-width: 74px;
       margin: 0;
       padding: 8px 10px;
-      border-radius: 10px;
       font-size: 12px;
+      border-radius: 8px;
     }
  
     .empty-note {
-      background: #f7faf8;
-      border: 1px dashed #cfd8d1;
-      border-radius: 14px;
-      padding: 11px;
-      font-size: 13px;
-      color: #666;
+      background: #f7f7f7;
+      border: 1px dashed #ccc;
+      border-radius: 10px;
+      padding: 12px;
       text-align: center;
-      line-height: 1.35;
+      color: #666;
+      font-size: 13px;
     }
  
-    .save-bar {
+    .save-card {
       position: sticky;
       bottom: 0;
-      background: rgba(245,245,245,0.94);
-      backdrop-filter: blur(8px);
-      padding: 10px 0 0;
-      margin-top: 6px;
+      background: #f4f4f4;
+      padding-top: 8px;
     }
  
-    .status-message {
+    #statusMessage {
       min-height: 18px;
+      margin-top: 8px;
       text-align: center;
       font-size: 13px;
-      font-weight: 800;
-      margin-top: 8px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -281,46 +237,108 @@
  
 <div class="container">
  
-  <div class="top-bar">
-    <a class="back" href="worker-dashboard.html">&larr; Back</a>
-    <div class="top-link" onclick="loadAvailability()">Refresh</div>
-  </div>
+  <a class="back" href="worker-dashboard.html">&larr; Back</a>
  
-  <div class="hero">
-    <div class="hero-title">Availability</div>
-    <div class="hero-sub">
-      Set the days and hours you normally work. Block dates you cannot accept jobs.
-    </div>
-  </div>
+  <h1>Set Availability</h1>
+  <p class="subtitle">Choose when you normally work and block dates you are unavailable.</p>
  
   <div class="card">
-    <div class="section-header">
-      <div class="section-title">Weekly Hours</div>
-    </div>
- 
-    <div class="section-sub">
-      Turn on the days you work, then choose a start and end time.
-    </div>
+    <div class="section-title">Weekly Availability</div>
  
     <div class="quick-actions">
-      <button class="secondary mini-btn" type="button" onclick="applyWeekdayPreset()">
+      <button class="secondary" type="button" onclick="applyWeekdayPreset()">
         Weekdays 9-5
       </button>
  
-      <button class="secondary mini-btn" type="button" onclick="clearAvailability()">
+      <button class="secondary" type="button" onclick="clearAvailability()">
         Clear All
       </button>
     </div>
  
-    <div class="day-list" id="dayList"></div>
+    <div class="availability-row">
+      <label>
+        Monday
+        <input type="checkbox" id="mondayAvailable" onchange="toggleDayInputs('monday')">
+      </label>
+      <div class="day-times">
+        <input type="time" id="mondayStart" step="900" disabled>
+        <input type="time" id="mondayEnd" step="900" disabled>
+      </div>
+    </div>
+ 
+    <div class="availability-row">
+      <label>
+        Tuesday
+        <input type="checkbox" id="tuesdayAvailable" onchange="toggleDayInputs('tuesday')">
+      </label>
+      <div class="day-times">
+        <input type="time" id="tuesdayStart" step="900" disabled>
+        <input type="time" id="tuesdayEnd" step="900" disabled>
+      </div>
+    </div>
+ 
+    <div class="availability-row">
+      <label>
+        Wednesday
+        <input type="checkbox" id="wednesdayAvailable" onchange="toggleDayInputs('wednesday')">
+      </label>
+      <div class="day-times">
+        <input type="time" id="wednesdayStart" step="900" disabled>
+        <input type="time" id="wednesdayEnd" step="900" disabled>
+      </div>
+    </div>
+ 
+    <div class="availability-row">
+      <label>
+        Thursday
+        <input type="checkbox" id="thursdayAvailable" onchange="toggleDayInputs('thursday')">
+      </label>
+      <div class="day-times">
+        <input type="time" id="thursdayStart" step="900" disabled>
+        <input type="time" id="thursdayEnd" step="900" disabled>
+      </div>
+    </div>
+ 
+    <div class="availability-row">
+      <label>
+        Friday
+        <input type="checkbox" id="fridayAvailable" onchange="toggleDayInputs('friday')">
+      </label>
+      <div class="day-times">
+        <input type="time" id="fridayStart" step="900" disabled>
+        <input type="time" id="fridayEnd" step="900" disabled>
+      </div>
+    </div>
+ 
+    <div class="availability-row">
+      <label>
+        Saturday
+        <input type="checkbox" id="saturdayAvailable" onchange="toggleDayInputs('saturday')">
+      </label>
+      <div class="day-times">
+        <input type="time" id="saturdayStart" step="900" disabled>
+        <input type="time" id="saturdayEnd" step="900" disabled>
+      </div>
+    </div>
+ 
+    <div class="availability-row">
+      <label>
+        Sunday
+        <input type="checkbox" id="sundayAvailable" onchange="toggleDayInputs('sunday')">
+      </label>
+      <div class="day-times">
+        <input type="time" id="sundayStart" step="900" disabled>
+        <input type="time" id="sundayEnd" step="900" disabled>
+      </div>
+    </div>
+ 
+    <div class="note">
+      Customers can request times only inside the windows you save here.
+    </div>
   </div>
  
   <div class="card">
     <div class="section-title">Blocked Dates</div>
- 
-    <div class="section-sub">
-      Add days you are unavailable, such as vacation, appointments, or personal days.
-    </div>
  
     <div class="blocked-grid">
       <div>
@@ -335,20 +353,24 @@
     </div>
  
     <button type="button" class="secondary" onclick="addBlockedDateRange()">
-      Add Blocked Date
+      Add Blocked Date Range
     </button>
  
     <div id="blockedDatesList" class="blocked-list">
       <div class="empty-note">No blocked dates added yet.</div>
     </div>
+ 
+    <div class="note">
+      Use this for vacations, appointments, or days you cannot accept work.
+    </div>
   </div>
  
-  <div class="save-bar">
-    <button id="saveAvailabilityButton" type="button" onclick="saveAvailability()">
+  <div class="save-card">
+    <button type="button" id="saveButton" onclick="saveAvailability()">
       Save Availability
     </button>
  
-    <div id="statusMessage" class="status-message"></div>
+    <div id="statusMessage"></div>
   </div>
  
 </div>
@@ -369,13 +391,9 @@ const days = [
   "Sunday"
 ];
  
+let blockedDates = [];
 let currentUser = null;
 let currentWorkerId = null;
-let blockedDates = [];
- 
-function lowerDay(day) {
-  return String(day || "").toLowerCase();
-}
  
 function setStatus(message, color = "#666") {
   const status = document.getElementById("statusMessage");
@@ -383,48 +401,10 @@ function setStatus(message, color = "#666") {
   status.innerText = message;
 }
  
-function renderDays() {
-  const dayList = document.getElementById("dayList");
-  dayList.innerHTML = "";
- 
-  days.forEach(day => {
-    const lower = lowerDay(day);
- 
-    dayList.innerHTML += `
-      <div class="day-row">
-        <label class="day-left" for="${lower}Available">
-          <input
-            type="checkbox"
-            id="${lower}Available"
-            onchange="toggleDayInputs('${lower}')"
-          >
-          ${day.slice(0, 3)}
-        </label>
- 
-        <div class="day-times">
-          <input
-            type="time"
-            id="${lower}Start"
-            step="900"
-            disabled
-          >
- 
-          <input
-            type="time"
-            id="${lower}End"
-            step="900"
-            disabled
-          >
-        </div>
-      </div>
-    `;
-  });
-}
- 
-function toggleDayInputs(lower) {
-  const checked = document.getElementById(`${lower}Available`).checked;
-  const startInput = document.getElementById(`${lower}Start`);
-  const endInput = document.getElementById(`${lower}End`);
+function toggleDayInputs(day) {
+  const checked = document.getElementById(`${day}Available`).checked;
+  const startInput = document.getElementById(`${day}Start`);
+  const endInput = document.getElementById(`${day}End`);
  
   startInput.disabled = !checked;
   endInput.disabled = !checked;
@@ -442,7 +422,7 @@ function toggleDayInputs(lower) {
  
 function applyWeekdayPreset() {
   days.forEach(day => {
-    const lower = lowerDay(day);
+    const lower = day.toLowerCase();
     const isWeekday = !["saturday", "sunday"].includes(lower);
  
     document.getElementById(`${lower}Available`).checked = isWeekday;
@@ -451,21 +431,18 @@ function applyWeekdayPreset() {
     document.getElementById(`${lower}Start`).value = isWeekday ? "09:00" : "";
     document.getElementById(`${lower}End`).value = isWeekday ? "17:00" : "";
   });
- 
-  setStatus("Weekday preset added. Save when ready.", "#0b7a28");
 }
  
 function clearAvailability() {
   days.forEach(day => {
-    const lower = lowerDay(day);
+    const lower = day.toLowerCase();
+ 
     document.getElementById(`${lower}Available`).checked = false;
     document.getElementById(`${lower}Start`).value = "";
     document.getElementById(`${lower}End`).value = "";
     document.getElementById(`${lower}Start`).disabled = true;
     document.getElementById(`${lower}End`).disabled = true;
   });
- 
-  setStatus("Availability cleared. Save when ready.", "#666");
 }
  
 function addBlockedDateRange() {
@@ -495,16 +472,13 @@ function addBlockedDateRange() {
   endInput.value = "";
  
   renderBlockedDates();
-  setStatus("Blocked date added. Save when ready.", "#0b7a28");
 }
  
 function renderBlockedDates() {
   const container = document.getElementById("blockedDatesList");
  
   if (blockedDates.length === 0) {
-    container.innerHTML = `
-      <div class="empty-note">No blocked dates added yet.</div>
-    `;
+    container.innerHTML = `<div class="empty-note">No blocked dates added yet.</div>`;
     return;
   }
  
@@ -525,7 +499,6 @@ function renderBlockedDates() {
 function removeBlockedDate(index) {
   blockedDates.splice(index, 1);
   renderBlockedDates();
-  setStatus("Blocked date removed. Save when ready.", "#666");
 }
  
 async function getCurrentWorker() {
@@ -552,12 +525,12 @@ async function getCurrentWorker() {
       .maybeSingle();
  
   if (profileError) {
-    setStatus(profileError.message, "#b00020");
+    alert("Error finding worker profile: " + profileError.message);
     return false;
   }
  
   if (!workerProfile || !workerProfile.id) {
-    setStatus("Worker profile not found in worker_profiles.", "#b00020");
+    alert("Worker profile not found in worker_profiles.");
     return false;
   }
  
@@ -566,15 +539,13 @@ async function getCurrentWorker() {
 }
  
 async function loadAvailability() {
-  setStatus("Loading availability...", "#666");
+  const found = await getCurrentWorker();
  
-  if (!currentWorkerId) {
-    const found = await getCurrentWorker();
- 
-    if (!found) {
-      return;
-    }
+  if (!found) {
+    return;
   }
+ 
+  setStatus("Loading availability...", "#666");
  
   const { data, error } = await supabaseClient
     .from("worker_availability")
@@ -582,7 +553,7 @@ async function loadAvailability() {
     .eq("worker_id", currentWorkerId);
  
   if (error) {
-    setStatus(error.message, "#b00020");
+    setStatus("Error loading availability: " + error.message, "#b00020");
     return;
   }
  
@@ -591,9 +562,9 @@ async function loadAvailability() {
  
   if (data && data.length > 0) {
     data.forEach(row => {
-      const lower = lowerDay(row.day_of_week || "");
+      const lower = String(row.day_of_week || "").toLowerCase();
  
-      if (days.map(d => lowerDay(d)).includes(lower) && row.is_available) {
+      if (row.is_available && days.map(day => day.toLowerCase()).includes(lower)) {
         document.getElementById(`${lower}Available`).checked = true;
         document.getElementById(`${lower}Start`).disabled = false;
         document.getElementById(`${lower}End`).disabled = false;
@@ -619,7 +590,7 @@ function buildAvailabilityRows() {
   const availabilityRows = [];
  
   days.forEach(day => {
-    const lower = lowerDay(day);
+    const lower = day.toLowerCase();
     const isChecked = document.getElementById(`${lower}Available`).checked;
  
     if (!isChecked) {
@@ -651,7 +622,7 @@ function buildAvailabilityRows() {
 }
  
 async function saveAvailability() {
-  const saveButton = document.getElementById("saveAvailabilityButton");
+  const saveButton = document.getElementById("saveButton");
   const originalButtonText = saveButton.innerText;
  
   saveButton.innerText = "Saving...";
@@ -663,6 +634,7 @@ async function saveAvailability() {
       const found = await getCurrentWorker();
  
       if (!found) {
+        setStatus("Worker profile not found.", "#b00020");
         return;
       }
     }
@@ -673,7 +645,7 @@ async function saveAvailability() {
       availabilityRows = buildAvailabilityRows();
     } catch (error) {
       alert(error.message);
-      setStatus("Fix the highlighted schedule issue.", "#b00020");
+      setStatus("Fix the schedule issue.", "#b00020");
       return;
     }
  
@@ -689,7 +661,7 @@ async function saveAvailability() {
       .eq("worker_id", currentWorkerId);
  
     if (deleteError) {
-      setStatus(deleteError.message, "#b00020");
+      setStatus("Error clearing old availability: " + deleteError.message, "#b00020");
       return;
     }
  
@@ -698,11 +670,12 @@ async function saveAvailability() {
       .insert(availabilityRows);
  
     if (insertError) {
-      setStatus(insertError.message, "#b00020");
+      setStatus("Error saving availability: " + insertError.message, "#b00020");
       return;
     }
  
     setStatus("Availability saved.", "#0b7a28");
+    alert("Availability saved.");
   } catch (error) {
     setStatus(
       error.message || "Something went wrong while saving availability.",
@@ -714,11 +687,11 @@ async function saveAvailability() {
   }
 }
  
-renderDays();
 loadAvailability();
 </script>
  
 </body>
 </html>
+
 
 

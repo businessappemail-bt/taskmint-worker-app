@@ -3,14 +3,14 @@
 <head>
   <title>Worker Availability - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+ 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+ 
   <style>
     * {
       box-sizing: border-box;
     }
-
+ 
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -19,20 +19,20 @@
       padding-bottom: 90px;
       overflow-x: hidden;
     }
-
+ 
     .container {
       max-width: 420px;
       margin: 0 auto;
       padding: 18px;
     }
-
+ 
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 14px;
     }
-
+ 
     .back,
     .top-link {
       color: #0b7a28;
@@ -41,7 +41,7 @@
       text-decoration: none;
       cursor: pointer;
     }
-
+ 
     .hero {
       background: linear-gradient(135deg, #0b7a28, #19a447);
       color: white;
@@ -50,20 +50,20 @@
       margin-bottom: 14px;
       box-shadow: 0 10px 28px rgba(11,122,40,0.22);
     }
-
+ 
     .hero-title {
       font-size: 24px;
       font-weight: 900;
       margin-bottom: 5px;
       letter-spacing: -0.4px;
     }
-
+ 
     .hero-sub {
       font-size: 13px;
       line-height: 1.45;
       opacity: 0.95;
     }
-
+ 
     .card {
       background: white;
       border-radius: 20px;
@@ -72,7 +72,7 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
       border: 1px solid #edf1ee;
     }
-
+ 
     .section-header {
       display: flex;
       justify-content: space-between;
@@ -80,39 +80,39 @@
       gap: 10px;
       margin-bottom: 10px;
     }
-
+ 
     .section-title {
       font-size: 17px;
       font-weight: 900;
       color: #111;
     }
-
+ 
     .section-sub {
       font-size: 12px;
       color: #666;
       line-height: 1.4;
       margin-bottom: 10px;
     }
-
+ 
     .quick-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
       margin-bottom: 10px;
     }
-
+ 
     .mini-btn {
       padding: 10px;
       border-radius: 12px;
       font-size: 12px;
       margin: 0;
     }
-
+ 
     .day-list {
       display: grid;
       gap: 8px;
     }
-
+ 
     .day-row {
       display: grid;
       grid-template-columns: 90px 1fr;
@@ -123,7 +123,7 @@
       border-radius: 16px;
       padding: 10px;
     }
-
+ 
     .day-left {
       display: flex;
       align-items: center;
@@ -132,7 +132,7 @@
       font-weight: 900;
       color: #111;
     }
-
+ 
     input[type="checkbox"] {
       width: 18px;
       height: 18px;
@@ -140,13 +140,13 @@
       accent-color: #0b7a28;
       flex-shrink: 0;
     }
-
+ 
     .day-times {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 7px;
     }
-
+ 
     input,
     select {
       width: 100%;
@@ -157,25 +157,25 @@
       background: white;
       outline: none;
     }
-
+ 
     input:focus,
     select:focus {
       border-color: #0b7a28;
       box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
     }
-
+ 
     input:disabled {
       background: #eeeeee;
       color: #999;
     }
-
+ 
     .blocked-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
       margin-top: 8px;
     }
-
+ 
     label.small-label {
       display: block;
       color: #555;
@@ -183,7 +183,7 @@
       font-weight: 800;
       margin-bottom: 5px;
     }
-
+ 
     button {
       width: 100%;
       padding: 13px;
@@ -197,29 +197,34 @@
       cursor: pointer;
       transition: 0.2s;
     }
-
-    button:hover {
+ 
+    button:hover:not(:disabled) {
       transform: translateY(-1px);
       box-shadow: 0 5px 12px rgba(0,0,0,0.10);
     }
-
+ 
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+ 
     button.secondary {
       background: white;
       color: #111;
       border: 1px solid #dfe5e0;
     }
-
+ 
     button.danger {
       background: #b00020;
       color: white;
     }
-
+ 
     .blocked-list {
       display: grid;
       gap: 8px;
       margin-top: 10px;
     }
-
+ 
     .blocked-date-item {
       display: flex;
       justify-content: space-between;
@@ -232,7 +237,7 @@
       font-size: 13px;
       color: #333;
     }
-
+ 
     .blocked-date-item button {
       width: auto;
       min-width: 74px;
@@ -241,7 +246,7 @@
       border-radius: 10px;
       font-size: 12px;
     }
-
+ 
     .empty-note {
       background: #f7faf8;
       border: 1px dashed #cfd8d1;
@@ -252,7 +257,7 @@
       text-align: center;
       line-height: 1.35;
     }
-
+ 
     .save-bar {
       position: sticky;
       bottom: 0;
@@ -261,7 +266,7 @@
       padding: 10px 0 0;
       margin-top: 6px;
     }
-
+ 
     .status-message {
       min-height: 18px;
       text-align: center;
@@ -269,98 +274,91 @@
       font-weight: 800;
       margin-top: 8px;
     }
-
-    .loading {
-      text-align: center;
-      color: #666;
-      font-size: 13px;
-      padding: 8px;
-    }
   </style>
 </head>
-
+ 
 <body>
-
+ 
 <div class="container">
-
+ 
   <div class="top-bar">
     <a class="back" href="worker-dashboard.html">&larr; Back</a>
     <div class="top-link" onclick="loadAvailability()">Refresh</div>
   </div>
-
+ 
   <div class="hero">
     <div class="hero-title">Availability</div>
     <div class="hero-sub">
       Set the days and hours you normally work. Block dates you cannot accept jobs.
     </div>
   </div>
-
+ 
   <div class="card">
     <div class="section-header">
       <div class="section-title">Weekly Hours</div>
     </div>
-
+ 
     <div class="section-sub">
       Turn on the days you work, then choose a start and end time.
     </div>
-
+ 
     <div class="quick-actions">
       <button class="secondary mini-btn" type="button" onclick="applyWeekdayPreset()">
         Weekdays 9-5
       </button>
-
+ 
       <button class="secondary mini-btn" type="button" onclick="clearAvailability()">
         Clear All
       </button>
     </div>
-
+ 
     <div class="day-list" id="dayList"></div>
   </div>
-
+ 
   <div class="card">
     <div class="section-title">Blocked Dates</div>
-
+ 
     <div class="section-sub">
       Add days you are unavailable, such as vacation, appointments, or personal days.
     </div>
-
+ 
     <div class="blocked-grid">
       <div>
         <label class="small-label" for="blockedStartDate">From</label>
         <input type="date" id="blockedStartDate">
       </div>
-
+ 
       <div>
         <label class="small-label" for="blockedEndDate">Through</label>
         <input type="date" id="blockedEndDate">
       </div>
     </div>
-
+ 
     <button type="button" class="secondary" onclick="addBlockedDateRange()">
       Add Blocked Date
     </button>
-
+ 
     <div id="blockedDatesList" class="blocked-list">
       <div class="empty-note">No blocked dates added yet.</div>
     </div>
   </div>
-
+ 
   <div class="save-bar">
-    <button type="button" onclick="saveAvailability()">
+    <button id="saveAvailabilityButton" type="button" onclick="saveAvailability()">
       Save Availability
     </button>
-
+ 
     <div id="statusMessage" class="status-message"></div>
   </div>
-
+ 
 </div>
-
+ 
 <script>
 const supabaseClient = window.supabase.createClient(
   "https://dbcthtjmtlumidpbucrc.supabase.co",
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
-
+ 
 const days = [
   "Monday",
   "Tuesday",
@@ -370,28 +368,28 @@ const days = [
   "Saturday",
   "Sunday"
 ];
-
+ 
 let currentUser = null;
 let currentWorkerId = null;
 let blockedDates = [];
-
+ 
 function lowerDay(day) {
-  return day.toLowerCase();
+  return String(day || "").toLowerCase();
 }
-
+ 
 function setStatus(message, color = "#666") {
   const status = document.getElementById("statusMessage");
   status.style.color = color;
   status.innerText = message;
 }
-
+ 
 function renderDays() {
   const dayList = document.getElementById("dayList");
   dayList.innerHTML = "";
-
+ 
   days.forEach(day => {
     const lower = lowerDay(day);
-
+ 
     dayList.innerHTML += `
       <div class="day-row">
         <label class="day-left" for="${lower}Available">
@@ -402,7 +400,7 @@ function renderDays() {
           >
           ${day.slice(0, 3)}
         </label>
-
+ 
         <div class="day-times">
           <input
             type="time"
@@ -410,7 +408,7 @@ function renderDays() {
             step="900"
             disabled
           >
-
+ 
           <input
             type="time"
             id="${lower}End"
@@ -422,39 +420,41 @@ function renderDays() {
     `;
   });
 }
-
+ 
 function toggleDayInputs(lower) {
   const checked = document.getElementById(`${lower}Available`).checked;
   const startInput = document.getElementById(`${lower}Start`);
   const endInput = document.getElementById(`${lower}End`);
-
+ 
   startInput.disabled = !checked;
   endInput.disabled = !checked;
-
+ 
   if (checked && !startInput.value && !endInput.value) {
     startInput.value = "09:00";
     endInput.value = "17:00";
   }
-
+ 
   if (!checked) {
     startInput.value = "";
     endInput.value = "";
   }
 }
-
+ 
 function applyWeekdayPreset() {
   days.forEach(day => {
     const lower = lowerDay(day);
     const isWeekday = !["saturday", "sunday"].includes(lower);
-
+ 
     document.getElementById(`${lower}Available`).checked = isWeekday;
     document.getElementById(`${lower}Start`).disabled = !isWeekday;
     document.getElementById(`${lower}End`).disabled = !isWeekday;
     document.getElementById(`${lower}Start`).value = isWeekday ? "09:00" : "";
     document.getElementById(`${lower}End`).value = isWeekday ? "17:00" : "";
   });
+ 
+  setStatus("Weekday preset added. Save when ready.", "#0b7a28");
 }
-
+ 
 function clearAvailability() {
   days.forEach(day => {
     const lower = lowerDay(day);
@@ -464,49 +464,52 @@ function clearAvailability() {
     document.getElementById(`${lower}Start`).disabled = true;
     document.getElementById(`${lower}End`).disabled = true;
   });
+ 
+  setStatus("Availability cleared. Save when ready.", "#666");
 }
-
+ 
 function addBlockedDateRange() {
   const startInput = document.getElementById("blockedStartDate");
   const endInput = document.getElementById("blockedEndDate");
-
+ 
   const startDate = startInput.value;
   const endDate = endInput.value;
-
+ 
   if (!startDate || !endDate) {
     alert("Choose a start date and through date.");
     return;
   }
-
+ 
   if (endDate < startDate) {
     alert("Through date cannot be before the start date.");
     return;
   }
-
+ 
   const rangeText = `${startDate} through ${endDate}`;
-
+ 
   if (!blockedDates.includes(rangeText)) {
     blockedDates.push(rangeText);
   }
-
+ 
   startInput.value = "";
   endInput.value = "";
-
+ 
   renderBlockedDates();
+  setStatus("Blocked date added. Save when ready.", "#0b7a28");
 }
-
+ 
 function renderBlockedDates() {
   const container = document.getElementById("blockedDatesList");
-
+ 
   if (blockedDates.length === 0) {
     container.innerHTML = `
       <div class="empty-note">No blocked dates added yet.</div>
     `;
     return;
   }
-
+ 
   container.innerHTML = "";
-
+ 
   blockedDates.forEach((date, index) => {
     container.innerHTML += `
       <div class="blocked-date-item">
@@ -518,89 +521,78 @@ function renderBlockedDates() {
     `;
   });
 }
-
+ 
 function removeBlockedDate(index) {
   blockedDates.splice(index, 1);
   renderBlockedDates();
+  setStatus("Blocked date removed. Save when ready.", "#666");
 }
-
+ 
 async function getCurrentWorker() {
-  const { data: sessionData, error } = await supabaseClient.auth.getSession();
-
-  if (error || !sessionData.session || !sessionData.session.user) {
+  const { data: sessionData, error: sessionError } =
+    await supabaseClient.auth.getSession();
+ 
+  if (
+    sessionError ||
+    !sessionData ||
+    !sessionData.session ||
+    !sessionData.session.user
+  ) {
     window.location.href = "worker-login.html";
     return false;
   }
-
+ 
   currentUser = sessionData.session.user;
-
-const { data: workerProfile, error: profileError } =
-  await supabaseClient
-    .from("worker_profiles")
-    .select("id")
-    .eq("email", authUser.email)
-    .maybeSingle();
-
-  if (workerProfile && workerProfile.id) {
-    currentWorkerId = workerProfile.id;
-    return true;
+ 
+  const { data: workerProfile, error: profileError } =
+    await supabaseClient
+      .from("worker_profiles")
+      .select("id")
+      .eq("email", currentUser.email)
+      .maybeSingle();
+ 
+  if (profileError) {
+    setStatus(profileError.message, "#b00020");
+    return false;
   }
-
-  const { data: workerRecord } = await supabaseClient
-    .from("workers")
-    .select("id")
-    .eq("email", currentUser.email)
-    .maybeSingle();
-
-  if (workerRecord && workerRecord.id) {
-    currentWorkerId = workerRecord.id;
-    return true;
+ 
+  if (!workerProfile || !workerProfile.id) {
+    setStatus("Worker profile not found in worker_profiles.", "#b00020");
+    return false;
   }
-
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("id")
-    .eq("email", currentUser.email)
-    .maybeSingle();
-
-  if (profile && profile.id) {
-    currentWorkerId = profile.id;
-    return true;
-  }
-
-  alert("Worker profile not found.");
-  return false;
+ 
+  currentWorkerId = workerProfile.id;
+  return true;
 }
-
+ 
 async function loadAvailability() {
   setStatus("Loading availability...", "#666");
-
+ 
   if (!currentWorkerId) {
     const found = await getCurrentWorker();
-
+ 
     if (!found) {
-      setStatus("Worker profile not found.", "#b00020");
       return;
     }
   }
-
+ 
   const { data, error } = await supabaseClient
     .from("worker_availability")
     .select("day_of_week, start_time, end_time, is_available, blocked_dates")
     .eq("worker_id", currentWorkerId);
-
+ 
   if (error) {
-    setStatus("Error loading availability.", "#b00020");
+    setStatus(error.message, "#b00020");
     return;
   }
-
+ 
   clearAvailability();
   blockedDates = [];
-
+ 
   if (data && data.length > 0) {
     data.forEach(row => {
       const lower = lowerDay(row.day_of_week || "");
-
+ 
       if (days.map(d => lowerDay(d)).includes(lower) && row.is_available) {
         document.getElementById(`${lower}Available`).checked = true;
         document.getElementById(`${lower}Start`).disabled = false;
@@ -608,7 +600,7 @@ async function loadAvailability() {
         document.getElementById(`${lower}Start`).value = row.start_time || "";
         document.getElementById(`${lower}End`).value = row.end_time || "";
       }
-
+ 
       if (Array.isArray(row.blocked_dates)) {
         row.blocked_dates.forEach(date => {
           if (!blockedDates.includes(date)) {
@@ -618,33 +610,33 @@ async function loadAvailability() {
       }
     });
   }
-
+ 
   renderBlockedDates();
   setStatus("", "#666");
 }
-
+ 
 function buildAvailabilityRows() {
   const availabilityRows = [];
-
+ 
   days.forEach(day => {
     const lower = lowerDay(day);
     const isChecked = document.getElementById(`${lower}Available`).checked;
-
+ 
     if (!isChecked) {
       return;
     }
-
+ 
     const startTime = document.getElementById(`${lower}Start`).value;
     const endTime = document.getElementById(`${lower}End`).value;
-
+ 
     if (!startTime || !endTime) {
       throw new Error(`Choose both start and end time for ${day}.`);
     }
-
+ 
     if (endTime <= startTime) {
       throw new Error(`${day} end time must be after start time.`);
     }
-
+ 
     availabilityRows.push({
       worker_id: currentWorkerId,
       day_of_week: day,
@@ -654,37 +646,29 @@ function buildAvailabilityRows() {
       blocked_dates: blockedDates
     });
   });
-
+ 
   return availabilityRows;
 }
-
-<script>
+ 
 async function saveAvailability() {
+  const saveButton = document.getElementById("saveAvailabilityButton");
+  const originalButtonText = saveButton.innerText;
+ 
+  saveButton.innerText = "Saving...";
+  saveButton.disabled = true;
   setStatus("Saving availability...", "#666");
-
-  const saveButton =
-    document.querySelector("button[onclick='saveAvailability()']");
-
-  const originalButtonText =
-    saveButton ? saveButton.innerText : "Save Availability";
-
-  if (saveButton) {
-    saveButton.innerText = "Saving...";
-    saveButton.disabled = true;
-  }
-
+ 
   try {
     if (!currentWorkerId) {
       const found = await getCurrentWorker();
-
+ 
       if (!found) {
-        setStatus("Worker profile not found.", "#b00020");
         return;
       }
     }
-
+ 
     let availabilityRows = [];
-
+ 
     try {
       availabilityRows = buildAvailabilityRows();
     } catch (error) {
@@ -692,32 +676,32 @@ async function saveAvailability() {
       setStatus("Fix the highlighted schedule issue.", "#b00020");
       return;
     }
-
+ 
     if (availabilityRows.length === 0) {
       alert("Select at least one available day.");
       setStatus("Select at least one available day.", "#b00020");
       return;
     }
-
+ 
     const { error: deleteError } = await supabaseClient
       .from("worker_availability")
       .delete()
       .eq("worker_id", currentWorkerId);
-
+ 
     if (deleteError) {
       setStatus(deleteError.message, "#b00020");
       return;
     }
-
+ 
     const { error: insertError } = await supabaseClient
       .from("worker_availability")
       .insert(availabilityRows);
-
+ 
     if (insertError) {
       setStatus(insertError.message, "#b00020");
       return;
     }
-
+ 
     setStatus("Availability saved.", "#0b7a28");
   } catch (error) {
     setStatus(
@@ -725,17 +709,16 @@ async function saveAvailability() {
       "#b00020"
     );
   } finally {
-    if (saveButton) {
-      saveButton.innerText = originalButtonText;
-      saveButton.disabled = false;
-    }
+    saveButton.innerText = originalButtonText;
+    saveButton.disabled = false;
   }
 }
-
+ 
 renderDays();
 loadAvailability();
 </script>
-
+ 
 </body>
 </html>
+
 

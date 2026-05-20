@@ -645,32 +645,17 @@ async function loadWorkerProfile(workerId) {
 }
  
 async function loadAvailability(workerId, profile) {
-  const workerEmail = getFirstAvailable(profile, ["email"], "");
- 
-  let workerRecordId = workerId;
- 
-  if (workerEmail) {
-    const { data: workerRecord } = await supabaseClient
-      .from("worker_profiles")
-      .select("id")
-      .eq("email", workerEmail)
-      .maybeSingle();
- 
-    if (workerRecord && workerRecord.id) {
-      workerRecordId = workerRecord.id;
-    }
-  }
- 
+
   const { data, error } = await supabaseClient
     .from("worker_availability")
     .select("*")
-    .eq("worker_id", workerRecordId)
+    .eq("worker_id", workerId)
     .eq("is_available", true);
- 
+
   if (error || !data) {
     return [];
   }
- 
+
   return data;
 }
  

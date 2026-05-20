@@ -293,6 +293,35 @@
       font-weight: 800;
     }
  
+
+
+    .locked-input {
+      background: #eeeeee;
+      color: #555;
+      cursor: not-allowed;
+    }
+
+    .address-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .address-grid .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .locked-note {
+      margin-top: 8px;
+      padding: 11px;
+      border-radius: 14px;
+      background: #fff7e6;
+      border: 1px solid #ffd27a;
+      color: #7a4b00;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
     button {
       width: 100%;
       padding: 14px;
@@ -455,6 +484,26 @@
     </div>
   </div>
  
+
+
+  <div class="card">
+    <div class="section-title">Legal Name</div>
+
+    <label for="legalName">Name on Account</label>
+    <input
+      id="legalName"
+      type="text"
+      class="locked-input"
+      disabled
+      readonly
+      value=""
+    >
+
+    <div class="locked-note">
+      Your name must match your government ID for worker verification. This field cannot be edited here.
+    </div>
+  </div>
+
   <div class="card">
     <div class="section-title">Experience & Services</div>
  
@@ -568,6 +617,11 @@ let currentProfile = {
   skills: "",
   service_area: "",
   service_radius: "",
+  street_address: "",
+  unit: "",
+  city: "",
+  state: "",
+  zip_code: "",
   tax_setup_complete: false,
   payout_setup_complete: false,
   identity_verified: false
@@ -580,7 +634,56 @@ function getInputValue(id) {
 function hasValue(value) {
   return value !== null && value !== undefined && String(value).trim() !== "";
 }
- 
+
+
+function getProfileName(profile) {
+  const fullName =
+    profile.full_name ||
+    `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
+
+  return hasValue(fullName) ? fullName : "Name not found";
+}
+
+function getAddressSnapshot() {
+  return {
+    street_address: getInputValue("streetAddress"),
+    unit: getInputValue("unit"),
+    city: getInputValue("city"),
+    state: getInputValue("state").toUpperCase(),
+    zip_code: getInputValue("zipCode")
+  };
+}
+
+function getFormattedAddress(profile) {
+  const addressParts = [];
+
+  if (hasValue(profile.street_address)) {
+    addressParts.push(profile.street_address);
+  }
+
+  if (hasValue(profile.unit)) {
+    addressParts.push(profile.unit);
+  }
+
+  const cityStateZip =
+    `${profile.city || ""}${profile.city && profile.state ? ", " : ""}${profile.state || ""} ${profile.zip_code || ""}`.trim();
+
+  if (hasValue(cityStateZip)) {
+    addressParts.push(cityStateZip);
+  }
+
+  return addressParts.join(" • ");
+}
+
+function buildServiceAreaFromAddress(address) {
+  if (hasValue(address.city) && hasValue(address.state)) {
+    return `${address.city}, ${address.state}`;
+  }
+
+  return getInputValue("serviceArea");
+}
+
+
 function setMessage(id, text, color) {
   const element = document.getElementById(id);
   element.style.color = color;
@@ -612,12 +715,20 @@ function getLiveProfileSnapshot() {
       ? currentProfile.profile_photo_url
       : previewSrc;
  
+  const address =
+    getAddressSnapshot();
+
   return {
     profile_photo_url: photoUrl,
     experience: getInputValue("experienceDescription"),
     skills: getInputValue("servicesOffered"),
     service_area: getInputValue("serviceArea"),
     service_radius: document.getElementById("serviceRadius").value,
+    street_address: address.street_address,
+    unit: address.unit,
+    city: address.city,
+    state: address.state,
+    zip_code: address.zip_code,
     tax_setup_complete: currentProfile.tax_setup_complete,
     payout_setup_complete: currentProfile.payout_setup_complete,
     identity_verified: currentProfile.identity_verified
@@ -637,7 +748,11 @@ function calculateCompletion(profile) {
  
   const areaDone =
     hasValue(profile.service_area) &&
-    hasValue(profile.service_radius);
+    hasValue(profile.service_radius) &&
+    hasValue(profile.street_address) &&
+    hasValue(profile.city) &&
+    hasValue(profile.state) &&
+    hasValue(profile.zip_code);
  
   const taxDone =
     profile.tax_setup_complete === true ||
@@ -690,7 +805,7 @@ function updateCompletionUI(profile) {
   setChecklistState("verificationCheck", result.verificationDone, "Done");
  
   updateServicesPreview(profile.skills);
-  updateSavedLocationCard(profile.service_area, profile.service_radius);
+  updateSavedLocationCard(profile);
 }
  
 function handleLiveProfileUpdate() {
@@ -784,6 +899,9 @@ async function loadProfile() {
     ...currentProfile,
     ...data
   };
+
+  document.getElementById("legalName").value =
+    getProfileName(data);
  
   document.getElementById("experienceDescription").value =
     data.experience || "";
@@ -914,6 +1032,11 @@ async function saveServiceArea() {
         email: currentUser.email,
         service_area: area,
         service_radius: radius,
+        street_address: address.street_address,
+        unit: address.unit,
+        city: address.city,
+        state: address.state,
+        zip_code: address.zip_code,
         account_type: "worker"
       });
  
@@ -929,6 +1052,14 @@ async function saveServiceArea() {
  
   currentProfile.service_area = area;
   currentProfile.service_radius = radius;
+  currentProfile.street_address = address.street_address;
+  currentProfile.unit = address.unit;
+  currentProfile.city = address.city;
+  currentProfile.state = address.state;
+  currentProfile.zip_code = address.zip_code;
+
+  document.getElementById("serviceArea").value =
+    area;
  
   updateCompletionUI(getLiveProfileSnapshot());
  
@@ -938,7 +1069,12 @@ async function saveServiceArea() {
 function clearServiceArea() {
   document.getElementById("serviceArea").value = "";
   document.getElementById("serviceRadius").value = "";
-  setMessage("locationStatusMessage", "Service area cleared. Save again to update your profile.", "#555");
+  document.getElementById("streetAddress").value = "";
+  document.getElementById("unit").value = "";
+  document.getElementById("city").value = "";
+  document.getElementById("state").value = "";
+  document.getElementById("zipCode").value = "";
+  setMessage("locationStatusMessage", "Address and radius cleared. Save again to update your profile.", "#555");
   handleLiveProfileUpdate();
 }
  
@@ -977,6 +1113,11 @@ async function saveProfile() {
         skills: services,
         service_area: area,
         service_radius: radius,
+        street_address: address.street_address,
+        unit: address.unit,
+        city: address.city,
+        state: address.state,
+        zip_code: address.zip_code,
         account_type: "worker",
         is_worker_approved: false
       });
@@ -993,7 +1134,12 @@ async function saveProfile() {
     experience: experience,
     skills: services,
     service_area: area,
-    service_radius: radius
+    service_radius: radius,
+    street_address: address.street_address,
+    unit: address.unit,
+    city: address.city,
+    state: address.state,
+    zip_code: address.zip_code
   };
  
   updateCompletionUI(getLiveProfileSnapshot());

@@ -933,16 +933,16 @@ async function loadProfile() {
     data.service_radius || "";
  
   document.getElementById("workerAddress").value =
-    data.worker_address || data.address || data.street_address || "";
- 
-  document.getElementById("workerCity").value =
-    data.worker_city || data.city || "";
- 
-  document.getElementById("workerState").value =
-    data.worker_state || data.state || "";
- 
-  document.getElementById("workerZip").value =
-    data.worker_zip || data.zip_code || data.zip || "";
+  data.worker_address || data.address || data.street_address || "";
+
+document.getElementById("workerCity").value =
+  data.worker_city || data.city || "";
+
+document.getElementById("workerState").value =
+  data.worker_state || data.state || "";
+
+document.getElementById("workerZip").value =
+  data.worker_zip || data.zip_code || data.zip || "";
  
   const legalName =
     data.full_name ||

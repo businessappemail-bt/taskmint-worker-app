@@ -4,304 +4,467 @@
   <title>Worker Availability - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background: linear-gradient(180deg, #e9f7ee 0%, #f5f5f5 100%);
       color: #111;
+      padding-bottom: 90px;
+      overflow-x: hidden;
     }
 
     .container {
       max-width: 420px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 18px;
     }
 
-    .back {
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .back,
+    .top-link {
       color: #0b7a28;
-      font-weight: bold;
+      font-size: 14px;
+      font-weight: 800;
       text-decoration: none;
-      display: inline-block;
-      margin-bottom: 15px;
+      cursor: pointer;
     }
 
-    h1 {
-      text-align: center;
-      color: #0b7a28;
-      margin-bottom: 20px;
+    .hero {
+      background: linear-gradient(135deg, #0b7a28, #19a447);
+      color: white;
+      border-radius: 24px;
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 10px 28px rgba(11,122,40,0.22);
+    }
+
+    .hero-title {
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 5px;
+      letter-spacing: -0.4px;
+    }
+
+    .hero-sub {
+      font-size: 13px;
+      line-height: 1.45;
+      opacity: 0.95;
     }
 
     .card {
       background: white;
-      border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-radius: 20px;
+      padding: 15px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      border: 1px solid #edf1ee;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
     .section-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 14px;
+      font-size: 17px;
+      font-weight: 900;
+      color: #111;
+    }
+
+    .section-sub {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .mini-btn {
+      padding: 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin: 0;
+    }
+
+    .day-list {
+      display: grid;
+      gap: 8px;
     }
 
     .day-row {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 8px;
+      align-items: center;
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 16px;
+      padding: 10px;
+    }
+
+    .day-left {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid #eee;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 900;
+      color: #111;
     }
 
-    .day-row:last-child {
-      border-bottom: none;
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: #0b7a28;
+      flex-shrink: 0;
     }
 
-    .time-inputs {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
+    .day-times {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
     }
 
     input,
     select {
       width: 100%;
-      padding: 13px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      font-size: 15px;
-      box-sizing: border-box;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid #dfe5e0;
+      font-size: 13px;
+      background: white;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #0b7a28;
+      box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
+    }
+
+    input:disabled {
+      background: #eeeeee;
+      color: #999;
+    }
+
+    .blocked-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    label.small-label {
+      display: block;
+      color: #555;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 5px;
     }
 
     button {
       width: 100%;
-      padding: 15px;
-      margin-top: 14px;
+      padding: 13px;
+      margin-top: 10px;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       background: #0b7a28;
       color: white;
-      font-size: 15px;
-      font-weight: bold;
+      font-size: 14px;
+      font-weight: 900;
       cursor: pointer;
+      transition: 0.2s;
     }
 
-    .note {
-      font-size: 13px;
-      color: #666;
-      line-height: 1.5;
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.10);
+    }
+
+    button.secondary {
+      background: white;
+      color: #111;
+      border: 1px solid #dfe5e0;
+    }
+
+    button.danger {
+      background: #b00020;
+      color: white;
+    }
+
+    .blocked-list {
+      display: grid;
+      gap: 8px;
       margin-top: 10px;
     }
 
-    .availability-row {
-  padding: 14px 0;
-  border-bottom: 1px solid #eee;
-}
+    .blocked-date-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 14px;
+      padding: 9px 10px;
+      font-size: 13px;
+      color: #333;
+    }
 
-.availability-row:last-child {
-  border-bottom: none;
-}
+    .blocked-date-item button {
+      width: auto;
+      min-width: 74px;
+      margin: 0;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
 
-.availability-row label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
+    .empty-note {
+      background: #f7faf8;
+      border: 1px dashed #cfd8d1;
+      border-radius: 14px;
+      padding: 11px;
+      font-size: 13px;
+      color: #666;
+      text-align: center;
+      line-height: 1.35;
+    }
 
-.availability-row input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-}
+    .save-bar {
+      position: sticky;
+      bottom: 0;
+      background: rgba(245,245,245,0.94);
+      backdrop-filter: blur(8px);
+      padding: 10px 0 0;
+      margin-top: 6px;
+    }
 
-.day-times {
-  display: flex;
-  gap: 10px;
-}
+    .status-message {
+      min-height: 18px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 800;
+      margin-top: 8px;
+    }
 
-.day-times input {
-  flex: 1;
-}
-
-    .blocked-list {
-  margin-top: 14px;
-}
-
-.blocked-date-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f7f7f7;
-  border-radius: 10px;
-  padding: 12px;
-  margin-top: 10px;
-  font-size: 14px;
-}
-
-.blocked-date-item button {
-  width: auto;
-  margin: 0;
-  padding: 8px 12px;
-  font-size: 13px;
-  background: #b00020;
-}
+    .loading {
+      text-align: center;
+      color: #666;
+      font-size: 13px;
+      padding: 8px;
+    }
   </style>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 
 <div class="container">
 
-  <a class="back" href="worker-dashboard.html">
-    ← Back
-  </a>
-
-  <h1>Set Availability</h1>
-
- <div class="card">
-
-  <div class="section-title">
-    Weekly Availability
+  <div class="top-bar">
+    <a class="back" href="worker-dashboard.html">&larr; Back</a>
+    <div class="top-link" onclick="loadAvailability()">Refresh</div>
   </div>
 
-  <div class="availability-row">
-    <label>
-      <input type="checkbox" id="mondayAvailable">
-      Monday
-    </label>
-
-    <div class="day-times">
-      <input type="time" id="mondayStart" step="3600">
-      <input type="time" id="mondayEnd" step="3600">
+  <div class="hero">
+    <div class="hero-title">Availability</div>
+    <div class="hero-sub">
+      Set the days and hours you normally work. Block dates you cannot accept jobs.
     </div>
   </div>
 
-  <div class="availability-row">
-    <label>
-      <input type="checkbox" id="tuesdayAvailable">
-      Tuesday
-    </label>
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">Weekly Hours</div>
+    </div>
 
-    <div class="day-times">
-      <input type="time" id="tuesdayStart" step="3600">
-      <input type="time" id="tuesdayEnd" step="3600">
+    <div class="section-sub">
+      Turn on the days you work, then choose a start and end time.
+    </div>
+
+    <div class="quick-actions">
+      <button class="secondary mini-btn" type="button" onclick="applyWeekdayPreset()">
+        Weekdays 9-5
+      </button>
+
+      <button class="secondary mini-btn" type="button" onclick="clearAvailability()">
+        Clear All
+      </button>
+    </div>
+
+    <div class="day-list" id="dayList"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Blocked Dates</div>
+
+    <div class="section-sub">
+      Add days you are unavailable, such as vacation, appointments, or personal days.
+    </div>
+
+    <div class="blocked-grid">
+      <div>
+        <label class="small-label" for="blockedStartDate">From</label>
+        <input type="date" id="blockedStartDate">
+      </div>
+
+      <div>
+        <label class="small-label" for="blockedEndDate">Through</label>
+        <input type="date" id="blockedEndDate">
+      </div>
+    </div>
+
+    <button type="button" class="secondary" onclick="addBlockedDateRange()">
+      Add Blocked Date
+    </button>
+
+    <div id="blockedDatesList" class="blocked-list">
+      <div class="empty-note">No blocked dates added yet.</div>
     </div>
   </div>
 
-  <div class="availability-row">
-    <label>
-      <input type="checkbox" id="wednesdayAvailable">
-      Wednesday
-    </label>
+  <div class="save-bar">
+    <button type="button" onclick="saveAvailability()">
+      Save Availability
+    </button>
 
-    <div class="day-times">
-      <input type="time" id="wednesdayStart" step="3600">
-      <input type="time" id="wednesdayEnd" step="3600">
-    </div>
+    <div id="statusMessage" class="status-message"></div>
   </div>
-
-  <div class="availability-row">
-    <label>
-      <input type="checkbox" id="thursdayAvailable">
-      Thursday
-    </label>
-
-    <div class="day-times">
-      <input type="time" id="thursdayStart" step="3600">
-      <input type="time" id="thursdayEnd" step="3600">
-    </div>
-  </div>
-
-  <div class="availability-row">
-    <label>
-      <input type="checkbox" id="fridayAvailable">
-      Friday
-    </label>
-
-    <div class="day-times">
-      <input type="time" id="fridayStart" step="3600">
-      <input type="time" id="fridayEnd" step="3600">
-    </div>
-  </div>
-
-  <div class="availability-row">
-    <label>
-      <input type="checkbox" id="saturdayAvailable">
-      Saturday
-    </label>
-
-    <div class="day-times">
-      <input type="time" id="saturdayStart" step="3600">
-      <input type="time" id="saturdayEnd" step="3600">
-    </div>
-  </div>
-
-  <div class="availability-row">
-    <label>
-      <input type="checkbox" id="sundayAvailable">
-      Sunday
-    </label>
-
-    <div class="day-times">
-      <input type="time" id="sundayStart" step="3600">
-      <input type="time" id="sundayEnd" step="3600">
-    </div>
-  </div>
-
-  <div class="note">
-    Set different available times for each day. Customers can request times only inside these windows.
-  </div>
-
-</div>
-
-<div class="card">
-
-  <div class="section-title">
-    Blocked Dates
-  </div>
-
-  <label>From</label>
-  <input type="date" id="blockedStartDate">
-
-  <label style="display:block; margin-top:12px;">Through</label>
-  <input type="date" id="blockedEndDate">
-
-<button type="button" onclick="addBlockedDateRange()">
-  Add Blocked Date Range
-</button>
-
-  <div id="blockedDatesList" class="blocked-list">
-    No blocked dates added yet.
-  </div>
-
-  <div class="note">
-    Use this to block multiple days at once for vacations, appointments, or unavailable periods.
-  </div>
-
-</div>
-
-</div>
-
-  </div>
-
-  <button type="button" onclick="saveAvailability()">
-  Save Availability
-</button>
 
 </div>
 
 <script>
-let blockedDates = [];
-
-  const supabaseClient = window.supabase.createClient(
+const supabaseClient = window.supabase.createClient(
   "https://dbcthtjmtlumidpbucrc.supabase.co",
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
+
+const days = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday"
+];
+
+let currentUser = null;
+let currentWorkerId = null;
+let blockedDates = [];
+
+function lowerDay(day) {
+  return day.toLowerCase();
+}
+
+function setStatus(message, color = "#666") {
+  const status = document.getElementById("statusMessage");
+  status.style.color = color;
+  status.innerText = message;
+}
+
+function renderDays() {
+  const dayList = document.getElementById("dayList");
+  dayList.innerHTML = "";
+
+  days.forEach(day => {
+    const lower = lowerDay(day);
+
+    dayList.innerHTML += `
+      <div class="day-row">
+        <label class="day-left" for="${lower}Available">
+          <input
+            type="checkbox"
+            id="${lower}Available"
+            onchange="toggleDayInputs('${lower}')"
+          >
+          ${day.slice(0, 3)}
+        </label>
+
+        <div class="day-times">
+          <input
+            type="time"
+            id="${lower}Start"
+            step="900"
+            disabled
+          >
+
+          <input
+            type="time"
+            id="${lower}End"
+            step="900"
+            disabled
+          >
+        </div>
+      </div>
+    `;
+  });
+}
+
+function toggleDayInputs(lower) {
+  const checked = document.getElementById(`${lower}Available`).checked;
+  const startInput = document.getElementById(`${lower}Start`);
+  const endInput = document.getElementById(`${lower}End`);
+
+  startInput.disabled = !checked;
+  endInput.disabled = !checked;
+
+  if (checked && !startInput.value && !endInput.value) {
+    startInput.value = "09:00";
+    endInput.value = "17:00";
+  }
+
+  if (!checked) {
+    startInput.value = "";
+    endInput.value = "";
+  }
+}
+
+function applyWeekdayPreset() {
+  days.forEach(day => {
+    const lower = lowerDay(day);
+    const isWeekday = !["saturday", "sunday"].includes(lower);
+
+    document.getElementById(`${lower}Available`).checked = isWeekday;
+    document.getElementById(`${lower}Start`).disabled = !isWeekday;
+    document.getElementById(`${lower}End`).disabled = !isWeekday;
+    document.getElementById(`${lower}Start`).value = isWeekday ? "09:00" : "";
+    document.getElementById(`${lower}End`).value = isWeekday ? "17:00" : "";
+  });
+}
+
+function clearAvailability() {
+  days.forEach(day => {
+    const lower = lowerDay(day);
+    document.getElementById(`${lower}Available`).checked = false;
+    document.getElementById(`${lower}Start`).value = "";
+    document.getElementById(`${lower}End`).value = "";
+    document.getElementById(`${lower}Start`).disabled = true;
+    document.getElementById(`${lower}End`).disabled = true;
+  });
+}
 
 function addBlockedDateRange() {
   const startInput = document.getElementById("blockedStartDate");
@@ -320,7 +483,7 @@ function addBlockedDateRange() {
     return;
   }
 
-  const rangeText = startDate + " through " + endDate;
+  const rangeText = `${startDate} through ${endDate}`;
 
   if (!blockedDates.includes(rangeText)) {
     blockedDates.push(rangeText);
@@ -336,7 +499,9 @@ function renderBlockedDates() {
   const container = document.getElementById("blockedDatesList");
 
   if (blockedDates.length === 0) {
-    container.innerHTML = "No blocked dates added yet.";
+    container.innerHTML = `
+      <div class="empty-note">No blocked dates added yet.</div>
+    `;
     return;
   }
 
@@ -346,10 +511,7 @@ function renderBlockedDates() {
     container.innerHTML += `
       <div class="blocked-date-item">
         <span>${date}</span>
-
-        <button
-          type="button"
-          onclick="removeBlockedDate(${index})">
+        <button type="button" class="danger" onclick="removeBlockedDate(${index})">
           Remove
         </button>
       </div>
@@ -362,99 +524,193 @@ function removeBlockedDate(index) {
   renderBlockedDates();
 }
 
-async function saveAvailability() {
+async function getCurrentWorker() {
+  const { data: sessionData, error } = await supabaseClient.auth.getSession();
 
-  const { data: sessionData } =
-    await supabaseClient.auth.getSession();
+  if (error || !sessionData.session || !sessionData.session.user) {
+    window.location.href = "worker-login.html";
+    return false;
+  }
 
- const authUser =
-  sessionData.session.user;
+  currentUser = sessionData.session.user;
 
-const { data: workerProfile, error: profileError } =
-  await supabaseClient
+  const { data: workerProfile } = await supabaseClient
     .from("worker_profiles")
     .select("id")
-    .eq("email", authUser.email)
+    .eq("email", currentUser.email)
     .maybeSingle();
 
-if (profileError || !workerProfile) {
+  if (workerProfile && workerProfile.id) {
+    currentWorkerId = workerProfile.id;
+    return true;
+  }
+
+  const { data: workerRecord } = await supabaseClient
+    .from("workers")
+    .select("id")
+    .eq("email", currentUser.email)
+    .maybeSingle();
+
+  if (workerRecord && workerRecord.id) {
+    currentWorkerId = workerRecord.id;
+    return true;
+  }
+
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("id")
+    .eq("email", currentUser.email)
+    .maybeSingle();
+
+  if (profile && profile.id) {
+    currentWorkerId = profile.id;
+    return true;
+  }
+
   alert("Worker profile not found.");
-  return;
+  return false;
 }
 
-const workerUser = workerProfile;
+async function loadAvailability() {
+  setStatus("Loading availability...", "#666");
+
+  if (!currentWorkerId) {
+    const found = await getCurrentWorker();
+
+    if (!found) {
+      setStatus("Worker profile not found.", "#b00020");
+      return;
+    }
+  }
+
+  const { data, error } = await supabaseClient
+    .from("worker_availability")
+    .select("day_of_week, start_time, end_time, is_available, blocked_dates")
+    .eq("worker_id", currentWorkerId);
+
+  if (error) {
+    setStatus("Error loading availability.", "#b00020");
+    return;
+  }
+
+  clearAvailability();
+  blockedDates = [];
+
+  if (data && data.length > 0) {
+    data.forEach(row => {
+      const lower = lowerDay(row.day_of_week || "");
+
+      if (days.map(d => lowerDay(d)).includes(lower) && row.is_available) {
+        document.getElementById(`${lower}Available`).checked = true;
+        document.getElementById(`${lower}Start`).disabled = false;
+        document.getElementById(`${lower}End`).disabled = false;
+        document.getElementById(`${lower}Start`).value = row.start_time || "";
+        document.getElementById(`${lower}End`).value = row.end_time || "";
+      }
+
+      if (Array.isArray(row.blocked_dates)) {
+        row.blocked_dates.forEach(date => {
+          if (!blockedDates.includes(date)) {
+            blockedDates.push(date);
+          }
+        });
+      }
+    });
+  }
+
+  renderBlockedDates();
+  setStatus("", "#666");
+}
+
+function buildAvailabilityRows() {
   const availabilityRows = [];
 
-  const days = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday"
-  ];
+  days.forEach(day => {
+    const lower = lowerDay(day);
+    const isChecked = document.getElementById(`${lower}Available`).checked;
 
-  days.forEach((day) => {
-
-    const lower =
-      day.toLowerCase();
-
-    const isChecked =
-      document.getElementById(
-        `${lower}Available`
-      ).checked;
-
-    if (isChecked) {
-
-      availabilityRows.push({
-
-        worker_id: workerUser.id,
-
-        day_of_week: day,
-
-        start_time:
-          document.getElementById(
-            `${lower}Start`
-          ).value,
-
-        end_time:
-          document.getElementById(
-            `${lower}End`
-          ).value,
-
-        is_available: true,
-
-        blocked_dates: blockedDates
-
-      });
-
+    if (!isChecked) {
+      return;
     }
 
+    const startTime = document.getElementById(`${lower}Start`).value;
+    const endTime = document.getElementById(`${lower}End`).value;
+
+    if (!startTime || !endTime) {
+      throw new Error(`Choose both start and end time for ${day}.`);
+    }
+
+    if (endTime <= startTime) {
+      throw new Error(`${day} end time must be after start time.`);
+    }
+
+    availabilityRows.push({
+      worker_id: currentWorkerId,
+      day_of_week: day,
+      start_time: startTime,
+      end_time: endTime,
+      is_available: true,
+      blocked_dates: blockedDates
+    });
   });
+
+  return availabilityRows;
+}
+
+async function saveAvailability() {
+  setStatus("Saving availability...", "#666");
+
+  if (!currentWorkerId) {
+    const found = await getCurrentWorker();
+
+    if (!found) {
+      setStatus("Worker profile not found.", "#b00020");
+      return;
+    }
+  }
+
+  let availabilityRows = [];
+
+  try {
+    availabilityRows = buildAvailabilityRows();
+  } catch (error) {
+    alert(error.message);
+    setStatus("Fix the highlighted schedule issue.", "#b00020");
+    return;
+  }
 
   if (availabilityRows.length === 0) {
     alert("Select at least one available day.");
+    setStatus("Select at least one available day.", "#b00020");
     return;
   }
 
-  const { error } =
-    await supabaseClient
-      .from("worker_availability")
-      .insert(availabilityRows);
+  const { error: deleteError } = await supabaseClient
+    .from("worker_availability")
+    .delete()
+    .eq("worker_id", currentWorkerId);
 
-  if (error) {
-    alert(error.message);
+  if (deleteError) {
+    setStatus(deleteError.message, "#b00020");
     return;
   }
 
-  alert("Availability saved.");
+  const { error: insertError } = await supabaseClient
+    .from("worker_availability")
+    .insert(availabilityRows);
 
-  window.location.href =
-    "worker-dashboard.html";
+  if (insertError) {
+    setStatus(insertError.message, "#b00020");
+    return;
+  }
 
+  setStatus("Availability saved.", "#0b7a28");
 }
+
+renderDays();
+loadAvailability();
 </script>
-  
+
 </body>
 </html>
+

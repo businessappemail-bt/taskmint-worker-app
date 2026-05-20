@@ -658,54 +658,78 @@ function buildAvailabilityRows() {
   return availabilityRows;
 }
 
+<script>
 async function saveAvailability() {
   setStatus("Saving availability...", "#666");
 
-  if (!currentWorkerId) {
-    const found = await getCurrentWorker();
+  const saveButton =
+    document.querySelector("button[onclick='saveAvailability()']");
 
-    if (!found) {
-      setStatus("Worker profile not found.", "#b00020");
-      return;
-    }
+  const originalButtonText =
+    saveButton ? saveButton.innerText : "Save Availability";
+
+  if (saveButton) {
+    saveButton.innerText = "Saving...";
+    saveButton.disabled = true;
   }
-
-  let availabilityRows = [];
 
   try {
-    availabilityRows = buildAvailabilityRows();
+    if (!currentWorkerId) {
+      const found = await getCurrentWorker();
+
+      if (!found) {
+        setStatus("Worker profile not found.", "#b00020");
+        return;
+      }
+    }
+
+    let availabilityRows = [];
+
+    try {
+      availabilityRows = buildAvailabilityRows();
+    } catch (error) {
+      alert(error.message);
+      setStatus("Fix the highlighted schedule issue.", "#b00020");
+      return;
+    }
+
+    if (availabilityRows.length === 0) {
+      alert("Select at least one available day.");
+      setStatus("Select at least one available day.", "#b00020");
+      return;
+    }
+
+    const { error: deleteError } = await supabaseClient
+      .from("worker_availability")
+      .delete()
+      .eq("worker_id", currentWorkerId);
+
+    if (deleteError) {
+      setStatus(deleteError.message, "#b00020");
+      return;
+    }
+
+    const { error: insertError } = await supabaseClient
+      .from("worker_availability")
+      .insert(availabilityRows);
+
+    if (insertError) {
+      setStatus(insertError.message, "#b00020");
+      return;
+    }
+
+    setStatus("Availability saved.", "#0b7a28");
   } catch (error) {
-    alert(error.message);
-    setStatus("Fix the highlighted schedule issue.", "#b00020");
-    return;
+    setStatus(
+      error.message || "Something went wrong while saving availability.",
+      "#b00020"
+    );
+  } finally {
+    if (saveButton) {
+      saveButton.innerText = originalButtonText;
+      saveButton.disabled = false;
+    }
   }
-
-  if (availabilityRows.length === 0) {
-    alert("Select at least one available day.");
-    setStatus("Select at least one available day.", "#b00020");
-    return;
-  }
-
-  const { error: deleteError } = await supabaseClient
-    .from("worker_availability")
-    .delete()
-    .eq("worker_id", currentWorkerId);
-
-  if (deleteError) {
-    setStatus(deleteError.message, "#b00020");
-    return;
-  }
-
-  const { error: insertError } = await supabaseClient
-    .from("worker_availability")
-    .insert(availabilityRows);
-
-  if (insertError) {
-    setStatus(insertError.message, "#b00020");
-    return;
-  }
-
-  setStatus("Availability saved.", "#0b7a28");
 }
 
 renderDays();

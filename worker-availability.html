@@ -517,12 +517,12 @@ async function getCurrentWorker() {
  
   currentUser = sessionData.session.user;
  
-  const { data: workerProfile, error: profileError } =
-    await supabaseClient
-      .from("worker_profiles")
-      .select("id")
-      .eq("email", currentUser.email)
-      .maybeSingle();
+ const { data: workerProfile, error: profileError } =
+  await supabaseClient
+    .from("profiles")
+    .select("id")
+    .eq("email", authUser.email)
+    .maybeSingle();
  
   if (profileError) {
     alert("Error finding worker profile: " + profileError.message);

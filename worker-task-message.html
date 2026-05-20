@@ -240,7 +240,7 @@
 
   <div class="top-bar">
     <a class="back" href="worker-open-task.html">← Back</a>
-    <div class="refresh" onclick="loadPage()">Refresh</div>
+   <div class="refresh" onclick="refreshTaskMessages()">Refresh</div>
   </div>
 
   <div class="hero">
@@ -787,6 +787,19 @@ async function loadPage() {
   }
 
   await loadMessages();
+}
+  async function refreshTaskMessages() {
+  setStatus("Refreshing...", "");
+
+  await loadTask();
+
+  if (currentTaskId && currentCustomerId && currentUser) {
+    await ensureConversation(currentUser);
+  }
+
+  await loadMessages();
+
+  setStatus("Messages refreshed.", "success");
 }
 
 loadPage();

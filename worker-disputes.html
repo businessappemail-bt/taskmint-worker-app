@@ -1,1 +1,671 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Worker Dispute Center - TaskMint</title>
 
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    body{
+      margin:0;
+      font-family:Arial,sans-serif;
+      background:#f5f5f5;
+      color:#111;
+      padding-bottom:70px;
+    }
+
+    .container{
+      max-width:420px;
+      margin:0 auto;
+      padding:20px;
+    }
+
+    .back{
+      color:#0b7a28;
+      font-weight:bold;
+      text-decoration:none;
+      display:inline-block;
+      margin-bottom:18px;
+      font-size:15px;
+    }
+
+    h1{
+      text-align:center;
+      color:#0b7a28;
+      margin-bottom:20px;
+      font-size:28px;
+    }
+
+    .card{
+      background:white;
+      border-radius:14px;
+      padding:18px;
+      margin-bottom:16px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .section-title{
+      font-size:18px;
+      font-weight:bold;
+      margin-bottom:14px;
+    }
+
+    label{
+      display:block;
+      margin-top:14px;
+      margin-bottom:6px;
+      font-weight:bold;
+      font-size:14px;
+    }
+
+    select,
+    textarea,
+    input{
+      width:100%;
+      box-sizing:border-box;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #ccc;
+      font-size:15px;
+      font-family:Arial,sans-serif;
+    }
+
+    textarea{
+      min-height:120px;
+      resize:vertical;
+    }
+
+    button{
+      width:100%;
+      padding:14px;
+      border:none;
+      border-radius:10px;
+      background:#0b7a28;
+      color:white;
+      font-size:15px;
+      font-weight:bold;
+      cursor:pointer;
+      margin-top:16px;
+    }
+
+    .note{
+      font-size:13px;
+      color:#666;
+      line-height:1.5;
+      margin-top:8px;
+    }
+
+    .status-message{
+      text-align:center;
+      font-weight:bold;
+      margin-top:14px;
+      font-size:14px;
+    }
+
+    .empty{
+      text-align:center;
+      color:#666;
+      padding:18px;
+    }
+
+    .dispute-card{
+      border-left:4px solid #0b7a28;
+    }
+
+    .small-text{
+      font-size:13px;
+      color:#666;
+      line-height:1.5;
+      margin-top:8px;
+    }
+
+    .status{
+      display:inline-block;
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:bold;
+      margin-top:10px;
+    }
+
+    .open{
+      background:#fff4e5;
+      color:#a15c00;
+    }
+
+    .reviewing{
+      background:#e8f1ff;
+      color:#004a99;
+    }
+
+    .resolved{
+      background:#e7f7ec;
+      color:#0b7a28;
+    }
+
+    .rejected{
+      background:#ffe5e5;
+      color:#b00020;
+    }
+
+    .admin-response{
+      margin-top:14px;
+      background:#f5f5f5;
+      padding:12px;
+      border-radius:10px;
+      border-left:4px solid #0b7a28;
+    }
+
+    .response-title{
+      font-weight:bold;
+      margin-bottom:6px;
+    }
+
+    img{
+      width:100%;
+      border-radius:10px;
+      margin-top:12px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <a class="back"
+    href="worker-settings.html">
+    ← Back to Settings
+  </a>
+
+  <h1>Dispute Center</h1>
+
+  <div class="card">
+
+    <div class="section-title">
+      Open New Dispute
+    </div>
+
+    <label>
+      Select Job
+    </label>
+
+    <select id="taskSelect">
+      <option value="">
+        Loading jobs...
+      </option>
+    </select>
+
+    <label>
+      Dispute Reason
+    </label>
+
+    <select id="reasonSelect">
+
+      <option value="">
+        Select reason
+      </option>
+
+      <option>
+        Customer did not confirm completion
+      </option>
+
+      <option>
+        Payment issue
+      </option>
+
+      <option>
+        Customer cancellation issue
+      </option>
+
+      <option>
+        Unsafe work environment
+      </option>
+
+      <option>
+        Customer unavailable
+      </option>
+
+      <option>
+        Scope of work changed
+      </option>
+
+      <option>
+        Other
+      </option>
+
+    </select>
+
+    <label>
+      Dispute Details
+    </label>
+
+    <textarea
+      id="detailsInput"
+      maxlength="2500"
+      placeholder="Explain what happened in detail..."
+    ></textarea>
+
+    <label>
+      Upload Evidence
+    </label>
+
+    <input
+      id="evidenceInput"
+      type="file"
+      accept="image/*"
+    >
+
+    <div class="note">
+      Upload screenshots, photos, arrival proof, or messages related to the dispute.
+    </div>
+
+    <button onclick="submitDispute()">
+      Submit Dispute
+    </button>
+
+    <div
+      id="formStatus"
+      class="status-message"
+    ></div>
+
+  </div>
+
+  <div class="card">
+
+    <div class="section-title">
+      Active Disputes
+    </div>
+
+    <div id="activeDisputes">
+      <div class="empty">
+        Loading disputes...
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <div class="section-title">
+      Dispute History
+    </div>
+
+    <div id="historyDisputes">
+      <div class="empty">
+        Loading dispute history...
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+const supabaseClient =
+  window.supabase.createClient(
+    "https://dbcthtjmtlumidpbucrc.supabase.co",
+    "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+  );
+
+let currentUser = null;
+let currentWorkerId = null;
+let eligibleTasks = [];
+
+const blockedWords = [
+  "fuck",
+  "shit",
+  "bitch",
+  "asshole",
+  "nigga",
+  "nigger",
+  "cunt",
+  "motherfucker",
+  "pussy"
+];
+
+function containsBlockedWords(text){
+
+  const lower =
+    text.toLowerCase();
+
+  return blockedWords.some(
+    word => lower.includes(word)
+  );
+
+}
+
+async function init(){
+
+  const { data } =
+    await supabaseClient.auth.getUser();
+
+  if(!data || !data.user){
+
+    window.location.href =
+      "login.html";
+
+    return;
+  }
+
+  currentUser =
+    data.user;
+
+  const { data: profile } =
+    await supabaseClient
+      .from("profiles")
+      .select("id")
+      .eq("email", currentUser.email)
+      .single();
+
+  if(!profile){
+    return;
+  }
+
+  currentWorkerId =
+    profile.id;
+
+  await loadTasks();
+  await loadDisputes();
+
+}
+
+async function loadTasks(){
+
+  const select =
+    document.getElementById("taskSelect");
+
+  const { data } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select(`
+        task_id,
+        tasks (
+          id,
+          title
+        )
+      `)
+      .eq("worker_id", currentWorkerId)
+      .in("status", [
+        "accepted",
+        "in_progress",
+        "completed",
+        "paid"
+      ]);
+
+  if(!data || data.length === 0){
+
+    select.innerHTML =
+      `<option>No eligible jobs</option>`;
+
+    return;
+  }
+
+  eligibleTasks =
+    data;
+
+  select.innerHTML =
+    `<option value="">Select a job</option>`;
+
+  data.forEach(item => {
+
+    if(item.tasks){
+
+      select.innerHTML += `
+        <option value="${item.tasks.id}">
+          ${item.tasks.title}
+        </option>
+      `;
+
+    }
+
+  });
+
+}
+
+async function uploadEvidence(file){
+
+  if(!file) return null;
+
+  const path =
+    `worker-disputes/${currentWorkerId}-${Date.now()}-${file.name}`;
+
+  const { error } =
+    await supabaseClient.storage
+      .from("dispute-evidence")
+      .upload(path, file);
+
+  if(error){
+    throw error;
+  }
+
+  const { data } =
+    supabaseClient.storage
+      .from("dispute-evidence")
+      .getPublicUrl(path);
+
+  return data.publicUrl;
+
+}
+
+async function submitDispute(){
+
+  const status =
+    document.getElementById("formStatus");
+
+  const taskId =
+    document.getElementById("taskSelect").value;
+
+  const reason =
+    document.getElementById("reasonSelect").value;
+
+  const details =
+    document.getElementById("detailsInput")
+      .value
+      .trim();
+
+  const evidenceFile =
+    document.getElementById("evidenceInput")
+      .files[0];
+
+  status.innerText = "";
+
+  if(!taskId || !reason || !details){
+
+    status.style.color =
+      "#b00020";
+
+    status.innerText =
+      "Please complete all fields.";
+
+    return;
+  }
+
+  if(containsBlockedWords(details)){
+
+    status.style.color =
+      "#b00020";
+
+    status.innerText =
+      "Please remove inappropriate language.";
+
+    return;
+  }
+
+  try {
+
+    const evidenceUrl =
+      await uploadEvidence(evidenceFile);
+
+    const { error } =
+      await supabaseClient
+        .from("disputes")
+        .insert({
+          task_id: taskId,
+          worker_id: currentWorkerId,
+          opened_by: "worker",
+          reason: reason,
+          details: details,
+          evidence_url: evidenceUrl,
+          status: "open",
+          worker_has_unread_update: false
+        });
+
+    if(error){
+      throw error;
+    }
+
+    status.style.color =
+      "#0b7a28";
+
+    status.innerText =
+      "Dispute submitted successfully.";
+
+    document.getElementById("taskSelect").value = "";
+    document.getElementById("reasonSelect").value = "";
+    document.getElementById("detailsInput").value = "";
+    document.getElementById("evidenceInput").value = "";
+
+    loadDisputes();
+
+  } catch(error){
+
+    console.error(error);
+
+    status.style.color =
+      "#b00020";
+
+    status.innerText =
+      error.message;
+
+  }
+
+}
+
+async function loadDisputes(){
+
+  const activeBox =
+    document.getElementById("activeDisputes");
+
+  const historyBox =
+    document.getElementById("historyDisputes");
+
+  const { data, error } =
+    await supabaseClient
+      .from("disputes")
+      .select("*")
+      .eq("worker_id", currentWorkerId)
+      .order("created_at", {
+        ascending:false
+      });
+
+  if(error){
+
+    activeBox.innerHTML =
+      `<div class="empty">Error loading disputes.</div>`;
+
+    historyBox.innerHTML =
+      `<div class="empty">Error loading history.</div>`;
+
+    return;
+  }
+
+  const active =
+    data.filter(d =>
+      d.status === "open" ||
+      d.status === "reviewing"
+    );
+
+  const history =
+    data.filter(d =>
+      d.status === "resolved" ||
+      d.status === "rejected"
+    );
+
+  renderDisputes(activeBox, active);
+  renderDisputes(historyBox, history);
+
+}
+
+function renderDisputes(container, disputes){
+
+  if(!disputes || disputes.length === 0){
+
+    container.innerHTML =
+      `<div class="empty">No disputes found.</div>`;
+
+    return;
+  }
+
+  container.innerHTML = "";
+
+  disputes.forEach(dispute => {
+
+    container.innerHTML += `
+
+      <div class="card dispute-card">
+
+        <div class="section-title">
+          ${dispute.reason}
+        </div>
+
+        <div class="small-text">
+          ${dispute.details}
+        </div>
+
+        <div class="small-text">
+          Submitted:
+          ${new Date(dispute.created_at)
+            .toLocaleDateString()}
+        </div>
+
+        <div class="status ${dispute.status}">
+          ${dispute.status}
+        </div>
+
+        ${
+          dispute.evidence_url
+          ? `
+            <img src="${dispute.evidence_url}">
+          `
+          : ""
+        }
+
+        ${
+          dispute.admin_resolution
+          ? `
+            <div class="admin-response">
+
+              <div class="response-title">
+                TaskMint Response
+              </div>
+
+              <div>
+                ${dispute.admin_resolution}
+              </div>
+
+            </div>
+          `
+          : ""
+        }
+
+      </div>
+
+    `;
+
+  });
+
+}
+
+init();
+
+</script>
+
+</body>
+</html>

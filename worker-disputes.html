@@ -3,174 +3,201 @@
 <head>
   <title>Worker Dispute Center - TaskMint</title>
 
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-
-    body{
-      margin:0;
-      font-family:Arial,sans-serif;
-      background:#f5f5f5;
-      color:#111;
-      padding-bottom:70px;
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #111;
+      padding-bottom: 70px;
     }
 
-    .container{
-      max-width:420px;
-      margin:0 auto;
-      padding:20px;
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 20px;
     }
 
-    .back{
-      color:#0b7a28;
-      font-weight:bold;
-      text-decoration:none;
-      display:inline-block;
-      margin-bottom:18px;
-      font-size:15px;
+    .back {
+      color: #0b7a28;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 18px;
+      font-size: 15px;
     }
 
-    h1{
-      text-align:center;
-      color:#0b7a28;
-      margin-bottom:20px;
-      font-size:28px;
+    h1 {
+      text-align: center;
+      color: #0b7a28;
+      margin-bottom: 20px;
+      font-size: 28px;
     }
 
-    .card{
-      background:white;
-      border-radius:14px;
-      padding:18px;
-      margin-bottom:16px;
-      box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
-    .section-title{
-      font-size:18px;
-      font-weight:bold;
-      margin-bottom:14px;
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 14px;
     }
 
-    label{
-      display:block;
-      margin-top:14px;
-      margin-bottom:6px;
-      font-weight:bold;
-      font-size:14px;
+    label {
+      display: block;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-weight: bold;
+      font-size: 14px;
     }
 
     select,
     textarea,
-    input{
-      width:100%;
-      box-sizing:border-box;
-      padding:12px;
-      border-radius:10px;
-      border:1px solid #ccc;
-      font-size:15px;
-      font-family:Arial,sans-serif;
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      font-family: Arial, sans-serif;
     }
 
-    textarea{
-      min-height:120px;
-      resize:vertical;
+    textarea {
+      min-height: 110px;
+      resize: vertical;
     }
 
-    button{
-      width:100%;
-      padding:14px;
-      border:none;
-      border-radius:10px;
-      background:#0b7a28;
-      color:white;
-      font-size:15px;
-      font-weight:bold;
-      cursor:pointer;
-      margin-top:16px;
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #0b7a28;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 16px;
     }
 
-    .note{
-      font-size:13px;
-      color:#666;
-      line-height:1.5;
-      margin-top:8px;
+    button.secondary {
+      background: white;
+      color: #111;
+      border: 1px solid #ddd;
     }
 
-    .status-message{
-      text-align:center;
-      font-weight:bold;
-      margin-top:14px;
-      font-size:14px;
+    .note {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+      margin-top: 8px;
     }
 
-    .empty{
-      text-align:center;
-      color:#666;
-      padding:18px;
+    .status-message {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 14px;
+      font-size: 14px;
     }
 
-    .dispute-card{
-      border-left:4px solid #0b7a28;
+    .empty {
+      text-align: center;
+      color: #666;
+      padding: 18px;
     }
 
-    .small-text{
-      font-size:13px;
-      color:#666;
-      line-height:1.5;
-      margin-top:8px;
+    .dispute-card {
+      border-left: 4px solid #0b7a28;
     }
 
-    .status{
-      display:inline-block;
-      padding:5px 10px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:bold;
-      margin-top:10px;
+    .small-text {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+      margin-top: 8px;
     }
 
-    .open{
-      background:#fff4e5;
-      color:#a15c00;
+    .status {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 10px;
+      text-transform: capitalize;
     }
 
-    .reviewing{
-      background:#e8f1ff;
-      color:#004a99;
+    .open {
+      background: #fff4e5;
+      color: #a15c00;
     }
 
-    .resolved{
-      background:#e7f7ec;
-      color:#0b7a28;
+    .reviewing {
+      background: #e8f1ff;
+      color: #004a99;
     }
 
-    .rejected{
-      background:#ffe5e5;
-      color:#b00020;
+    .resolved {
+      background: #e7f7ec;
+      color: #0b7a28;
     }
 
-    .admin-response{
-      margin-top:14px;
-      background:#f5f5f5;
-      padding:12px;
-      border-radius:10px;
-      border-left:4px solid #0b7a28;
+    .rejected {
+      background: #ffe5e5;
+      color: #b00020;
     }
 
-    .response-title{
-      font-weight:bold;
-      margin-bottom:6px;
+    .message-thread {
+      margin-top: 14px;
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 12px;
+      padding: 12px;
     }
 
-    img{
-      width:100%;
-      border-radius:10px;
-      margin-top:12px;
+    .thread-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #111;
+      font-size: 14px;
     }
 
+    .support-message {
+      margin-top: 10px;
+      background: white;
+      padding: 12px;
+      border-radius: 10px;
+      border-left: 4px solid #0b7a28;
+    }
+
+    .response-title {
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #0b7a28;
+    }
+
+    .reply-status {
+      font-size: 13px;
+      font-weight: bold;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    img {
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 12px;
+    }
   </style>
 </head>
 
@@ -178,8 +205,7 @@
 
 <div class="container">
 
-  <a class="back"
-    href="worker-settings.html">
+  <a class="back" href="worker-settings.html">
     ← Back to Settings
   </a>
 
@@ -191,59 +217,26 @@
       Open New Dispute
     </div>
 
-    <label>
-      Select Job
-    </label>
+    <label>Select Job</label>
 
     <select id="taskSelect">
-      <option value="">
-        Loading jobs...
-      </option>
+      <option value="">Loading jobs...</option>
     </select>
 
-    <label>
-      Dispute Reason
-    </label>
+    <label>Dispute Reason</label>
 
     <select id="reasonSelect">
-
-      <option value="">
-        Select reason
-      </option>
-
-      <option>
-        Customer did not confirm completion
-      </option>
-
-      <option>
-        Payment issue
-      </option>
-
-      <option>
-        Customer cancellation issue
-      </option>
-
-      <option>
-        Unsafe work environment
-      </option>
-
-      <option>
-        Customer unavailable
-      </option>
-
-      <option>
-        Scope of work changed
-      </option>
-
-      <option>
-        Other
-      </option>
-
+      <option value="">Select reason</option>
+      <option>Customer did not confirm completion</option>
+      <option>Payment issue</option>
+      <option>Customer cancellation issue</option>
+      <option>Unsafe work environment</option>
+      <option>Customer unavailable</option>
+      <option>Scope of work changed</option>
+      <option>Other</option>
     </select>
 
-    <label>
-      Dispute Details
-    </label>
+    <label>Dispute Details</label>
 
     <textarea
       id="detailsInput"
@@ -251,9 +244,7 @@
       placeholder="Explain what happened in detail..."
     ></textarea>
 
-    <label>
-      Upload Evidence
-    </label>
+    <label>Upload Evidence</label>
 
     <input
       id="evidenceInput"
@@ -269,46 +260,29 @@
       Submit Dispute
     </button>
 
-    <div
-      id="formStatus"
-      class="status-message"
-    ></div>
+    <div id="formStatus" class="status-message"></div>
 
   </div>
 
   <div class="card">
-
-    <div class="section-title">
-      Active Disputes
-    </div>
+    <div class="section-title">Active Disputes</div>
 
     <div id="activeDisputes">
-      <div id="disputeMessages"></div>
-      <div class="empty">
-        Loading disputes...
-      </div>
+      <div class="empty">Loading disputes...</div>
     </div>
-
   </div>
 
   <div class="card">
-
-    <div class="section-title">
-      Dispute History
-    </div>
+    <div class="section-title">Dispute History</div>
 
     <div id="historyDisputes">
-      <div class="empty">
-        Loading dispute history...
-      </div>
+      <div class="empty">Loading dispute history...</div>
     </div>
-
   </div>
 
 </div>
 
 <script>
-
 const supabaseClient =
   window.supabase.createClient(
     "https://dbcthtjmtlumidpbucrc.supabase.co",
@@ -331,243 +305,178 @@ const blockedWords = [
   "pussy"
 ];
 
-function containsBlockedWords(text){
-
-  const lower =
-    text.toLowerCase();
-
-  return blockedWords.some(
-    word => lower.includes(word)
-  );
-
+function escapeHTML(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-async function init(){
+function containsBlockedWords(text) {
+  const lower = text.toLowerCase();
+  return blockedWords.some(word => lower.includes(word));
+}
 
-  const { data } =
-    await supabaseClient.auth.getUser();
+async function init() {
+  const { data } = await supabaseClient.auth.getUser();
 
-  if(!data || !data.user){
-
-    window.location.href =
-      "login.html";
-
+  if (!data || !data.user) {
+    window.location.href = "login.html";
     return;
   }
 
-  currentUser =
-    data.user;
+  currentUser = data.user;
 
-  const { data: profile } =
-    await supabaseClient
-      .from("profiles")
-      .select("id")
-      .eq("email", currentUser.email)
-      .single();
+  const { data: profile, error } = await supabaseClient
+    .from("profiles")
+    .select("id")
+    .eq("email", currentUser.email)
+    .maybeSingle();
 
-  if(!profile){
+  if (error || !profile) {
+    document.getElementById("activeDisputes").innerHTML =
+      `<div class="empty">Worker profile not found.</div>`;
     return;
   }
 
-  currentWorkerId =
-    profile.id;
+  currentWorkerId = profile.id;
 
   await loadTasks();
   await loadDisputes();
-
 }
 
-async function loadTasks(){
+async function loadTasks() {
+  const select = document.getElementById("taskSelect");
 
-  const select =
-    document.getElementById("taskSelect");
+  const { data, error } = await supabaseClient
+    .from("worker_quotes")
+    .select(`
+      task_id,
+      tasks (
+        id,
+        title
+      )
+    `)
+    .eq("worker_id", currentWorkerId)
+    .in("status", [
+      "accepted",
+      "in_progress",
+      "completed",
+      "paid"
+    ]);
 
-  const { data } =
-    await supabaseClient
-      .from("worker_quotes")
-      .select(`
-        task_id,
-        tasks (
-          id,
-          title
-        )
-      `)
-      .eq("worker_id", currentWorkerId)
-      .in("status", [
-        "accepted",
-        "in_progress",
-        "completed",
-        "paid"
-      ]);
-
-  if(!data || data.length === 0){
-
-    select.innerHTML =
-      `<option>No eligible jobs</option>`;
-
+  if (error || !data || data.length === 0) {
+    select.innerHTML = `<option value="">No eligible jobs</option>`;
     return;
   }
 
-  eligibleTasks =
-    data;
-
-  select.innerHTML =
-    `<option value="">Select a job</option>`;
+  eligibleTasks = data;
+  select.innerHTML = `<option value="">Select a job</option>`;
 
   data.forEach(item => {
-
-    if(item.tasks){
-
+    if (item.tasks) {
       select.innerHTML += `
         <option value="${item.tasks.id}">
-          ${item.tasks.title}
+          ${escapeHTML(item.tasks.title || "Untitled Job")}
         </option>
       `;
-
     }
-
   });
-
 }
 
-async function uploadEvidence(file){
+async function uploadEvidence(file) {
+  if (!file) return null;
 
-  if(!file) return null;
-
+  const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
   const path =
-    `worker-disputes/${currentWorkerId}-${Date.now()}-${file.name}`;
+    `worker-disputes/${currentWorkerId}-${Date.now()}-${safeFileName}`;
 
-  const { error } =
-    await supabaseClient.storage
-      .from("dispute-evidence")
-      .upload(path, file);
+  const { error } = await supabaseClient.storage
+    .from("dispute-evidence")
+    .upload(path, file);
 
-  if(error){
+  if (error) {
     throw error;
   }
 
-  const { data } =
-    supabaseClient.storage
-      .from("dispute-evidence")
-      .getPublicUrl(path);
+  const { data } = supabaseClient.storage
+    .from("dispute-evidence")
+    .getPublicUrl(path);
 
   return data.publicUrl;
-
 }
 
-async function submitDispute(){
-
-  const status =
-    document.getElementById("formStatus");
-
-  const taskId =
-    document.getElementById("taskSelect").value;
-
-  const reason =
-    document.getElementById("reasonSelect").value;
-
-  const details =
-    document.getElementById("detailsInput")
-      .value
-      .trim();
-
-  const evidenceFile =
-    document.getElementById("evidenceInput")
-      .files[0];
+async function submitDispute() {
+  const status = document.getElementById("formStatus");
+  const taskId = document.getElementById("taskSelect").value;
+  const reason = document.getElementById("reasonSelect").value;
+  const details = document.getElementById("detailsInput").value.trim();
+  const evidenceFile = document.getElementById("evidenceInput").files[0];
 
   status.innerText = "";
 
-  if(!taskId || !reason || !details){
-
-    status.style.color =
-      "#b00020";
-
-    status.innerText =
-      "Please complete all fields.";
-
+  if (!taskId || !reason || !details) {
+    status.style.color = "#b00020";
+    status.innerText = "Please complete all fields.";
     return;
   }
 
-  if(containsBlockedWords(details)){
-
-    status.style.color =
-      "#b00020";
-
-    status.innerText =
-      "Please remove inappropriate language.";
-
+  if (containsBlockedWords(details)) {
+    status.style.color = "#b00020";
+    status.innerText = "Please remove inappropriate language.";
     return;
   }
 
   try {
+    const evidenceUrl = await uploadEvidence(evidenceFile);
 
-    const evidenceUrl =
-      await uploadEvidence(evidenceFile);
+    const { error } = await supabaseClient
+      .from("disputes")
+      .insert({
+        task_id: taskId,
+        worker_id: currentWorkerId,
+        opened_by: "worker",
+        reason: reason,
+        details: details,
+        evidence_url: evidenceUrl,
+        status: "open"
+      });
 
-    const { error } =
-      await supabaseClient
-        .from("disputes")
-        .insert({
-          task_id: taskId,
-          worker_id: currentWorkerId,
-          opened_by: "worker",
-          reason: reason,
-          details: details,
-          evidence_url: evidenceUrl,
-          status: "open",
-          worker_has_unread_update: false
-        });
-
-    if(error){
+    if (error) {
       throw error;
     }
 
-    status.style.color =
-      "#0b7a28";
-
-    status.innerText =
-      "Dispute submitted successfully.";
+    status.style.color = "#0b7a28";
+    status.innerText = "Dispute submitted successfully.";
 
     document.getElementById("taskSelect").value = "";
     document.getElementById("reasonSelect").value = "";
     document.getElementById("detailsInput").value = "";
     document.getElementById("evidenceInput").value = "";
 
-    loadDisputes();
-
-  } catch(error){
-
+    await loadDisputes();
+  } catch (error) {
     console.error(error);
-
-    status.style.color =
-      "#b00020";
-
-    status.innerText =
-      error.message;
-
+    status.style.color = "#b00020";
+    status.innerText = error.message;
   }
-
 }
 
-async function loadDisputes(){
+async function loadDisputes() {
+  const activeBox = document.getElementById("activeDisputes");
+  const historyBox = document.getElementById("historyDisputes");
 
-  const activeBox =
-    document.getElementById("activeDisputes");
+  const { data, error } = await supabaseClient
+    .from("disputes")
+    .select("*")
+    .eq("worker_id", currentWorkerId)
+    .order("created_at", {
+      ascending: false
+    });
 
-  const historyBox =
-    document.getElementById("historyDisputes");
-
-  const { data, error } =
-    await supabaseClient
-      .from("disputes")
-      .select("*")
-      .eq("worker_id", currentWorkerId)
-      .order("created_at", {
-        ascending:false
-      });
-
-  if(error){
-
+  if (error) {
     activeBox.innerHTML =
       `<div class="empty">Error loading disputes.</div>`;
 
@@ -577,35 +486,107 @@ async function loadDisputes(){
     return;
   }
 
-  const active =
-    data.filter(d =>
-      d.status === "open" ||
-      d.status === "reviewing"
-    );
+  const active = (data || []).filter(d =>
+    d.status === "open" ||
+    d.status === "reviewing"
+  );
 
-  const history =
-    data.filter(d =>
-      d.status === "resolved" ||
-      d.status === "rejected"
-    );
+  const history = (data || []).filter(d =>
+    d.status === "resolved" ||
+    d.status === "rejected"
+  );
 
-  renderDisputes(activeBox, active);
-  renderDisputes(historyBox, history);
+  renderDisputes(activeBox, active, true);
+  renderDisputes(historyBox, history, false);
+}
 
-  async function loadDisputeMessages(disputeId, containerId) {
+function renderDisputes(container, disputes, allowReplies) {
+  if (!disputes || disputes.length === 0) {
+    container.innerHTML = `<div class="empty">No disputes found.</div>`;
+    return;
+  }
 
-  const container =
-    document.getElementById(containerId);
+  container.innerHTML = "";
 
-  const { data, error } =
-    await supabaseClient
-      .from("dispute_messages")
-      .select("*")
-      .eq("dispute_id", disputeId)
-      .or("visible_to.eq.worker,visible_to.eq.admin")
-      .order("created_at", {
-        ascending: true
-      });
+  disputes.forEach(dispute => {
+    container.innerHTML += `
+      <div class="card dispute-card">
+        <div class="section-title">
+          ${escapeHTML(dispute.reason)}
+        </div>
+
+        <div class="small-text">
+          ${escapeHTML(dispute.details)}
+        </div>
+
+        <div class="small-text">
+          Submitted:
+          ${new Date(dispute.created_at).toLocaleDateString()}
+        </div>
+
+        <div class="status ${escapeHTML(dispute.status)}">
+          ${escapeHTML(dispute.status)}
+        </div>
+
+        ${dispute.evidence_url
+          ? `<img src="${escapeHTML(dispute.evidence_url)}" alt="Dispute evidence">`
+          : ""
+        }
+
+        <div class="message-thread">
+          <div class="thread-title">
+            TaskMint Support Messages
+          </div>
+
+          <div id="messages-${dispute.id}">
+            <div class="small-text">Loading messages...</div>
+          </div>
+        </div>
+
+        ${allowReplies
+          ? `
+            <textarea
+              id="reply-${dispute.id}"
+              placeholder="Reply to TaskMint support..."
+              style="margin-top:12px;"
+            ></textarea>
+
+            <button onclick="sendWorkerReply('${dispute.id}')">
+              Send Reply
+            </button>
+
+            <div
+              id="replyStatus-${dispute.id}"
+              class="reply-status"
+            ></div>
+          `
+          : ""
+        }
+      </div>
+    `;
+
+    setTimeout(() => {
+      loadDisputeMessages(
+        dispute.id,
+        `messages-${dispute.id}`
+      );
+    }, 100);
+  });
+}
+
+async function loadDisputeMessages(disputeId, containerId) {
+  const container = document.getElementById(containerId);
+
+  if (!container) return;
+
+  const { data, error } = await supabaseClient
+    .from("dispute_messages")
+    .select("*")
+    .eq("dispute_id", disputeId)
+    .eq("visible_to", "worker")
+    .order("created_at", {
+      ascending: true
+    });
 
   if (error || !data) {
     container.innerHTML =
@@ -615,143 +596,83 @@ async function loadDisputes(){
 
   if (data.length === 0) {
     container.innerHTML =
-      "<div class='small-text'>No dispute messages yet.</div>";
+      "<div class='small-text'>No TaskMint responses yet.</div>";
     return;
   }
 
   container.innerHTML = "";
 
   data.forEach(message => {
-
-    let label = "";
-
-    if (message.sender_type === "admin") {
-      label = "TaskMint Support";
-    } else if (message.sender_type === "worker") {
-      label = "You";
-    }
-
     container.innerHTML += `
-      <div class="admin-response">
-
+      <div class="support-message">
         <div class="response-title">
-          ${label}
+          TaskMint Support
         </div>
 
         <div>
-          ${message.message}
+          ${escapeHTML(message.message)}
         </div>
 
         <div class="small-text">
-          ${new Date(message.created_at)
-            .toLocaleString()}
+          ${new Date(message.created_at).toLocaleString()}
         </div>
-
       </div>
     `;
-
   });
-
 }
 
-}
+async function sendWorkerReply(disputeId) {
+  const input = document.getElementById(`reply-${disputeId}`);
+  const status = document.getElementById(`replyStatus-${disputeId}`);
 
-function renderDisputes(container, disputes){
+  if (!input) return;
 
-  if(!disputes || disputes.length === 0){
+  const message = input.value.trim();
 
-    container.innerHTML =
-      `<div class="empty">No disputes found.</div>`;
+  if (!message) {
+    alert("Enter a message.");
+    return;
+  }
+
+  if (containsBlockedWords(message)) {
+    alert("Please remove inappropriate language.");
+    return;
+  }
+
+  if (status) {
+    status.style.color = "#666";
+    status.innerText = "Sending reply...";
+  }
+
+  const { error } = await supabaseClient
+    .from("dispute_messages")
+    .insert({
+      dispute_id: disputeId,
+      sender_type: "worker",
+      visible_to: "admin",
+      message: message
+    });
+
+  if (error) {
+    if (status) {
+      status.style.color = "#b00020";
+      status.innerText = error.message;
+    } else {
+      alert(error.message);
+    }
 
     return;
   }
 
-  container.innerHTML = "";
+  input.value = "";
 
-  disputes.forEach(dispute => {
-
-    container.innerHTML += `
-
-      <div class="card dispute-card">
-
-        <div class="section-title">
-          ${dispute.reason}
-        </div>
-
-        <div class="small-text">
-          ${dispute.details}
-        </div>
-
-        <div class="small-text">
-          Submitted:
-          ${new Date(dispute.created_at)
-            .toLocaleDateString()}
-        </div>
-
-        <div class="status ${dispute.status}">
-          ${dispute.status}
-        </div>
-
-        ${
-          dispute.evidence_url
-          ? `
-            <img src="${dispute.evidence_url}">
-          `
-          : ""
-        }
-
-        ${
-          dispute.admin_resolution
-          ? `
-            <div class="admin-response">
-
-              <div class="response-title">
-                TaskMint Response
-              </div>
-
-              <div>
-                ${dispute.admin_resolution}
-              </div>
-
-            </div>
-          `
-          : ""
-        }
-
-        <div
-          id="messages-${dispute.id}"
-          style="margin-top:14px;"
-        ></div>
-
-        <textarea
-          id="reply-${dispute.id}"
-          placeholder="Reply to TaskMint support..."
-          style="margin-top:12px;"
-        ></textarea>
-
-        <button
-          onclick="sendWorkerReply('${dispute.id}')">
-          Send Reply
-        </button>
-
-      </div>
-
-    `;
-
-    setTimeout(() => {
-
-      loadDisputeMessages(
-        dispute.id,
-        `messages-${dispute.id}`
-      );
-
-    }, 100);
-
-  });
-
+  if (status) {
+    status.style.color = "#0b7a28";
+    status.innerText = "Reply sent to TaskMint support.";
+  }
 }
-init();
 
+init();
 </script>
 
 </body>

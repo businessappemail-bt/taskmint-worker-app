@@ -1,222 +1,994 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Open Tasks - TaskMint</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body {
-margin: 0;
-font-family: Arial, sans-serif;
-background: #f5f5f5;
-color: #111;
-}
-
-.container {
-max-width: 420px;
-margin: 0 auto;
-padding: 20px;
-}
-
-.back {
-color: #0b7a28;
-font-weight: bold;
-text-decoration: none;
-display: inline-block;
-margin-bottom: 15px;
-}
-
-h1 {
-text-align: center;
-font-size: 26px;
-margin-bottom: 20px;
-}
-
-.card {
-background: white;
-border-radius: 14px;
-padding: 18px;
-margin-bottom: 16px;
-box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.task-title {
-font-size: 18px;
-font-weight: bold;
-margin-bottom: 8px;
-}
-
-.task-info {
-font-size: 14px;
-color: #444;
-margin: 6px 0;
-}
-
-button {
-width: 100%;
-padding: 14px;
-margin-top: 14px;
-border: none;
-border-radius: 10px;
-background: #0b7a28;
-color: white;
-font-size: 15px;
-font-weight: bold;
-cursor: pointer;
-}
-
-.secondary {
-background: white;
-color: #111;
-border: 1px solid #ddd;
-}
-
-.empty {
-text-align: center;
-color: #666;
-padding: 25px;
-}
-
-  select,
-input {
-  width: 100%;
-  padding: 13px;
-  margin-top: 10px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  font-size: 15px;
-  box-sizing: border-box;
-  background: white;
-}
-</style>
+  <title>Open Tasks - TaskMint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ 
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+ 
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #e9f7ee 0%, #f5f5f5 100%);
+      color: #111;
+      padding-bottom: 80px;
+      overflow-x: hidden;
+    }
+ 
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 18px;
+      position: relative;
+    }
+ 
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+ 
+    .back {
+      color: #0b7a28;
+      font-weight: 800;
+      text-decoration: none;
+      font-size: 14px;
+    }
+ 
+    .small-action {
+      color: #0b7a28;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+    }
+ 
+    .hero {
+      background: linear-gradient(135deg, #0b7a28, #19a447);
+      color: white;
+      border-radius: 26px;
+      padding: 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 28px rgba(11,122,40,0.22);
+      animation: fadeUp 0.35s ease;
+    }
+ 
+    .hero-title {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      margin-bottom: 7px;
+    }
+ 
+    .hero-sub {
+      font-size: 14px;
+      line-height: 1.5;
+      opacity: 0.95;
+    }
+ 
+    .card {
+      background: white;
+      border-radius: 22px;
+      padding: 17px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      border: 1px solid #edf1ee;
+      animation: fadeUp 0.45s ease;
+    }
+ 
+    .filter-title {
+      font-size: 17px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+ 
+    .filter-sub {
+      color: #666;
+      font-size: 13px;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+ 
+    select,
+    input {
+      width: 100%;
+      padding: 13px;
+      margin-top: 10px;
+      border-radius: 14px;
+      border: 1px solid #dfe5e0;
+      font-size: 15px;
+      box-sizing: border-box;
+      background: white;
+      outline: none;
+    }
+ 
+    select:focus,
+    input:focus {
+      border-color: #0b7a28;
+      box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
+    }
+ 
+    .filter-grid {
+      display: grid;
+      gap: 10px;
+    }
+ 
+    .task-card {
+      background: white;
+      border-radius: 22px;
+      padding: 17px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      border: 1px solid #edf1ee;
+    }
+ 
+    .task-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+ 
+    .task-title {
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+ 
+    .category-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #e7f7ec;
+      color: #0b7a28;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+      text-transform: capitalize;
+    }
+ 
+    .customer-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px;
+      border-radius: 16px;
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      margin-bottom: 12px;
+    }
+ 
+    .customer-photo {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e7f7ec;
+      background: #e7f7ec;
+      flex-shrink: 0;
+    }
+ 
+    .customer-name {
+      font-size: 14px;
+      font-weight: 900;
+      color: #111;
+    }
+ 
+    .customer-sub {
+      font-size: 12px;
+      color: #666;
+      margin-top: 2px;
+    }
+ 
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+ 
+    .info-box {
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 16px;
+      padding: 11px;
+      min-height: 72px;
+    }
+ 
+    .info-label {
+      font-size: 11px;
+      font-weight: 900;
+      color: #0b7a28;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 5px;
+    }
+ 
+    .info-value {
+      font-size: 13px;
+      color: #111;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+ 
+    .details-box {
+      background: #fbfbfb;
+      border: 1px solid #eeeeee;
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+ 
+    .details-label {
+      font-size: 12px;
+      font-weight: 900;
+      color: #111;
+      margin-bottom: 6px;
+    }
+ 
+    .details-text {
+      font-size: 14px;
+      color: #444;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+ 
+    .privacy-note {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.4;
+      background: #fff7e6;
+      border: 1px solid #ffd27a;
+      border-radius: 14px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+ 
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+ 
+    button {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 14px;
+      background: #0b7a28;
+      color: white;
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+ 
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.10);
+    }
+ 
+    button.secondary {
+      background: white;
+      color: #111;
+      border: 1px solid #dfe5e0;
+    }
+ 
+    button.full {
+      grid-column: 1 / -1;
+    }
+ 
+    .empty {
+      text-align: center;
+      color: #666;
+      padding: 25px;
+      line-height: 1.5;
+    }
+ 
+    .count-line {
+      font-size: 13px;
+      color: #666;
+      margin: 0 0 12px;
+      font-weight: 700;
+    }
+ 
+    .loading-spinner {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 3px solid #dfe5e0;
+      border-top-color: #0b7a28;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+ 
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+ 
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+ 
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
 </head>
-
+ 
 <body>
+ 
 <div class="container">
-<a class="back" href="worker-dashboard.html">← Back</a>
-
-<h1>Browse Available Tasks</h1>
-
-<div class="card">
-  <div class="task-title">Filter Tasks</div>
-
-  <select id="categoryFilter" onchange="loadTasks()">
-    <option value="">All Categories</option>
-    <option value="Cleaning">Cleaning</option>
-    <option value="Moving">Moving</option>
-    <option value="Furniture Assembly">Furniture Assembly</option>
-    <option value="TV Mounting">TV Mounting</option>
-    <option value="Yard Work">Yard Work</option>
-    <option value="Delivery">Delivery</option>
-    <option value="Other">Other</option>
-  </select>
-
-  <input
-    type="text"
-    id="cityFilter"
-    placeholder="Filter by city"
-    oninput="loadTasks()"
-  >
+ 
+  <div class="top-bar">
+    <a class="back" href="worker-dashboard.html">← Back</a>
+    <div class="small-action" onclick="loadTasks()">Refresh</div>
+  </div>
+ 
+  <div class="hero">
+    <div class="hero-title">Browse Available Tasks</div>
+    <div class="hero-sub">
+      Review nearby open jobs, message the customer about the task, and send a quote when you are ready.
+    </div>
+  </div>
+ 
+  <div class="card">
+    <div class="filter-title">Filter Tasks</div>
+    <div class="filter-sub">
+      Full addresses stay hidden until a customer accepts and pays your quote, and the job is within 7 days of the scheduled date.
+    </div>
+ 
+    <div class="filter-grid">
+      <select id="categoryFilter" onchange="loadTasks()">
+        <option value="">All Categories</option>
+        <option value="Cleaning">Cleaning</option>
+        <option value="Moving">Moving</option>
+        <option value="Furniture Assembly">Furniture Assembly</option>
+        <option value="TV Mounting">TV Mounting</option>
+        <option value="Yard Work">Yard Work</option>
+        <option value="Delivery">Delivery</option>
+        <option value="Other">Other</option>
+      </select>
+ 
+      <input
+        type="text"
+        id="cityFilter"
+        placeholder="Filter by city"
+        oninput="loadTasks()"
+      >
+    </div>
+  </div>
+ 
+  <div id="tasksList" class="card empty">
+    <div class="loading-spinner"></div>
+    Loading open tasks...
+  </div>
+ 
 </div>
-
-<div id="tasksList" class="card empty">
-Loading open tasks...
-</div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+ 
 <script>
 const supabaseClient = window.supabase.createClient(
-"https://dbcthtjmtlumidpbucrc.supabase.co",
-"sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
-
+ 
+let currentUser = null;
+let currentWorkerProfile = null;
+let currentWorkerRecord = null;
+let currentWorkerId = null;
+ 
+const DEFAULT_PROFILE_PHOTO =
+  "https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true";
+ 
+function cleanText(value, fallback = "Not specified") {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+ 
+  const text = String(value).trim();
+ 
+  return text === "" ? fallback : text;
+}
+ 
+function escapeHTML(value) {
+  return cleanText(value, "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+ 
+function getFirstAvailable(record, keys, fallback = "") {
+  if (!record) {
+    return fallback;
+  }
+ 
+  for (const key of keys) {
+    if (
+      record[key] !== null &&
+      record[key] !== undefined &&
+      String(record[key]).trim() !== ""
+    ) {
+      return record[key];
+    }
+  }
+ 
+  return fallback;
+}
+ 
+function formatDate(value) {
+  if (!value) {
+    return "Not specified";
+  }
+ 
+  const date = new Date(value);
+ 
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+ 
+  return date.toLocaleDateString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+ 
+function getTaskDate(task) {
+  return getFirstAvailable(task, [
+    "task_date",
+    "date_needed",
+    "needed_by",
+    "scheduled_date",
+    "scheduled_start",
+    "due_date"
+  ]);
+}
+ 
+function getTaskTitle(task) {
+  return getFirstAvailable(task, [
+    "title",
+    "task_title",
+    "job_title",
+    "category",
+    "service_type"
+  ], "Open Task");
+}
+ 
+function getTaskDetails(task) {
+  return getFirstAvailable(task, [
+    "description",
+    "details",
+    "task_details",
+    "notes",
+    "special_instructions"
+  ], "No additional task details were provided.");
+}
+ 
+function getTaskCategory(task) {
+  return getFirstAvailable(task, [
+    "category",
+    "task_category",
+    "service_type"
+  ], "Other");
+}
+ 
+function getTaskCity(task) {
+  return getFirstAvailable(task, [
+    "city",
+    "task_city",
+    "service_city"
+  ], "City not listed");
+}
+ 
+function getTaskState(task) {
+  return getFirstAvailable(task, [
+    "state",
+    "task_state",
+    "service_state"
+  ], "");
+}
+ 
+function getCityState(task) {
+  const city = cleanText(getTaskCity(task), "City not listed");
+  const state = cleanText(getTaskState(task), "");
+ 
+  if (state && state !== "Not specified") {
+    return `${city}, ${state}`;
+  }
+ 
+  return city;
+}
+ 
+function getFullAddress(task) {
+  return getFirstAvailable(task, [
+    "full_address",
+    "address",
+    "task_address",
+    "street_address",
+    "service_address"
+  ], "Full address not available yet");
+}
+ 
+function getCustomerId(task) {
+  return getFirstAvailable(task, [
+    "customer_id",
+    "client_id",
+    "posted_by",
+    "created_by",
+    "user_id",
+    "profile_id"
+  ], "");
+}
+ 
+function getTaskLat(task) {
+  return Number(getFirstAvailable(task, [
+    "latitude",
+    "lat",
+    "task_latitude",
+    "service_latitude"
+  ], NaN));
+}
+ 
+function getTaskLng(task) {
+  return Number(getFirstAvailable(task, [
+    "longitude",
+    "lng",
+    "task_longitude",
+    "service_longitude"
+  ], NaN));
+}
+ 
+function getWorkerLat() {
+  return Number(getFirstAvailable(currentWorkerProfile, [
+    "latitude",
+    "lat",
+    "worker_latitude",
+    "service_latitude"
+  ], NaN));
+}
+ 
+function getWorkerLng() {
+  return Number(getFirstAvailable(currentWorkerProfile, [
+    "longitude",
+    "lng",
+    "worker_longitude",
+    "service_longitude"
+  ], NaN));
+}
+ 
+function calculateMiles(lat1, lng1, lat2, lng2) {
+  if (
+    Number.isNaN(lat1) ||
+    Number.isNaN(lng1) ||
+    Number.isNaN(lat2) ||
+    Number.isNaN(lng2)
+  ) {
+    return null;
+  }
+ 
+  const earthRadiusMiles = 3958.8;
+  const toRadians = value => value * Math.PI / 180;
+ 
+  const dLat = toRadians(lat2 - lat1);
+  const dLng = toRadians(lng2 - lng1);
+ 
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRadians(lat1)) *
+    Math.cos(toRadians(lat2)) *
+    Math.sin(dLng / 2) *
+    Math.sin(dLng / 2);
+ 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+ 
+  return earthRadiusMiles * c;
+}
+ 
+function getMilesAway(task) {
+  const workerLat = getWorkerLat();
+  const workerLng = getWorkerLng();
+  const taskLat = getTaskLat(task);
+  const taskLng = getTaskLng(task);
+ 
+  const miles = calculateMiles(workerLat, workerLng, taskLat, taskLng);
+ 
+  if (miles === null) {
+    return "Mileage unavailable";
+  }
+ 
+  return `${miles.toFixed(1)} miles away`;
+}
+ 
+function getCustomerDisplayName(profile) {
+  if (!profile) {
+    return "Customer";
+  }
+ 
+  const firstName = getFirstAvailable(profile, [
+    "first_name",
+    "firstName"
+  ], "Customer");
+ 
+  const lastName = getFirstAvailable(profile, [
+    "last_name",
+    "lastName"
+  ], "");
+ 
+  const lastInitial = lastName ? `${String(lastName).trim().charAt(0)}.` : "";
+ 
+  return `${firstName} ${lastInitial}`.trim();
+}
+ 
+function getCustomerPhoto(profile) {
+  return getFirstAvailable(profile, [
+    "profile_photo_url",
+    "photo_url",
+    "avatar_url"
+  ], DEFAULT_PROFILE_PHOTO);
+}
+ 
+function isQuotePaidForWorker(task) {
+  const paidStatus = String(getFirstAvailable(task, [
+    "payment_status",
+    "quote_payment_status",
+    "escrow_status"
+  ], "")).toLowerCase();
+ 
+  const acceptedWorkerId = String(getFirstAvailable(task, [
+    "accepted_worker_id",
+    "assigned_worker_id",
+    "worker_id"
+  ], ""));
+ 
+  const paidQuoteId = getFirstAvailable(task, [
+    "accepted_quote_id",
+    "paid_quote_id",
+    "selected_quote_id"
+  ], "");
+ 
+  const workerMatches =
+    acceptedWorkerId &&
+    currentWorkerId &&
+    acceptedWorkerId === String(currentWorkerId);
+ 
+  const paymentLooksPaid =
+    paidStatus === "paid" ||
+    paidStatus === "escrowed" ||
+    paidStatus === "authorized" ||
+    paidStatus === "held";
+ 
+  return workerMatches && (paymentLooksPaid || paidQuoteId);
+}
+ 
+function isWithinSevenDays(task) {
+  const taskDateValue = getTaskDate(task);
+ 
+  if (!taskDateValue) {
+    return false;
+  }
+ 
+  const taskDate = new Date(taskDateValue);
+ 
+  if (Number.isNaN(taskDate.getTime())) {
+    return false;
+  }
+ 
+  const now = new Date();
+  const differenceMs = taskDate.getTime() - now.getTime();
+  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+ 
+  return differenceMs <= sevenDaysMs;
+}
+ 
+function canShowFullAddress(task) {
+  return isQuotePaidForWorker(task) && isWithinSevenDays(task);
+}
+ 
+function getLocationForCard(task) {
+  if (canShowFullAddress(task)) {
+    return getFullAddress(task);
+  }
+ 
+  return getCityState(task);
+}
+ 
+async function loadCurrentWorker() {
+  const { data, error } = await supabaseClient.auth.getUser();
+ 
+  if (error || !data || !data.user) {
+    window.location.href = "worker-login.html";
+    return false;
+  }
+ 
+  currentUser = data.user;
+ 
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", currentUser.id)
+    .maybeSingle();
+ 
+  currentWorkerProfile = profile || null;
+ 
+  const { data: workerRecord } = await supabaseClient
+    .from("workers")
+    .select("*")
+    .eq("email", currentUser.email)
+    .maybeSingle();
+ 
+  currentWorkerRecord = workerRecord || null;
+  currentWorkerId =
+    getFirstAvailable(currentWorkerRecord, ["id"], "") ||
+    getFirstAvailable(currentWorkerProfile, ["id"], "") ||
+    currentUser.id;
+ 
+  return true;
+}
+ 
+async function fetchCustomerProfiles(tasks) {
+  const customerIds = [
+    ...new Set(
+      tasks
+        .map(task => getCustomerId(task))
+        .filter(id => id && String(id).trim() !== "")
+    )
+  ];
+ 
+  if (customerIds.length === 0) {
+    return {};
+  }
+ 
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
+    .in("id", customerIds);
+ 
+  if (error || !data) {
+    return {};
+  }
+ 
+  const profileMap = {};
+ 
+  data.forEach(profile => {
+    profileMap[profile.id] = profile;
+  });
+ 
+  return profileMap;
+}
+ 
 async function loadTasks() {
-const container = document.getElementById("tasksList");
-
+  const container = document.getElementById("tasksList");
+ 
+  container.className = "card empty";
+  container.innerHTML = `
+    <div class="loading-spinner"></div>
+    Loading open tasks...
+  `;
+ 
+  if (!currentUser) {
+    const loaded = await loadCurrentWorker();
+ 
+    if (!loaded) {
+      return;
+    }
+  }
+ 
   const selectedCategory =
-  document.getElementById("categoryFilter").value;
-
-const selectedCity =
-  document.getElementById("cityFilter").value.trim().toLowerCase();
-
-let query = supabaseClient
+    document.getElementById("categoryFilter").value;
+ 
+  const selectedCity =
+    document.getElementById("cityFilter").value.trim().toLowerCase();
+ 
+  let query = supabaseClient
   .from("tasks")
   .select("*")
-  .eq("status", "open");
-
-if (selectedCategory) {
-  query = query.eq("category", selectedCategory);
+  .eq("status", "open")
+  .neq("quote_accepted", true);
+    .order("created_at", { ascending: false });
+ 
+  if (selectedCategory) {
+    query = query.eq("category", selectedCategory);
+  }
+ 
+  const { data: tasks, error } = await query;
+ 
+  if (error) {
+    console.error(error);
+    container.innerHTML = "<div class='empty'>Error loading tasks.</div>";
+    return;
+  }
+ 
+  if (!tasks || tasks.length === 0) {
+    container.innerHTML = "<div class='empty'>No open tasks available.</div>";
+    return;
+  }
+ 
+  const filteredTasks = tasks.filter(task => {
+    const taskCity = String(getTaskCity(task)).toLowerCase();
+ 
+    if (selectedCity && !taskCity.includes(selectedCity)) {
+      return false;
+    }
+ 
+    return true;
+  });
+ 
+  if (filteredTasks.length === 0) {
+    container.innerHTML = "<div class='empty'>No tasks match your filters.</div>";
+    return;
+  }
+ 
+  const customerProfiles = await fetchCustomerProfiles(filteredTasks);
+ 
+  container.className = "";
+  container.innerHTML = `
+    <div class="count-line">
+      ${filteredTasks.length} open task${filteredTasks.length === 1 ? "" : "s"} found
+    </div>
+  `;
+ 
+  filteredTasks.forEach(task => {
+    const customerId = getCustomerId(task);
+    const customerProfile = customerProfiles[customerId] || null;
+    const category = getTaskCategory(task);
+    const taskDate = formatDate(getTaskDate(task));
+    const createdDate = formatDate(task.created_at);
+    const location = getLocationForCard(task);
+    const milesAway = getMilesAway(task);
+    const fullAddressVisible = canShowFullAddress(task);
+ 
+    const div = document.createElement("div");
+    div.className = "task-card";
+ 
+    div.innerHTML = `
+      <div class="task-top">
+        <div>
+          <div class="task-title">
+            ${escapeHTML(getTaskTitle(task))}
+          </div>
+        </div>
+ 
+        <div class="category-pill">
+          ${escapeHTML(category)}
+        </div>
+      </div>
+ 
+      <div class="customer-row">
+        <img
+          class="customer-photo"
+          src="${escapeHTML(getCustomerPhoto(customerProfile))}"
+          alt="Customer profile photo"
+          onerror="this.src='${DEFAULT_PROFILE_PHOTO}'"
+        >
+ 
+        <div>
+          <div class="customer-name">
+            ${escapeHTML(getCustomerDisplayName(customerProfile))}
+          </div>
+ 
+          <div class="customer-sub">
+            Posted ${escapeHTML(createdDate)}
+          </div>
+        </div>
+      </div>
+ 
+      <div class="info-grid">
+        <div class="info-box">
+          <div class="info-label">Location</div>
+          <div class="info-value">${escapeHTML(location)}</div>
+        </div>
+ 
+        <div class="info-box">
+          <div class="info-label">Distance</div>
+          <div class="info-value">${escapeHTML(milesAway)}</div>
+        </div>
+ 
+        <div class="info-box">
+          <div class="info-label">Date Needed</div>
+          <div class="info-value">${escapeHTML(taskDate)}</div>
+        </div>
+ 
+        <div class="info-box">
+          <div class="info-label">Category</div>
+          <div class="info-value">${escapeHTML(category)}</div>
+        </div>
+      </div>
+ 
+      <div class="details-box">
+        <div class="details-label">Task Details</div>
+        <div class="details-text">${escapeHTML(getTaskDetails(task))}</div>
+      </div>
+ 
+      <div class="privacy-note">
+        ${fullAddressVisible
+          ? "Full address is visible because this task is assigned to you, the customer's quote payment is recorded, and the task is within 7 days."
+          : "Only city and state are shown until the customer accepts and pays your quote and the task is within 7 days of the scheduled date."
+        }
+      </div>
+ 
+      <div class="button-grid">
+        <button class="secondary" onclick="messageCustomer('${task.id}', '${customerId}')">
+          Message
+        </button>
+ 
+        <button onclick="sendQuote('${task.id}')">
+          Send Quote
+        </button>
+ 
+        <button class="secondary full" onclick="viewTask('${task.id}')">
+          View Task Details
+        </button>
+      </div>
+    `;
+ 
+    container.appendChild(div);
+  });
 }
-
-const { data: tasks, error } = await query;
-
-if (error) {
-console.error(error);
-container.innerHTML = "<div class='empty'>Error loading tasks</div>";
-return;
-}
-
-if (!tasks || tasks.length === 0) {
-container.innerHTML = "<div class='empty'>No open tasks available</div>";
-return;
-}
-
-container.innerHTML = "";
-
-tasks.forEach(task => {
-
-const taskCity =
-  (task.city || "").toLowerCase();
-
-if (
-  selectedCity &&
-  !taskCity.includes(selectedCity)
-) {
-  return;
-}
-
-const div = document.createElement("div");
-div.className = "card";
-
-div.innerHTML = `
-<div class="task-title">${task.title}</div>
-<div class="task-info">${task.description || ""}</div>
-<div class="task-info">
-<strong>Location:</strong>
-${task.city || "Not specified"}
-</div>
-
-<div class="task-info">
-<strong>Date Needed:</strong>
-${task.task_date || "Not specified"}
-</div>
-
-<button onclick="viewTask('${task.id}')">
-View Task
-</button>
-
-<button class="secondary"
-onclick="sendQuote('${task.id}')">
-Send Quote
-</button>
-`;
-
-container.appendChild(div);
-});
-}
-
+ 
 function viewTask(taskId) {
-localStorage.setItem("selectedJobId", taskId);
-window.location.href = "job-details.html";
+  localStorage.setItem("selectedJobId", taskId);
+  localStorage.setItem("selectedTaskId", taskId);
+  window.location.href = "job-details.html";
 }
-  function sendQuote(taskId) {
+ 
+function sendQuote(taskId) {
   localStorage.setItem("selectedQuoteTaskId", taskId);
+  localStorage.setItem("selectedTaskId", taskId);
   window.location.href = "send-quote.html";
 }
-
-loadTasks();
+ 
+async function messageCustomer(taskId, customerId) {
+  if (!currentUser) {
+    const loaded = await loadCurrentWorker();
+ 
+    if (!loaded) {
+      return;
+    }
+  }
+ 
+  localStorage.setItem("selectedMessageTaskId", taskId);
+  localStorage.setItem("selectedTaskId", taskId);
+  localStorage.setItem("selectedCustomerId", customerId || "");
+  localStorage.setItem("messageContext", "task");
+ 
+  try {
+    await supabaseClient
+      .from("task_conversations")
+      .upsert({
+        task_id: taskId,
+        worker_id: currentWorkerId,
+        customer_id: customerId,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: "task_id,worker_id,customer_id"
+      });
+  } catch (error) {
+    console.warn("Task conversation table not ready yet.", error);
+  }
+ 
+  window.location.href = "worker-task-message.html";
+}
+ 
+loadCurrentWorker().then(() => {
+  loadTasks();
+});
 </script>
+ 
 </body>
 </html>

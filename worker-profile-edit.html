@@ -748,7 +748,7 @@ async function checkLogin() {
  
 async function loadProfile() {
  
-  const { data, error } =
+  const { data: profileData, error: profileError } =
     await supabaseClient
       .from("profiles")
       .select(`
@@ -759,22 +759,53 @@ async function loadProfile() {
         skills,
         service_area,
         service_radius,
-        profile_photo_url,
-        payout_setup_complete,
-        id_verification_complete
+        profile_photo_url
       `)
       .eq("id", currentUser.id)
       .maybeSingle();
  
-  if (error) {
-    console.error(error);
+  if (profileError) {
+    console.error(profileError);
     showToast("Profile could not load. Check your profiles table or RLS policy.");
-    updateChecklist({});
-    updatePreview();
-    return;
   }
  
-  currentProfile = data || {};
+  const { data: workerData, error: workerError } =
+    await supabaseClient
+      .from("workers")
+      .select("*")
+      .eq("email", currentUser.email)
+      .maybeSingle();
+ 
+  if (workerError) {
+    console.warn("Worker table lookup skipped or blocked:", workerError);
+  }
+ 
+  currentProfile = {
+    ...(profileData || {}),
+    worker_record: workerData || null,
+    payout_setup_complete:
+      Boolean(
+        (profileData && profileData.payout_setup_complete) ||
+        (workerData && workerData.payout_setup_complete) ||
+        (workerData && workerData.payout_complete) ||
+        (workerData && workerData.stripe_onboarding_complete)
+      ),
+    id_verification_complete:
+      Boolean(
+        (profileData && profileData.id_verification_complete) ||
+        (workerData && workerData.id_verification_complete) ||
+        (workerData && workerData.identity_verified) ||
+        (workerData && workerData.background_check_complete)
+      )
+  };
+ 
+  const savedPhotoUrl =
+    (profileData && profileData.profile_photo_url) ||
+    (workerData && workerData.profile_photo_url) ||
+    (workerData && workerData.photo_url) ||
+    (workerData && workerData.profile_picture_url) ||
+    (workerData && workerData.avatar_url) ||
+    "";
  
   document.getElementById("experienceDescription").value =
     currentProfile.experience || "";
@@ -786,9 +817,9 @@ async function loadProfile() {
     currentProfile.service_radius || "";
  
   latestProfilePhotoUrl =
-    currentProfile.profile_photo_url || "";
+    isRealProfilePhoto(savedPhotoUrl) ? savedPhotoUrl : "";
  
-  if (latestProfilePhotoUrl.trim() !== "") {
+  if (latestProfilePhotoUrl !== "") {
     document.getElementById("profilePreview").src =
       latestProfilePhotoUrl;
   }
@@ -946,10 +977,36 @@ function updateExperienceCounter() {
  
 }
  
+function isRealProfilePhoto(value) {
+ 
+  if (!value || String(value).trim() === "") {
+    return false;
+  }
+ 
+  const photoValue =
+    String(value).trim().toLowerCase();
+ 
+  return !(
+    photoValue.includes("taskmintlogo") ||
+    photoValue.includes("taskmint-logo") ||
+    photoValue.endsWith("taskmintlogo.png") ||
+    photoValue.endsWith("taskmintlogo.jpg")
+  );
+ 
+}
+ 
 function getCurrentProfileValues() {
  
+  const previewSrc =
+    document.getElementById("profilePreview").getAttribute("src") || "";
+ 
+  const photoUrl =
+    isRealProfilePhoto(latestProfilePhotoUrl)
+      ? latestProfilePhotoUrl
+      : (isRealProfilePhoto(previewSrc) ? previewSrc : "");
+ 
   return {
-    profile_photo_url: latestProfilePhotoUrl,
+    profile_photo_url: photoUrl,
     experience: document.getElementById("experienceDescription").value,
     service_area: document.getElementById("serviceArea").value,
     service_radius: document.getElementById("serviceRadius").value,
@@ -968,8 +1025,7 @@ function updateChecklist(profile) {
     {
       id: "photoCheck",
       complete:
-        profile.profile_photo_url &&
-        profile.profile_photo_url.trim() !== ""
+        isRealProfilePhoto(profile.profile_photo_url)
     },
     {
       id: "experienceCheck",
@@ -1031,7 +1087,7 @@ function updateChecklist(profile) {
     `${percent}%`;
  
   document.getElementById("progressText").innerText =
-    `${percent}% complete`;
+    `${percent}% complete (${completeCount} of ${checks.length} items done)`;
  
 }
  
@@ -1303,4 +1359,5 @@ checkLogin();
 </script>
 </body>
 </html>
+
 

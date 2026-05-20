@@ -7,50 +7,85 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background: linear-gradient(180deg, #eaf7ee, #f5f5f5);
       color: #111;
     }
 
     .container {
       max-width: 420px;
       margin: 0 auto;
-      background: white;
       min-height: 100vh;
       padding: 24px;
       box-sizing: border-box;
     }
-.logo-text {
-  text-align: center;
-  margin-top: 40px;
-  margin-bottom: 30px;
-  font-size: 28px;
-  font-weight: bold;
-  color: #0b7a28;
-}
+
+    .hero {
+      text-align: center;
+      margin-top: 28px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.45s ease;
+    }
+
+    .logo-circle {
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      background: white;
+      margin: 0 auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+      border: 4px solid #0b7a28;
+      overflow: hidden;
+    }
+
+    .logo-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .logo-text {
+      font-size: 28px;
+      font-weight: bold;
+      color: #0b7a28;
+      margin-bottom: 6px;
+    }
+
+    .tagline {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.5;
+      max-width: 330px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+      border: 1px solid #eee;
+      animation: fadeUp 0.6s ease;
+    }
+
     h1 {
       text-align: center;
-      color: #0b7a28;
-      margin-bottom: 8px;
+      color: #111;
+      margin: 0 0 8px;
+      font-size: 24px;
     }
 
     .subtext {
       text-align: center;
       color: #666;
       font-size: 14px;
-      margin-bottom: 30px;
+      margin-bottom: 22px;
       line-height: 1.4;
-    }
-
-    .card {
-      background: white;
-      border-radius: 18px;
-      padding: 22px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-      border: 1px solid #eee;
     }
 
     label {
@@ -68,25 +103,90 @@
       border: 1px solid #ddd;
       font-size: 15px;
       box-sizing: border-box;
+      font-family: Arial, sans-serif;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #0b7a28;
+      box-shadow: 0 0 0 3px rgba(11,122,40,0.12);
+    }
+
+    .password-wrap {
+      position: relative;
+    }
+
+    .show-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      font-weight: bold;
+      color: #0b7a28;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .remember-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 14px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .remember-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .remember-left input {
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      accent-color: #0b7a28;
     }
 
     button {
       width: 100%;
       padding: 15px;
-      margin-top: 22px;
+      margin-top: 20px;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       background: #0b7a28;
       color: white;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      font-family: Arial, sans-serif;
+    }
+
+    button:disabled {
+      background: #8dbb99;
+      cursor: not-allowed;
     }
 
     .secondary-btn {
       background: white;
       color: #111;
       border: 1px solid #ddd;
+      margin-top: 12px;
+    }
+
+    .helper-links {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+
+    .helper-links a {
+      color: #0b7a28;
+      text-decoration: none;
+      font-weight: bold;
     }
 
     .error {
@@ -95,6 +195,7 @@
       margin-top: 15px;
       font-size: 14px;
       font-weight: bold;
+      line-height: 1.4;
     }
 
     .success {
@@ -103,6 +204,39 @@
       margin-top: 15px;
       font-size: 14px;
       font-weight: bold;
+      line-height: 1.4;
+    }
+
+    .worker-benefits {
+      margin-top: 18px;
+      display: grid;
+      gap: 10px;
+      animation: fadeUp 0.75s ease;
+    }
+
+    .benefit {
+      background: rgba(255,255,255,0.75);
+      border: 1px solid #e4eee7;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.4;
+    }
+
+    .benefit strong {
+      color: #0b7a28;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
   </style>
@@ -112,25 +246,67 @@
 
 <div class="container">
 
-<div class="logo-text">
-  TaskMint Worker
-</div>
+  <div class="hero">
 
-  <h1>Worker Login</h1>
+    <div class="logo-circle">
+      <img src="Taskmintlogo.png" alt="TaskMint Logo">
+    </div>
 
-  <div class="subtext">
-    Log into your TaskMint worker account to manage jobs, quotes, earnings, and payouts.
+    <div class="logo-text">
+      TaskMint Worker
+    </div>
+
+    <div class="tagline">
+      Manage quotes, jobs, messages, earnings, availability, and payouts in one place.
+    </div>
+
   </div>
 
   <div class="card">
 
+    <h1>Welcome Back</h1>
+
+    <div class="subtext">
+      Log into your worker account to view jobs, send quotes, and manage your schedule.
+    </div>
+
     <label>Email</label>
-    <input type="email" id="email">
+    <input
+      type="email"
+      id="email"
+      placeholder="you@example.com"
+      autocomplete="email"
+    >
 
     <label>Password</label>
-    <input type="password" id="password">
 
-    <button onclick="workerLogin()">
+    <div class="password-wrap">
+      <input
+        type="password"
+        id="password"
+        placeholder="Enter your password"
+        autocomplete="current-password"
+      >
+
+      <span class="show-password" onclick="togglePassword()">
+        Show
+      </span>
+    </div>
+
+    <div class="remember-row">
+
+      <label class="remember-left">
+        <input type="checkbox" id="rememberLogin">
+        Remember email
+      </label>
+
+      <a href="forgot-password.html" style="color:#0b7a28; font-weight:bold; text-decoration:none;">
+        Forgot?
+      </a>
+
+    </div>
+
+    <button id="loginButton" onclick="workerLogin()">
       Log In
     </button>
 
@@ -143,6 +319,25 @@
 
   </div>
 
+  <div class="worker-benefits">
+
+    <div class="benefit">
+      <strong>Set your availability</strong><br>
+      Control when customers can request your time.
+    </div>
+
+    <div class="benefit">
+      <strong>Send your own quotes</strong><br>
+      Choose the jobs you want and price your work.
+    </div>
+
+    <div class="benefit">
+      <strong>Secure payouts</strong><br>
+      Connect ACH or eligible debit payouts through Stripe.
+    </div>
+
+  </div>
+
 </div>
 
 <script>
@@ -152,21 +347,58 @@ const supabaseClient = window.supabase.createClient(
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
 
+document.addEventListener("DOMContentLoaded", () => {
+  const savedEmail =
+    localStorage.getItem("taskmintWorkerEmail");
+
+  if (savedEmail) {
+    document.getElementById("email").value =
+      savedEmail;
+
+    document.getElementById("rememberLogin").checked =
+      true;
+  }
+});
+
+function togglePassword() {
+  const passwordInput =
+    document.getElementById("password");
+
+  const toggle =
+    document.querySelector(".show-password");
+
+  if (passwordInput.type === "password") {
+    passwordInput.type = "text";
+    toggle.innerText = "Hide";
+  } else {
+    passwordInput.type = "password";
+    toggle.innerText = "Show";
+  }
+}
+
 async function workerLogin() {
 
   const status =
     document.getElementById("status");
+
+  const loginButton =
+    document.getElementById("loginButton");
 
   status.innerHTML = "";
 
   const email =
     document.getElementById("email")
       .value
-      .trim();
+      .trim()
+      .toLowerCase();
 
   const password =
     document.getElementById("password")
       .value;
+
+  const rememberLogin =
+    document.getElementById("rememberLogin")
+      .checked;
 
   if (!email || !password) {
 
@@ -179,6 +411,9 @@ async function workerLogin() {
     return;
   }
 
+  loginButton.disabled = true;
+  loginButton.innerText = "Logging in...";
+
   const { data, error } =
     await supabaseClient.auth.signInWithPassword({
       email,
@@ -186,6 +421,9 @@ async function workerLogin() {
     });
 
   if (error) {
+
+    loginButton.disabled = false;
+    loginButton.innerText = "Log In";
 
     status.innerHTML = `
       <div class="error">
@@ -196,16 +434,20 @@ async function workerLogin() {
     return;
   }
 
-  const user = data.user;
-
   const { data: worker } =
     await supabaseClient
-      .from("workers")
+      .from("profiles")
       .select("*")
-.ilike("email", `%${email}%`)   
-    .maybeSingle();
+      .eq("email", email)
+      .eq("account_type", "worker")
+      .maybeSingle();
 
   if (!worker) {
+
+    await supabaseClient.auth.signOut();
+
+    loginButton.disabled = false;
+    loginButton.innerText = "Log In";
 
     status.innerHTML = `
       <div class="error">
@@ -216,16 +458,24 @@ async function workerLogin() {
     return;
   }
 
+  if (rememberLogin) {
+    localStorage.setItem("taskmintWorkerEmail", email);
+  } else {
+    localStorage.removeItem("taskmintWorkerEmail");
+  }
+
+  localStorage.setItem("taskmintUserId", data.user.id);
+
   status.innerHTML = `
     <div class="success">
-      Login successful.
+      Login successful. Redirecting...
     </div>
   `;
 
   setTimeout(() => {
     window.location.href =
       "worker-dashboard.html";
-  }, 1000);
+  }, 700);
 
 }
 

@@ -314,6 +314,7 @@ const supabaseClient = window.supabase.createClient(
 const params = new URLSearchParams(window.location.search);
 
 let currentUser = null;
+
 let currentConversationId =
   params.get("conversation_id") ||
   localStorage.getItem("selectedConversationId") ||
@@ -359,6 +360,20 @@ const blockedWords = [
   "pussy"
 ];
 
+function isValidUUID(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ""));
+}
+
+function cleanUUID(value) {
+  return isValidUUID(value) ? value : "";
+}
+
+currentConversationId = cleanUUID(currentConversationId);
+currentTaskId = cleanUUID(currentTaskId);
+currentQuoteRequestId = cleanUUID(currentQuoteRequestId);
+currentCustomerId = cleanUUID(currentCustomerId);
+currentWorkerId = cleanUUID(currentWorkerId);
+
 function containsBlockedWords(text) {
   const lowerText = String(text || "").toLowerCase();
   return blockedWords.some(word => lowerText.includes(word));
@@ -401,25 +416,57 @@ async function getCurrentUser() {
   return null;
 }
 
-async function getWorkerProfileId(user) {
-  if (currentWorkerId) {
-    return currentWorkerId;
+async function normalizeConversationIds(user) {
+  /*
+    IMPORTANT:
+    For messaging to sync with the customer page, task_conversations.worker_id
+    and task_messages.sender_id must use the same worker id the customer page passes.
+    The safest default is the logged-in auth user id.
+  */
+
+  if (!currentWorkerId) {
+    currentWorkerId = user.id;
   }
 
-  const { data: workerProfile } = await supabaseClient
-    .from("worker_profiles")
-    .select("id")
-    .eq("email", user.email)
-    .maybeSingle();
+  if (currentTaskId && !currentCustomerId) {
+    const { data: task } =
+      await supabaseClient
+        .from("tasks")
+        .select("customer_id, assigned_worker_id")
+        .eq("id", currentTaskId)
+        .maybeSingle();
 
-  if (workerProfile && workerProfile.id) {
-    currentWorkerId = workerProfile.id;
-    localStorage.setItem("selectedWorkerId", currentWorkerId);
-    return currentWorkerId;
+    if (task) {
+      currentCustomerId =
+        task.customer_id || currentCustomerId;
+
+      if (task.assigned_worker_id) {
+        currentWorkerId =
+          task.assigned_worker_id;
+      }
+    }
   }
 
-  currentWorkerId = user.id;
-  return currentWorkerId;
+  if (!currentCustomerId) {
+    currentCustomerId =
+      params.get("customer_id") ||
+      params.get("receiver_id") ||
+      localStorage.getItem("selectedCustomerId") ||
+      "";
+  }
+
+  currentCustomerId = cleanUUID(currentCustomerId);
+  currentWorkerId = cleanUUID(currentWorkerId);
+
+  localStorage.setItem("selectedWorkerId", currentWorkerId || user.id);
+
+  if (currentCustomerId) {
+    localStorage.setItem("selectedCustomerId", currentCustomerId);
+  }
+
+  if (currentTaskId) {
+    localStorage.setItem("selectedTaskId", currentTaskId);
+  }
 }
 
 async function loadQuoteRequest() {
@@ -437,14 +484,15 @@ async function loadQuoteRequest() {
 }
 
 async function ensureConversation(user) {
-  await getWorkerProfileId(user);
+  await normalizeConversationIds(user);
 
   if (currentConversationId) {
-    const { data: existingConversation } = await supabaseClient
-      .from("task_conversations")
-      .select("*")
-      .eq("id", currentConversationId)
-      .maybeSingle();
+    const { data: existingConversation } =
+      await supabaseClient
+        .from("task_conversations")
+        .select("*")
+        .eq("id", currentConversationId)
+        .maybeSingle();
 
     if (existingConversation) {
       currentConversationId = existingConversation.id;
@@ -452,31 +500,54 @@ async function ensureConversation(user) {
       currentQuoteRequestId = existingConversation.quote_request_id || currentQuoteRequestId || "";
       currentCustomerId = existingConversation.customer_id || currentCustomerId || "";
       currentWorkerId = existingConversation.worker_id || currentWorkerId || "";
+
       otherUserId =
         String(user.id) === String(currentCustomerId)
           ? currentWorkerId
           : currentCustomerId;
 
+      localStorage.setItem("selectedConversationId", currentConversationId);
       return existingConversation;
     }
   }
 
-  let query = supabaseClient
-    .from("task_conversations")
-    .select("*");
+  let foundConversation = null;
 
-  if (currentQuoteRequestId) {
-    query = query.eq("quote_request_id", currentQuoteRequestId);
-  } else if (currentTaskId && currentCustomerId && currentWorkerId) {
-    query = query
-      .eq("task_id", currentTaskId)
-      .eq("customer_id", currentCustomerId)
-      .eq("worker_id", currentWorkerId);
-  } else {
-    return null;
+  if (currentTaskId && currentCustomerId && currentWorkerId) {
+    const { data } =
+      await supabaseClient
+        .from("task_conversations")
+        .select("*")
+        .eq("task_id", currentTaskId)
+        .eq("customer_id", currentCustomerId)
+        .eq("worker_id", currentWorkerId)
+        .maybeSingle();
+
+    foundConversation = data;
   }
 
-  const { data: foundConversation } = await query.maybeSingle();
+  if (!foundConversation && currentTaskId) {
+    const { data } =
+      await supabaseClient
+        .from("task_conversations")
+        .select("*")
+        .eq("task_id", currentTaskId)
+        .or(`worker_id.eq.${currentWorkerId},customer_id.eq.${currentCustomerId}`)
+        .maybeSingle();
+
+    foundConversation = data;
+  }
+
+  if (!foundConversation && currentQuoteRequestId) {
+    const { data } =
+      await supabaseClient
+        .from("task_conversations")
+        .select("*")
+        .eq("quote_request_id", currentQuoteRequestId)
+        .maybeSingle();
+
+    foundConversation = data;
+  }
 
   if (foundConversation) {
     currentConversationId = foundConversation.id;
@@ -484,6 +555,7 @@ async function ensureConversation(user) {
     currentQuoteRequestId = foundConversation.quote_request_id || currentQuoteRequestId || "";
     currentCustomerId = foundConversation.customer_id || currentCustomerId || "";
     currentWorkerId = foundConversation.worker_id || currentWorkerId || "";
+
     otherUserId =
       String(user.id) === String(currentCustomerId)
         ? currentWorkerId
@@ -493,22 +565,30 @@ async function ensureConversation(user) {
     return foundConversation;
   }
 
-  if (!currentCustomerId) {
-    currentCustomerId = user.id;
+  if (!currentTaskId && !currentQuoteRequestId) {
+    return null;
   }
 
-  const { data: newConversation, error } = await supabaseClient
-    .from("task_conversations")
-    .insert({
-      task_id: currentTaskId || null,
-      quote_request_id: currentQuoteRequestId || null,
-      customer_id: currentCustomerId,
-      worker_id: currentWorkerId,
-      conversation_type: currentQuoteRequestId ? "quote_request" : "task",
-      updated_at: new Date().toISOString()
-    })
-    .select()
-    .single();
+  if (!currentCustomerId || !currentWorkerId) {
+    setStatus("Missing customer or worker information for this conversation.", "error");
+    return null;
+  }
+
+  const { data: newConversation, error } =
+    await supabaseClient
+      .from("task_conversations")
+      .insert([
+        {
+          task_id: currentTaskId || null,
+          quote_request_id: currentQuoteRequestId || null,
+          customer_id: currentCustomerId,
+          worker_id: currentWorkerId,
+          conversation_type: currentQuoteRequestId ? "quote_request" : "task",
+          updated_at: new Date().toISOString()
+        }
+      ])
+      .select()
+      .single();
 
   if (error) {
     setStatus(error.message, "error");
@@ -536,7 +616,7 @@ async function updateContextBox(conversation) {
   if (!conversation) {
     context.innerHTML = `
       <div class="context-title">Conversation Not Found</div>
-      <div class="context-sub">Open this message from the inbox or quote request page.</div>
+      <div class="context-sub">Open this message from the task, scheduled job, inbox, or quote page.</div>
     `;
     return;
   }
@@ -550,6 +630,20 @@ async function updateContextBox(conversation) {
   } else if (conversation.task_id) {
     title = "Task Conversation";
     sub = "This conversation is tied to one task only.";
+  }
+
+  if (conversation.task_id) {
+    const { data: task } =
+      await supabaseClient
+        .from("tasks")
+        .select("title, category")
+        .eq("id", conversation.task_id)
+        .maybeSingle();
+
+    if (task) {
+      title =
+        task.category || task.title || title;
+    }
   }
 
   context.innerHTML = `
@@ -608,7 +702,7 @@ async function loadMessages() {
   if (!conversation || !currentConversationId) {
     box.innerHTML = `
       <div class="empty">
-        No conversation selected. Open a message from the worker inbox.
+        No conversation selected. Open this chat from a task, scheduled job, inbox, or quote request page.
       </div>
     `;
     return;
@@ -617,14 +711,15 @@ async function loadMessages() {
   await markInboxItemRead();
   await markMessagesRead(user);
 
-  const { data: messages, error } = await supabaseClient
-    .from("task_messages")
-    .select("*")
-    .eq("conversation_id", currentConversationId)
-    .order("created_at", { ascending: true });
+  const { data: messages, error } =
+    await supabaseClient
+      .from("task_messages")
+      .select("*")
+      .eq("conversation_id", currentConversationId)
+      .order("created_at", { ascending: true });
 
   if (error) {
-    box.innerHTML = `<p class="error">${error.message}</p>`;
+    box.innerHTML = `<p class="error">${escapeHTML(error.message)}</p>`;
     return;
   }
 
@@ -644,6 +739,7 @@ async function loadMessages() {
       String(msg.sender_id) === String(user.id);
 
     const div = document.createElement("div");
+
     div.className =
       isMine ? "message mine" : "message theirs";
 
@@ -668,8 +764,11 @@ async function loadMessages() {
 }
 
 async function uploadImage(file, userId) {
+  const safeName =
+    file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+
   const fileName =
-    `${userId}-${Date.now()}-${file.name}`;
+    `${userId}/${Date.now()}-${safeName}`;
 
   const { error } =
     await supabaseClient.storage
@@ -689,15 +788,23 @@ async function uploadImage(file, userId) {
 }
 
 async function sendMessage() {
-  const message = document.getElementById("messageInput").value.trim();
-  const imageFile = document.getElementById("imageInput").files[0];
+  const message =
+    document.getElementById("messageInput").value.trim();
+
+  const imageFile =
+    document.getElementById("imageInput").files[0];
 
   setStatus("");
 
-  const user = await getCurrentUser();
-  if (!user) return;
+  const user =
+    await getCurrentUser();
 
-  const conversation = await ensureConversation(user);
+  if (!user) {
+    return;
+  }
+
+  const conversation =
+    await ensureConversation(user);
 
   if (!conversation || !currentConversationId) {
     setStatus("No conversation selected.", "error");
@@ -718,25 +825,24 @@ async function sendMessage() {
 
   try {
     if (imageFile) {
-      imageUrl = await uploadImage(imageFile, user.id);
+      imageUrl =
+        await uploadImage(imageFile, user.id);
     }
 
-    const senderType =
-      String(user.id) === String(currentWorkerId)
-        ? "worker"
-        : "customer";
-
-    const { error } = await supabaseClient
-      .from("task_messages")
-      .insert({
-        conversation_id: currentConversationId,
-        task_id: currentTaskId || null,
-        sender_id: user.id,
-        sender_type: senderType,
-        message: message,
-        image_url: imageUrl,
-        is_read: false
-      });
+    const { error } =
+      await supabaseClient
+        .from("task_messages")
+        .insert([
+          {
+            conversation_id: currentConversationId,
+            task_id: currentTaskId || null,
+            sender_id: user.id,
+            sender_type: "worker",
+            message: message,
+            image_url: imageUrl,
+            is_read: false
+          }
+        ]);
 
     if (error) {
       setStatus(error.message, "error");
@@ -750,17 +856,16 @@ async function sendMessage() {
       })
       .eq("id", currentConversationId);
 
-    const receiverForInbox =
-      String(user.id) === String(currentWorkerId)
-        ? currentCustomerId
-        : currentWorkerId;
-
-    if (receiverForInbox) {
-      await supabaseClient
-        .from("worker_inbox_items")
-        .insert({
+    /*
+      This keeps worker notifications working if that inbox table exists.
+      Customer notification cards should read unread task_messages where sender_id is not the customer.
+    */
+    await supabaseClient
+      .from("worker_inbox_items")
+      .insert([
+        {
           worker_id: currentWorkerId,
-          customer_id: currentCustomerId || user.id,
+          customer_id: currentCustomerId,
           conversation_id: currentConversationId,
           task_id: currentTaskId || null,
           quote_request_id: currentQuoteRequestId || null,
@@ -768,15 +873,15 @@ async function sendMessage() {
           title: currentQuoteRequestId ? "Quote Request Message" : "New Message",
           preview: message || "Image attachment",
           is_read: false
-        });
-    }
+        }
+      ]);
 
     document.getElementById("messageInput").value = "";
     document.getElementById("imageInput").value = "";
 
     setStatus("Message sent.", "success");
 
-    loadMessages();
+    await loadMessages();
 
   } catch (err) {
     setStatus(err.message, "error");
@@ -784,19 +889,24 @@ async function sendMessage() {
 }
 
 async function reportUser() {
-  const user = await getCurrentUser();
-  if (!user) return;
+  const user =
+    await getCurrentUser();
+
+  if (!user) {
+    return;
+  }
 
   if (!currentConversationId) {
     setStatus("No conversation selected to report.", "error");
     return;
   }
 
-  const { error } = await supabaseClient
-    .from("task_messages")
-    .update({ is_reported: true })
-    .eq("conversation_id", currentConversationId)
-    .neq("sender_id", user.id);
+  const { error } =
+    await supabaseClient
+      .from("task_messages")
+      .update({ is_reported: true })
+      .eq("conversation_id", currentConversationId)
+      .neq("sender_id", user.id);
 
   if (error) {
     setStatus(error.message, "error");
@@ -807,19 +917,24 @@ async function reportUser() {
 }
 
 async function blockUser() {
-  const user = await getCurrentUser();
-  if (!user) return;
+  const user =
+    await getCurrentUser();
+
+  if (!user) {
+    return;
+  }
 
   if (!currentConversationId) {
     setStatus("No conversation selected to block.", "error");
     return;
   }
 
-  const { error } = await supabaseClient
-    .from("task_messages")
-    .update({ is_blocked: true })
-    .eq("conversation_id", currentConversationId)
-    .neq("sender_id", user.id);
+  const { error } =
+    await supabaseClient
+      .from("task_messages")
+      .update({ is_blocked: true })
+      .eq("conversation_id", currentConversationId)
+      .neq("sender_id", user.id);
 
   if (error) {
     setStatus(error.message, "error");

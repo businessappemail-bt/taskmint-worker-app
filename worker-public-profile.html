@@ -526,9 +526,9 @@ function getUrlWorkerId() {
   const params = new URLSearchParams(window.location.search);
 
   return (
-    params.get("worker_profile_id") ||
-    params.get("workerId") ||
     params.get("worker_id") ||
+    params.get("workerId") ||
+    params.get("worker_profile_id") ||
     params.get("profile_id") ||
     params.get("id") ||
     ""
@@ -688,7 +688,6 @@ function normalizeStatus(value) {
 }
  
 async function loadWorkerProfile(workerId) {
-
   const possibleIds = [
     workerId,
     localStorage.getItem("selectedWorkerId"),
@@ -697,6 +696,50 @@ async function loadWorkerProfile(workerId) {
   ].filter(Boolean);
 
   for (const id of possibleIds) {
+    const { data: workerRecord } = await supabaseClient
+      .from("workers")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (workerRecord) {
+      let profileRecord = null;
+
+      if (workerRecord.email) {
+        const { data: profileByEmail } = await supabaseClient
+          .from("profiles")
+          .select("*")
+          .eq("email", workerRecord.email)
+          .maybeSingle();
+
+        profileRecord = profileByEmail || null;
+      }
+
+      if (!profileRecord && workerRecord.user_id) {
+        const { data: profileByUserId } = await supabaseClient
+          .from("profiles")
+          .select("*")
+          .eq("id", workerRecord.user_id)
+          .maybeSingle();
+
+        profileRecord = profileByUserId || null;
+      }
+
+      if (!profileRecord && workerRecord.auth_user_id) {
+        const { data: profileByAuthUserId } = await supabaseClient
+          .from("profiles")
+          .select("*")
+          .eq("id", workerRecord.auth_user_id)
+          .maybeSingle();
+
+        profileRecord = profileByAuthUserId || null;
+      }
+
+      return Object.assign({}, profileRecord || {}, workerRecord || {}, {
+        worker_table_id: workerRecord.id,
+        profile_table_id: profileRecord?.id || ""
+      });
+    }
 
     const { data: profileById } = await supabaseClient
       .from("profiles")
@@ -706,53 +749,6 @@ async function loadWorkerProfile(workerId) {
 
     if (profileById) {
       return profileById;
-    }
-
-    const { data: workerProfileByUserId } = await supabaseClient
-      .from("profiles")
-      .select("*")
-      .eq("auth_user_id", id)
-      .maybeSingle();
-
-    if (workerProfileByUserId) {
-      return workerProfileByUserId;
-    }
-
-    const { data: workerRecord } = await supabaseClient
-      .from("workers")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (workerRecord) {
-
-      if (workerRecord.email) {
-
-        const { data: profileByEmail } = await supabaseClient
-          .from("profiles")
-          .select("*")
-          .eq("email", workerRecord.email)
-          .maybeSingle();
-
-        if (profileByEmail) {
-          return profileByEmail;
-        }
-      }
-
-      if (workerRecord.user_id) {
-
-        const { data: profileByUserId } = await supabaseClient
-          .from("profiles")
-          .select("*")
-          .eq("id", workerRecord.user_id)
-          .maybeSingle();
-
-        if (profileByUserId) {
-          return profileByUserId;
-        }
-      }
-
-      return workerRecord;
     }
   }
 
@@ -1326,7 +1322,7 @@ function closePhotoModal() {
 }
  
 function copyProfileLink() {
-  const url = `${window.location.origin}${window.location.pathname}?workerId=${selectedWorkerId}`;
+  const url = `${window.location.origin}${window.location.pathname}?worker_id=${selectedWorkerId}`;
  
   if (navigator.clipboard) {
     navigator.clipboard.writeText(url);
@@ -1351,4 +1347,3 @@ loadPublicProfile();
  
 </body>
 </html>
- 

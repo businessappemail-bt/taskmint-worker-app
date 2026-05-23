@@ -705,7 +705,17 @@ async function loadWorkerProfile(workerId) {
     if (workerRecord) {
       let profileRecord = null;
 
-      if (workerRecord.email) {
+      if (workerRecord.auth_user_id) {
+        const { data: profileByAuthId } = await supabaseClient
+          .from("profiles")
+          .select("*")
+          .eq("id", workerRecord.auth_user_id)
+          .maybeSingle();
+
+        profileRecord = profileByAuthId || null;
+      }
+
+      if (!profileRecord && workerRecord.email) {
         const { data: profileByEmail } = await supabaseClient
           .from("profiles")
           .select("*")
@@ -713,26 +723,6 @@ async function loadWorkerProfile(workerId) {
           .maybeSingle();
 
         profileRecord = profileByEmail || null;
-      }
-
-      if (!profileRecord && workerRecord.user_id) {
-        const { data: profileByUserId } = await supabaseClient
-          .from("profiles")
-          .select("*")
-          .eq("id", workerRecord.user_id)
-          .maybeSingle();
-
-        profileRecord = profileByUserId || null;
-      }
-
-      if (!profileRecord && workerRecord.auth_user_id) {
-        const { data: profileByAuthUserId } = await supabaseClient
-          .from("profiles")
-          .select("*")
-          .eq("id", workerRecord.auth_user_id)
-          .maybeSingle();
-
-        profileRecord = profileByAuthUserId || null;
       }
 
       return Object.assign({}, profileRecord || {}, workerRecord || {}, {

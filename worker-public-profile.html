@@ -524,10 +524,12 @@ function getFirstAvailable(record, keys, fallback = "") {
  
 function getUrlWorkerId() {
   const params = new URLSearchParams(window.location.search);
- 
+
   return (
+    params.get("worker_profile_id") ||
     params.get("workerId") ||
     params.get("worker_id") ||
+    params.get("profile_id") ||
     params.get("id") ||
     ""
   );
@@ -686,35 +688,75 @@ function normalizeStatus(value) {
 }
  
 async function loadWorkerProfile(workerId) {
-  const { data: profileById, error: idError } = await supabaseClient
-    .from("profiles")
-    .select("*")
-    .eq("id", workerId)
-    .maybeSingle();
- 
-  if (!idError && profileById) {
-    return profileById;
-  }
- 
-  const { data: workerRecord } = await supabaseClient
-    .from("workers")
-    .select("*")
-    .eq("id", workerId)
-    .maybeSingle();
- 
-  if (workerRecord && workerRecord.email) {
-    const { data: profileByEmail } = await supabaseClient
+
+  const possibleIds = [
+    workerId,
+    localStorage.getItem("selectedWorkerId"),
+    localStorage.getItem("selectedWorkerProfileId"),
+    localStorage.getItem("selectedPublicWorkerId")
+  ].filter(Boolean);
+
+  for (const id of possibleIds) {
+
+    const { data: profileById } = await supabaseClient
       .from("profiles")
       .select("*")
-      .eq("email", workerRecord.email)
+      .eq("id", id)
       .maybeSingle();
- 
-    if (profileByEmail) {
-      return profileByEmail;
+
+    if (profileById) {
+      return profileById;
+    }
+
+    const { data: workerProfileByUserId } = await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("auth_user_id", id)
+      .maybeSingle();
+
+    if (workerProfileByUserId) {
+      return workerProfileByUserId;
+    }
+
+    const { data: workerRecord } = await supabaseClient
+      .from("workers")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (workerRecord) {
+
+      if (workerRecord.email) {
+
+        const { data: profileByEmail } = await supabaseClient
+          .from("profiles")
+          .select("*")
+          .eq("email", workerRecord.email)
+          .maybeSingle();
+
+        if (profileByEmail) {
+          return profileByEmail;
+        }
+      }
+
+      if (workerRecord.user_id) {
+
+        const { data: profileByUserId } = await supabaseClient
+          .from("profiles")
+          .select("*")
+          .eq("id", workerRecord.user_id)
+          .maybeSingle();
+
+        if (profileByUserId) {
+          return profileByUserId;
+        }
+      }
+
+      return workerRecord;
     }
   }
- 
-  return workerRecord || null;
+
+  return null;
 }
  
 async function loadAvailability(workerId, profile) {

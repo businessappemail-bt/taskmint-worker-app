@@ -266,9 +266,31 @@ const workerUser =
   const { data: workerProfile } =
   await supabaseClient
     .from("workers")
-    .select("id")
+    .select("*")
     .eq("email", workerUser.email)
     .maybeSingle();
+
+  const firstName =
+    workerProfile?.first_name ||
+    workerProfile?.first ||
+    "";
+
+  const lastName =
+    workerProfile?.last_name ||
+    workerProfile?.last ||
+    "";
+
+  const lastInitial =
+    lastName
+      ? String(lastName).trim().charAt(0).toUpperCase()
+      : "";
+
+  const workerDisplayName =
+    firstName
+      ? `${firstName} ${lastInitial}.`.trim()
+      : workerProfile?.full_name ||
+        workerProfile?.display_name ||
+        "Worker";
 
 const { error } =
   await supabaseClient
@@ -280,7 +302,10 @@ worker_id: workerProfile.id,
 customer_id: selectedTaskCustomerId,
 quote_amount: amount,
 message: cleanedMessage,
-status: "pending"
+status: "pending",
+worker_display_name: workerDisplayName,
+worker_first_name: firstName,
+worker_last_initial: lastInitial
   }
 ]);
 

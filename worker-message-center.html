@@ -938,243 +938,18 @@ async function normalizeConversationIds(user) {
 }
 
 async function loadQuoteRequest() {
+  const request =
+    await fetchDirectRequestInfo(
+      currentQuoteRequestId,
+      {
+        id: currentConversationId,
+        quote_request_id: currentQuoteRequestId,
+        customer_id: currentCustomerId,
+        worker_id: currentWorkerId
+      }
+    );
 
-  let requestId =
-    currentQuoteRequestId;
-
-  if (!requestId && currentConversationId) {
-
-    const { data: conversation } =
-      await supabaseClient
-        .from("task_conversations")
-        .select("quote_request_id")
-        .eq("id", currentConversationId)
-        .maybeSingle();
-
-    requestId =
-      conversation?.quote_request_id || "";
-  }
-
-  if (!requestId) {
-    return null;
-  }
-
-  const { data } =
-    await supabaseClient
-      .from("direct_task_requests")
-      .select("*")
-      .eq("id", requestId)
-      .maybeSingle();
-
-  return data || null;
-}
-async function getQuoteStatusForConversation(conversation) {
-  if (!conversation) {
-    return { status: "", amount: "" };
-  }
-
-  const cacheKey =
-    conversation.id || conversation.task_id || conversation.quote_request_id || "none";
-
-  if (quoteCache[cacheKey]) {
-    return quoteCache[cacheKey];
-  }
-
-  let query =
-    supabaseClient
-      .from("worker_quotes")
-      .select("*")
-      .eq("worker_id", currentWorkerId)
-      .order("created_at", { ascending: false })
-      .limit(1);
-
-  if (conversation.task_id) {
-    query = query.eq("task_id", conversation.task_id);
-  } else if (conversation.quote_request_id) {
-    query = query.eq("direct_request_id", conversation.quote_request_id);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    quoteCache[cacheKey] = { status: "", amount: "" };
-    return quoteCache[cacheKey];
-  }
-
-  const quote =
-    data && data.length > 0
-      ? data[0]
-      : null;
-
-  quoteCache[cacheKey] = {
-    status: quote?.status || "",
-    amount:
-      quote?.quote_amount ??
-      quote?.quote_price ??
-      quote?.offer_amount ??
-      quote?.total_amount ??
-      quote?.amount ??
-      ""
-  };
-
-  return quoteCache[cacheKey];
-}
-
-async function fetchTaskInfo(taskIdValue) {
-  if (!taskIdValue) return {};
-
-  if (taskCache[taskIdValue]) {
-    return taskCache[taskIdValue];
-  }
-
-  const { data } =
-    await supabaseClient
-      .from("tasks")
-      .select("*")
-      .eq("id", taskIdValue)
-      .maybeSingle();
-
-  taskCache[taskIdValue] = data || {};
-  return taskCache[taskIdValue];
-}
-
-async function fetchDirectRequestInfo(requestIdValue, conversation = null) {
-  const cacheKey =
-    requestIdValue ||
-    conversation?.id ||
-    "";
-
-  if (cacheKey && directRequestCache[cacheKey]) {
-    return directRequestCache[cacheKey];
-  }
-
-  if (requestIdValue) {
-    const { data } =
-      await supabaseClient
-        .from("direct_task_requests")
-        .select("*")
-        .eq("id", requestIdValue)
-        .maybeSingle();
-
-    if (data) {
-      directRequestCache[cacheKey] = data;
-      return data;
-    }
-  }
-
-  if (conversation && conversation.customer_id && conversation.worker_id) {
-    const { data } =
-      await supabaseClient
-        .from("direct_task_requests")
-        .select("*")
-        .eq("customer_id", conversation.customer_id)
-        .eq("worker_id", conversation.worker_id)
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-    const request =
-      data && data.length > 0
-        ? data[0]
-        : {};
-
-    if (cacheKey) {
-      directRequestCache[cacheKey] = request;
-    }
-
-    return request;
-  }
-
-  return {};
-}
-
-async function fetchLatestMessages(conversationIdValue, limitCount = 3) {
-  if (!conversationIdValue) return [];
-
-  const { data } =
-    await supabaseClient
-      .from("task_messages")
-      .select("*")
-      .eq("conversation_id", conversationIdValue)
-      .order("created_at", { ascending: false })
-      .limit(limitCount);
-
-  return data || [];
-}
-
-async function countUnreadMessages(conversationIdValue, user) {
-  if (!conversationIdValue || !user) return 0;
-
-  const { count } =
-    await supabaseClient
-      .from("task_messages")
-      .select("*", { count: "exact", head: true })
-      .eq("conversation_id", conversationIdValue)
-      .neq("sender_id", user.id)
-      .eq("is_read", false);
-
-  return Number(count || 0);
-}
-
-async function hydrateConversation(conversation, user) {
-  const type =
-    conversation.conversation_type === "quote_request" ||
-    conversation.quote_request_id
-      ? "direct"
-      : "quote";
-
-  const task =
-    type === "quote"
-      ? await fetchTaskInfo(conversation.task_id)
-      : {};
-
-  const directRequest =
-    type === "direct"
-      ? await fetchDirectRequestInfo(conversation.quote_request_id, conversation)
-      : {};
-
-  const messages =
-    await fetchLatestMessages(conversation.id, 3);
-
-  const latestMessage =
-    messages.length > 0 ? messages[0] : null;
-
-  const unreadCount =
-    await countUnreadMessages(conversation.id, user);
-
-  const quoteInfo =
-    await getQuoteStatusForConversation(conversation);
-
-  const title =
-    type === "direct"
-      ? directRequest.title || "Direct Quote Request"
-      : task.category || task.title || "Quote Message";
-
-  const statusText =
-    quoteInfo.status
-      ? String(quoteInfo.status).replaceAll("_", " ")
-      : "pending";
-
-  return {
-    ...conversation,
-    hydrated_type: type,
-    hydrated_title: title,
-    hydrated_task_title:
-      type === "direct"
-        ? directRequest.category || ""
-        : task.category || task.title || "",
-    hydrated_preview:
-      latestMessage?.message ||
-      directRequest.additional_notes ||
-      "No messages yet.",
-    hydrated_latest_date: latestMessage?.created_at || conversation.updated_at || conversation.created_at || "",
-    hydrated_messages: messages.reverse(),
-    hydrated_unread_count: unreadCount,
-    hydrated_quote_status: statusText,
-    hydrated_quote_amount: quoteInfo.amount,
-    hydrated_direct_request: directRequest,
-    hydrated_search_text:
-      `${title} ${directRequest.category || ""} ${task.category || ""} ${task.title || ""} ${latestMessage?.message || ""} ${statusText}`.toLowerCase()
-  };
+  return request && request.id ? request : null;
 }
 
 async function ensureConversation(user) {
@@ -1467,7 +1242,7 @@ function renderInboxGroup(elementId, items, emptyText) {
         : "conversation-card read";
 
     card.innerHTML = `
-      <div class="conversation-top" onclick="toggleConversation('${detailsId}')">
+      <div class="conversation-top" onclick="toggleConversation('${detailsId}', '${item.id}')">
         <div>
           <div class="conversation-title">
             ${escapeHTML(item.hydrated_title)}
@@ -1557,13 +1332,17 @@ function renderInboxGroup(elementId, items, emptyText) {
   });
 }
 
-function toggleConversation(detailsId) {
+function toggleConversation(detailsId, conversationIdValue = "") {
   const box =
     document.getElementById(detailsId);
 
   if (!box) return;
 
   box.classList.toggle("open");
+
+  if (box.classList.contains("open") && conversationIdValue) {
+    markConversationReadFromInbox(conversationIdValue);
+  }
 }
 
 function openConversation(conversationIdValue, taskIdValue, quoteRequestIdValue, customerIdValue) {
@@ -1849,6 +1628,42 @@ async function markMessagesRead(user) {
     .update({ is_read: true })
     .eq("conversation_id", currentConversationId)
     .neq("sender_id", user.id);
+
+  await supabaseClient
+    .from("worker_inbox_items")
+    .update({ is_read: true })
+    .eq("conversation_id", currentConversationId);
+}
+
+async function markConversationReadFromInbox(conversationIdValue) {
+  if (!conversationIdValue || !currentUser) {
+    return;
+  }
+
+  await supabaseClient
+    .from("task_messages")
+    .update({ is_read: true })
+    .eq("conversation_id", conversationIdValue)
+    .neq("sender_id", currentUser.id);
+
+  await supabaseClient
+    .from("worker_inbox_items")
+    .update({ is_read: true })
+    .eq("conversation_id", conversationIdValue);
+
+  allInboxItems =
+    allInboxItems.map(item => {
+      if (String(item.id) === String(conversationIdValue)) {
+        return {
+          ...item,
+          hydrated_unread_count: 0
+        };
+      }
+
+      return item;
+    });
+
+  renderInbox(allInboxItems);
 }
 
 async function loadMessages() {

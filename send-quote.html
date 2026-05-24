@@ -310,26 +310,12 @@ async function getWorkerProfile(workerUser) {
     return null;
   }
 
-  let profile =
-    await fetchSingleByColumn("worker_profiles", "user_id", workerUser.id) ||
-    await fetchSingleByColumn("worker_profiles", "worker_id", workerUser.id) ||
-    await fetchSingleByColumn("worker_profiles", "profile_id", workerUser.id) ||
-    await fetchSingleByColumn("worker_profiles", "id", workerUser.id);
-
-  if (!profile && workerUser.email) {
-    profile =
-      await fetchSingleByColumn("worker_profiles", "email", workerUser.email);
-  }
-
-  if (!profile && workerUser.email) {
-    profile =
-      await fetchSingleByColumn("workers", "email", workerUser.email);
-  }
-
-  if (!profile) {
-    profile =
-      await fetchSingleByColumn("profiles", "id", workerUser.id);
-  }
+  const profile =
+    await fetchSingleByColumn(
+      "worker_profiles",
+      "auth_user_id",
+      workerUser.id
+    );
 
   return profile || {};
 }

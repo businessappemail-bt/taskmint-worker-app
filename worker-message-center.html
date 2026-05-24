@@ -1155,17 +1155,17 @@ async function fetchTaskInfo(taskIdValue) {
 }
 
 async function fetchDirectRequestInfo(requestIdValue, conversation = null) {
+
   try {
+
     let requestId =
-      requestIdValue || "";
+      requestIdValue ||
+      conversation?.quote_request_id ||
+      "";
 
-    if (!requestId && conversation && conversation.quote_request_id) {
-      requestId =
-        conversation.quote_request_id;
-    }
+    if (!requestId && conversation?.id) {
 
-    if (!requestId && conversation && conversation.id) {
-      const { data: conversationRow } =
+      const { data: convoRow } =
         await supabaseClient
           .from("task_conversations")
           .select("quote_request_id")
@@ -1173,43 +1173,41 @@ async function fetchDirectRequestInfo(requestIdValue, conversation = null) {
           .maybeSingle();
 
       requestId =
-        conversationRow?.quote_request_id || "";
+        convoRow?.quote_request_id || "";
     }
 
-    const cacheKey =
-      requestId ||
-      conversation?.id ||
-      "";
-
-    if (cacheKey && directRequestCache[cacheKey]) {
-      return directRequestCache[cacheKey];
+    if (!requestId) {
+      return {};
     }
 
-    if (requestId) {
-      const { data } =
-        await supabaseClient
-          .from("direct_task_requests")
-          .select("*")
-          .eq("id", requestId)
-          .maybeSingle();
-
-      const request =
-        data || {};
-
-      if (cacheKey) {
-        directRequestCache[cacheKey] = request;
-      }
-
-      return request;
+    if (directRequestCache[requestId]) {
+      return directRequestCache[requestId];
     }
 
-    return {};
+    const { data, error } =
+      await supabaseClient
+        .from("direct_task_requests")
+        .select("*")
+        .eq("id", requestId)
+        .single();
+
+    if (error || !data) {
+      console.error("Direct request fetch failed:", error);
+      return {};
+    }
+
+    directRequestCache[requestId] = data;
+
+    return data;
+
   } catch (error) {
+
     console.error("Direct request lookup error:", error);
+
     return {};
   }
 }
-
+  
 async function fetchLatestMessages(conversationIdValue, limitCount = 3) {
   if (!conversationIdValue) return [];
 

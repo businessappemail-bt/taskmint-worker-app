@@ -68,7 +68,9 @@ body {
 }
 
 .notice,
-.card {
+.card,
+.inbox-section,
+.conversation-card {
   background: white;
   border-radius: 18px;
   padding: 15px;
@@ -82,6 +84,235 @@ body {
   color: #444;
   font-size: 13px;
   line-height: 1.45;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px;
+  margin-top: 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 13px;
+  font-size: 15px;
+  font-family: Arial, sans-serif;
+  outline: none;
+  background: #fbfbfb;
+}
+
+select,
+input[type="text"] {
+  margin-top: 0;
+  font-size: 13px;
+}
+
+textarea:focus,
+input:focus,
+select:focus {
+  border-color: #0b7a28;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
+}
+
+textarea {
+  min-height: 105px;
+  resize: vertical;
+}
+
+button {
+  width: 100%;
+  padding: 11px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 13px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.send,
+.reply-btn {
+  background: #0b7a28;
+  color: white;
+}
+
+.report,
+.report-btn {
+  background: #b00020;
+  color: white;
+}
+
+.block,
+.block-btn {
+  background: #333;
+  color: white;
+}
+
+.delete-btn {
+  background: white;
+  color: #b00020;
+  border: 1px solid #ffb7b7;
+}
+
+.secondary {
+  background: white;
+  color: #111;
+  border: 1px solid #dfe5e0;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.section-count {
+  background: #e7f7ec;
+  color: #0b7a28;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.conversation-card {
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.conversation-card.unread {
+  background: #f0fff4;
+  border: 2px solid #19a447;
+}
+
+.conversation-card.read {
+  background: white;
+  border: 1px solid #edf1ee;
+}
+
+.conversation-top {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
+  cursor: pointer;
+}
+
+.conversation-title {
+  font-size: 14px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.conversation-sub {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.35;
+}
+
+.preview {
+  margin-top: 5px;
+  color: #444;
+  font-size: 12px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.badge {
+  background: #e7f7ec;
+  color: #0b7a28;
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.unread .badge {
+  background: #b00020;
+  color: white;
+}
+
+.quote-status {
+  display: inline-block;
+  margin-top: 7px;
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.quote-status.pending {
+  background: #fff7e6;
+  color: #7a4b00;
+  border: 1px solid #ffd27a;
+}
+
+.quote-status.accepted {
+  background: #e7f7ec;
+  color: #0b7a28;
+  border: 1px solid #b9e9c7;
+}
+
+.quote-status.declined {
+  background: #fff2f2;
+  color: #8b0018;
+  border: 1px solid #ffb7b7;
+}
+
+.conversation-details {
+  display: none;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #edf1ee;
+}
+
+.conversation-details.open {
+  display: block;
+}
+
+.mini-thread {
+  background: #f7faf8;
+  border: 1px solid #e3eee6;
+  border-radius: 13px;
+  padding: 10px;
+  max-height: 160px;
+  overflow: auto;
+}
+
+.mini-message {
+  font-size: 12px;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.mini-message strong {
+  color: #0b7a28;
 }
 
 .context-card {
@@ -103,70 +334,6 @@ body {
   font-size: 12px;
   color: #666;
   line-height: 1.4;
-}
-
-textarea,
-input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 13px;
-  margin-top: 10px;
-  border: 1px solid #d9d9d9;
-  border-radius: 13px;
-  font-size: 15px;
-  font-family: Arial, sans-serif;
-  outline: none;
-  background: #fbfbfb;
-}
-
-textarea:focus,
-input:focus {
-  border-color: #0b7a28;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
-}
-
-textarea {
-  min-height: 105px;
-  resize: vertical;
-}
-
-button {
-  width: 100%;
-  padding: 13px;
-  margin-top: 10px;
-  border: none;
-  border-radius: 13px;
-  font-size: 15px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.send {
-  background: #0b7a28;
-  color: white;
-}
-
-.report {
-  background: #b00020;
-  color: white;
-}
-
-.block {
-  background: #333;
-  color: white;
-}
-
-.secondary {
-  background: white;
-  color: #111;
-  border: 1px solid #dfe5e0;
-}
-
-.action-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
 }
 
 .message {
@@ -246,6 +413,10 @@ img {
 .quote-request-box.show {
   display: block;
 }
+
+.hidden {
+  display: none;
+}
 </style>
 </head>
 
@@ -261,7 +432,7 @@ img {
   <div class="hero">
     <div class="hero-title">Message Center</div>
     <div class="hero-sub">
-      View customer messages, quote request conversations, and job-related image attachments.
+      View direct quote requests, quote messages, customer replies, and job-related image attachments.
     </div>
   </div>
 
@@ -269,36 +440,79 @@ img {
     Messages are monitored for safety. Do not share payment details, personal threats, or inappropriate content.
   </div>
 
-  <div class="card">
+  <div id="inboxView">
+    <div class="card">
+      <div class="section-title" style="margin-bottom:10px;">Search Inbox</div>
 
-    <div id="conversationContext" class="context-card">
-      <div class="context-title">Conversation</div>
-      <div class="context-sub">Loading conversation details...</div>
+      <div class="filter-grid">
+        <input id="searchInput" type="text" placeholder="Search messages" oninput="filterInbox()">
+
+        <select id="filterSelect" onchange="filterInbox()">
+          <option value="">All</option>
+          <option value="unread">Unread</option>
+          <option value="direct">Direct Quote Requests</option>
+          <option value="quote">Quote Messages</option>
+          <option value="accepted">Accepted Quotes</option>
+          <option value="declined">Declined Quotes</option>
+        </select>
+      </div>
     </div>
 
-    <div id="quoteRequestBox" class="quote-request-box"></div>
-
-    <div id="messagesList">
-      <div class="empty">Loading messages...</div>
+    <div class="inbox-section">
+      <div class="section-head">
+        <div class="section-title">Direct Quote Requests</div>
+        <div class="section-count" id="directCount">0</div>
+      </div>
+      <div id="directQuoteList">
+        <div class="empty">Loading direct quote requests...</div>
+      </div>
     </div>
 
+    <div class="inbox-section">
+      <div class="section-head">
+        <div class="section-title">Quote Messages</div>
+        <div class="section-count" id="quoteCount">0</div>
+      </div>
+      <div id="quoteMessageList">
+        <div class="empty">Loading quote messages...</div>
+      </div>
+    </div>
   </div>
 
-  <div class="card">
+  <div id="threadView" class="hidden">
+    <div class="card">
 
-    <textarea id="messageInput" placeholder="Type your message..."></textarea>
+      <div id="conversationContext" class="context-card">
+        <div class="context-title">Conversation</div>
+        <div class="context-sub">Loading conversation details...</div>
+      </div>
 
-    <input id="imageInput" type="file" accept="image/*">
+      <div id="quoteRequestBox" class="quote-request-box"></div>
 
-    <button class="send" onclick="sendMessage()">Send Message</button>
+      <div id="messagesList">
+        <div class="empty">Loading messages...</div>
+      </div>
 
-    <div class="action-grid">
-      <button class="report" onclick="reportUser()">Report</button>
-      <button class="block" onclick="blockUser()">Block</button>
     </div>
 
-    <p id="status"></p>
+    <div class="card">
 
+      <textarea id="messageInput" placeholder="Type your reply..."></textarea>
+
+      <input id="imageInput" type="file" accept="image/*">
+
+      <button class="send" onclick="sendMessage()">Send Reply</button>
+
+      <div class="action-grid">
+        <button class="block" onclick="blockUser()">Block</button>
+        <button class="report" onclick="reportUser()">Report Conversation</button>
+        <button class="delete-btn" onclick="deleteCurrentConversation()">Delete Conversation</button>
+        <button class="secondary" onclick="window.location.href='worker-message-center.html'">Back to Inbox</button>
+      </div>
+
+      <p id="status"></p>
+
+    </div>
   </div>
 
 </div>
@@ -314,6 +528,8 @@ const supabaseClient = window.supabase.createClient(
 const params = new URLSearchParams(window.location.search);
 
 let currentUser = null;
+let currentWorkerProfile = null;
+let allInboxItems = [];
 
 let currentConversationId =
   params.get("conversation_id") ||
@@ -394,8 +610,70 @@ function escapeHTML(value) {
 
 function setStatus(message, type = "") {
   const status = document.getElementById("status");
+  if (!status) return;
   status.className = type;
   status.innerText = message;
+}
+
+function formatMoney(value) {
+  const numberValue = Number(value || 0);
+
+  if (isNaN(numberValue) || numberValue <= 0) {
+    return "";
+  }
+
+  return "$" + numberValue.toFixed(2);
+}
+
+function formatDate(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleString();
+}
+
+function getHiddenWorkerConversationIds() {
+  try {
+    return JSON.parse(localStorage.getItem("taskmintWorkerHiddenConversations") || "[]");
+  } catch (error) {
+    return [];
+  }
+}
+
+function hideWorkerConversationLocally(conversationIdValue) {
+  const hiddenIds = getHiddenWorkerConversationIds();
+
+  if (!hiddenIds.includes(conversationIdValue)) {
+    hiddenIds.push(conversationIdValue);
+  }
+
+  localStorage.setItem("taskmintWorkerHiddenConversations", JSON.stringify(hiddenIds));
+}
+
+function isWorkerConversationHidden(conversationIdValue) {
+  return getHiddenWorkerConversationIds().includes(conversationIdValue);
+}
+
+async function fetchSingleByColumn(tableName, columnName, value) {
+  if (!value) return null;
+
+  const { data, error } =
+    await supabaseClient
+      .from(tableName)
+      .select("*")
+      .eq(columnName, value)
+      .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data;
 }
 
 async function getCurrentUser() {
@@ -416,23 +694,35 @@ async function getCurrentUser() {
   return null;
 }
 
-async function normalizeConversationIds(user) {
-  /*
-    IMPORTANT:
-    For messaging to sync with the customer page, task_conversations.worker_id
-    and task_messages.sender_id must use the same worker id the customer page passes.
-    The safest default is the logged-in auth user id.
-  */
+async function getWorkerProfile(user) {
+  if (!user || !user.id) return null;
 
+  const profile =
+    await fetchSingleByColumn("worker_profiles", "auth_user_id", user.id) ||
+    await fetchSingleByColumn("worker_profiles", "id", user.id);
+
+  return profile || null;
+}
+
+async function normalizeConversationIds(user) {
   if (!currentWorkerId) {
-    currentWorkerId = user.id;
+    const workerProfile =
+      currentWorkerProfile ||
+      await getWorkerProfile(user);
+
+    if (workerProfile && workerProfile.id) {
+      currentWorkerProfile = workerProfile;
+      currentWorkerId = workerProfile.id;
+    } else {
+      currentWorkerId = user.id;
+    }
   }
 
   if (currentTaskId && !currentCustomerId) {
     const { data: task } =
       await supabaseClient
         .from("tasks")
-        .select("customer_id, assigned_worker_id")
+        .select("customer_id, assigned_worker_id, accepted_worker_id, worker_id")
         .eq("id", currentTaskId)
         .maybeSingle();
 
@@ -440,10 +730,11 @@ async function normalizeConversationIds(user) {
       currentCustomerId =
         task.customer_id || currentCustomerId;
 
-      if (task.assigned_worker_id) {
-        currentWorkerId =
-          task.assigned_worker_id;
-      }
+      currentWorkerId =
+        task.assigned_worker_id ||
+        task.accepted_worker_id ||
+        task.worker_id ||
+        currentWorkerId;
     }
   }
 
@@ -458,7 +749,9 @@ async function normalizeConversationIds(user) {
   currentCustomerId = cleanUUID(currentCustomerId);
   currentWorkerId = cleanUUID(currentWorkerId);
 
-  localStorage.setItem("selectedWorkerId", currentWorkerId || user.id);
+  if (currentWorkerId) {
+    localStorage.setItem("selectedWorkerId", currentWorkerId);
+  }
 
   if (currentCustomerId) {
     localStorage.setItem("selectedCustomerId", currentCustomerId);
@@ -481,6 +774,131 @@ async function loadQuoteRequest() {
     .maybeSingle();
 
   return data || null;
+}
+
+async function getQuoteStatusForConversation(conversation) {
+  if (!conversation) {
+    return { status: "", amount: "" };
+  }
+
+  let query =
+    supabaseClient
+      .from("worker_quotes")
+      .select("*")
+      .eq("worker_id", currentWorkerId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+  if (conversation.task_id) {
+    query = query.eq("task_id", conversation.task_id);
+  }
+
+  const { data } = await query;
+
+  const quote =
+    data && data.length > 0
+      ? data[0]
+      : null;
+
+  return {
+    status: quote?.status || "",
+    amount:
+      quote?.quote_amount ??
+      quote?.quote_price ??
+      quote?.offer_amount ??
+      quote?.total_amount ??
+      quote?.amount ??
+      ""
+  };
+}
+
+async function fetchTaskInfo(taskIdValue) {
+  if (!taskIdValue) return {};
+
+  const { data } =
+    await supabaseClient
+      .from("tasks")
+      .select("*")
+      .eq("id", taskIdValue)
+      .maybeSingle();
+
+  return data || {};
+}
+
+async function fetchLatestMessages(conversationIdValue, limitCount = 3) {
+  if (!conversationIdValue) return [];
+
+  const { data } =
+    await supabaseClient
+      .from("task_messages")
+      .select("*")
+      .eq("conversation_id", conversationIdValue)
+      .order("created_at", { ascending: false })
+      .limit(limitCount);
+
+  return data || [];
+}
+
+async function countUnreadMessages(conversationIdValue, user) {
+  if (!conversationIdValue || !user) return 0;
+
+  const { count } =
+    await supabaseClient
+      .from("task_messages")
+      .select("*", { count: "exact", head: true })
+      .eq("conversation_id", conversationIdValue)
+      .neq("sender_id", user.id)
+      .eq("is_read", false);
+
+  return Number(count || 0);
+}
+
+async function hydrateConversation(conversation, user) {
+  const task =
+    await fetchTaskInfo(conversation.task_id);
+
+  const messages =
+    await fetchLatestMessages(conversation.id, 3);
+
+  const latestMessage =
+    messages.length > 0 ? messages[0] : null;
+
+  const unreadCount =
+    await countUnreadMessages(conversation.id, user);
+
+  const quoteInfo =
+    await getQuoteStatusForConversation(conversation);
+
+  const type =
+    conversation.conversation_type === "quote_request" ||
+    conversation.quote_request_id
+      ? "direct"
+      : "quote";
+
+  const title =
+    type === "direct"
+      ? "Direct Quote Request"
+      : task.category || task.title || "Quote Message";
+
+  const statusText =
+    quoteInfo.status
+      ? String(quoteInfo.status).replaceAll("_", " ")
+      : "pending";
+
+  return {
+    ...conversation,
+    hydrated_type: type,
+    hydrated_title: title,
+    hydrated_task_title: task.category || task.title || "",
+    hydrated_preview: latestMessage?.message || "No messages yet.",
+    hydrated_latest_date: latestMessage?.created_at || conversation.updated_at || conversation.created_at || "",
+    hydrated_messages: messages.reverse(),
+    hydrated_unread_count: unreadCount,
+    hydrated_quote_status: statusText,
+    hydrated_quote_amount: quoteInfo.amount,
+    hydrated_search_text:
+      `${title} ${task.category || ""} ${task.title || ""} ${latestMessage?.message || ""} ${statusText}`.toLowerCase()
+  };
 }
 
 async function ensureConversation(user) {
@@ -526,13 +944,13 @@ async function ensureConversation(user) {
     foundConversation = data;
   }
 
-  if (!foundConversation && currentTaskId) {
+  if (!foundConversation && currentTaskId && currentWorkerId) {
     const { data } =
       await supabaseClient
         .from("task_conversations")
         .select("*")
         .eq("task_id", currentTaskId)
-        .or(`worker_id.eq.${currentWorkerId},customer_id.eq.${currentCustomerId}`)
+        .eq("worker_id", currentWorkerId)
         .maybeSingle();
 
     foundConversation = data;
@@ -604,6 +1022,313 @@ async function ensureConversation(user) {
       : currentCustomerId;
 
   return newConversation;
+}
+
+async function loadInbox() {
+  const directBox = document.getElementById("directQuoteList");
+  const quoteBox = document.getElementById("quoteMessageList");
+
+  directBox.innerHTML = `<div class="empty">Loading direct quote requests...</div>`;
+  quoteBox.innerHTML = `<div class="empty">Loading quote messages...</div>`;
+
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  currentUser = user;
+  currentWorkerProfile = await getWorkerProfile(user);
+
+  const workerProfileId =
+    currentWorkerProfile?.id ||
+    currentWorkerId ||
+    user.id;
+
+  currentWorkerId = workerProfileId;
+  localStorage.setItem("selectedWorkerId", currentWorkerId);
+
+  const { data: conversations, error } =
+    await supabaseClient
+      .from("task_conversations")
+      .select("*")
+      .eq("worker_id", currentWorkerId)
+      .order("updated_at", { ascending: false });
+
+  if (error) {
+    directBox.innerHTML = "";
+    quoteBox.innerHTML = `<p class="error">${escapeHTML(error.message)}</p>`;
+    return;
+  }
+
+  const visibleConversations =
+    (conversations || []).filter(convo => !isWorkerConversationHidden(convo.id));
+
+  const hydrated = [];
+
+  for (const conversation of visibleConversations) {
+    hydrated.push(await hydrateConversation(conversation, user));
+  }
+
+  allInboxItems = hydrated;
+  renderInbox(hydrated);
+}
+
+function filterInbox() {
+  const search =
+    document.getElementById("searchInput").value.toLowerCase().trim();
+
+  const filter =
+    document.getElementById("filterSelect").value;
+
+  let filtered =
+    allInboxItems.slice();
+
+  if (search) {
+    filtered =
+      filtered.filter(item =>
+        String(item.hydrated_search_text || "").includes(search)
+      );
+  }
+
+  if (filter === "unread") {
+    filtered =
+      filtered.filter(item =>
+        Number(item.hydrated_unread_count || 0) > 0
+      );
+  }
+
+  if (filter === "direct") {
+    filtered =
+      filtered.filter(item => item.hydrated_type === "direct");
+  }
+
+  if (filter === "quote") {
+    filtered =
+      filtered.filter(item => item.hydrated_type === "quote");
+  }
+
+  if (filter === "accepted") {
+    filtered =
+      filtered.filter(item =>
+        String(item.hydrated_quote_status || "").toLowerCase() === "accepted"
+      );
+  }
+
+  if (filter === "declined") {
+    filtered =
+      filtered.filter(item =>
+        String(item.hydrated_quote_status || "").toLowerCase() === "declined"
+      );
+  }
+
+  renderInbox(filtered);
+}
+
+function renderInbox(items) {
+  const directItems =
+    items.filter(item => item.hydrated_type === "direct");
+
+  const quoteItems =
+    items.filter(item => item.hydrated_type !== "direct");
+
+  document.getElementById("directCount").innerText =
+    String(directItems.length);
+
+  document.getElementById("quoteCount").innerText =
+    String(quoteItems.length);
+
+  renderInboxGroup("directQuoteList", directItems, "No direct quote requests yet.");
+  renderInboxGroup("quoteMessageList", quoteItems, "No quote messages yet.");
+}
+
+function renderInboxGroup(elementId, items, emptyText) {
+  const box =
+    document.getElementById(elementId);
+
+  if (!items || items.length === 0) {
+    box.innerHTML =
+      `<div class="empty">${escapeHTML(emptyText)}</div>`;
+    return;
+  }
+
+  box.innerHTML = "";
+
+  items.forEach(item => {
+    const unread =
+      Number(item.hydrated_unread_count || 0) > 0;
+
+    const detailsId =
+      `details-${item.id}`;
+
+    const quoteAmount =
+      formatMoney(item.hydrated_quote_amount);
+
+    const quoteStatusClass =
+      String(item.hydrated_quote_status || "pending").toLowerCase();
+
+    const previewMessages =
+      item.hydrated_messages.length > 0
+        ? item.hydrated_messages.map(msg => {
+            const sender =
+              String(msg.sender_id) === String(currentUser.id)
+                ? "You"
+                : "Customer";
+
+            return `
+              <div class="mini-message">
+                <strong>${escapeHTML(sender)}:</strong>
+                ${escapeHTML(msg.message || "Image attached.")}
+                <div class="small">${escapeHTML(formatDate(msg.created_at))}</div>
+              </div>
+            `;
+          }).join("")
+        : `<div class="empty">No messages yet.</div>`;
+
+    const card =
+      document.createElement("div");
+
+    card.className =
+      unread
+        ? "conversation-card unread"
+        : "conversation-card read";
+
+    card.innerHTML = `
+      <div class="conversation-top" onclick="toggleConversation('${detailsId}')">
+        <div>
+          <div class="conversation-title">
+            ${escapeHTML(item.hydrated_title)}
+          </div>
+
+          <div class="conversation-sub">
+            ${item.hydrated_task_title ? escapeHTML(item.hydrated_task_title) + "<br>" : ""}
+            ${item.hydrated_latest_date ? escapeHTML(formatDate(item.hydrated_latest_date)) : ""}
+          </div>
+
+          <div class="preview">
+            ${escapeHTML(item.hydrated_preview)}
+          </div>
+
+          <div class="quote-status ${escapeHTML(quoteStatusClass)}">
+            Quote ${escapeHTML(item.hydrated_quote_status || "pending")}
+            ${quoteAmount ? " • " + escapeHTML(quoteAmount) : ""}
+          </div>
+        </div>
+
+        <div class="badge">
+          ${unread ? `${item.hydrated_unread_count} new` : "Read"}
+        </div>
+      </div>
+
+      <div class="conversation-details" id="${detailsId}">
+        <div class="mini-thread">
+          ${previewMessages}
+        </div>
+
+        <div class="action-grid">
+          <button class="reply-btn" onclick="event.stopPropagation(); openConversation('${item.id}', '${item.task_id || ""}', '${item.quote_request_id || ""}', '${item.customer_id || ""}')">
+            Reply
+          </button>
+
+          <button class="block-btn" onclick="event.stopPropagation(); blockConversationFromInbox('${item.id}')">
+            Block
+          </button>
+
+          <button class="report-btn" onclick="event.stopPropagation(); reportConversationFromInbox('${item.id}')">
+            Report Conversation
+          </button>
+
+          <button class="delete-btn" onclick="event.stopPropagation(); deleteConversationFromInbox('${item.id}')">
+            Delete Conversation
+          </button>
+        </div>
+      </div>
+    `;
+
+    box.appendChild(card);
+  });
+}
+
+function toggleConversation(detailsId) {
+  const box =
+    document.getElementById(detailsId);
+
+  if (!box) return;
+
+  box.classList.toggle("open");
+}
+
+function openConversation(conversationIdValue, taskIdValue, quoteRequestIdValue, customerIdValue) {
+  localStorage.setItem("selectedConversationId", conversationIdValue);
+
+  if (taskIdValue && isValidUUID(taskIdValue)) {
+    localStorage.setItem("selectedTaskId", taskIdValue);
+  }
+
+  if (quoteRequestIdValue && isValidUUID(quoteRequestIdValue)) {
+    localStorage.setItem("selectedQuoteRequestId", quoteRequestIdValue);
+  }
+
+  if (customerIdValue && isValidUUID(customerIdValue)) {
+    localStorage.setItem("selectedCustomerId", customerIdValue);
+  }
+
+  const parts = [
+    `conversation_id=${encodeURIComponent(conversationIdValue)}`
+  ];
+
+  if (taskIdValue && isValidUUID(taskIdValue)) {
+    parts.push(`task_id=${encodeURIComponent(taskIdValue)}`);
+  }
+
+  if (quoteRequestIdValue && isValidUUID(quoteRequestIdValue)) {
+    parts.push(`quote_request_id=${encodeURIComponent(quoteRequestIdValue)}`);
+  }
+
+  if (customerIdValue && isValidUUID(customerIdValue)) {
+    parts.push(`customer_id=${encodeURIComponent(customerIdValue)}`);
+  }
+
+  window.location.href =
+    `worker-message-center.html?${parts.join("&")}`;
+}
+
+async function reportConversationFromInbox(conversationIdValue) {
+  const confirmReport =
+    confirm("Report this conversation?");
+
+  if (!confirmReport) return;
+
+  await supabaseClient
+    .from("task_messages")
+    .update({ is_reported: true })
+    .eq("conversation_id", conversationIdValue)
+    .neq("sender_id", currentUser.id);
+
+  alert("Conversation reported.");
+}
+
+async function blockConversationFromInbox(conversationIdValue) {
+  const confirmBlock =
+    confirm("Block this conversation and hide it from your inbox?");
+
+  if (!confirmBlock) return;
+
+  await supabaseClient
+    .from("task_messages")
+    .update({ is_blocked: true })
+    .eq("conversation_id", conversationIdValue)
+    .neq("sender_id", currentUser.id);
+
+  hideWorkerConversationLocally(conversationIdValue);
+  await loadInbox();
+}
+
+async function deleteConversationFromInbox(conversationIdValue) {
+  const confirmDelete =
+    confirm("Delete this conversation from your inbox? Records will still remain in TaskMint.");
+
+  if (!confirmDelete) return;
+
+  hideWorkerConversationLocally(conversationIdValue);
+  await loadInbox();
 }
 
 async function updateContextBox(conversation) {
@@ -693,6 +1418,7 @@ async function loadMessages() {
   if (!user) return;
 
   currentUser = user;
+  currentWorkerProfile = await getWorkerProfile(user);
 
   const conversation = await ensureConversation(user);
   await updateContextBox(conversation);
@@ -856,10 +1582,6 @@ async function sendMessage() {
       })
       .eq("id", currentConversationId);
 
-    /*
-      This keeps worker notifications working if that inbox table exists.
-      Customer notification cards should read unread task_messages where sender_id is not the customer.
-    */
     await supabaseClient
       .from("worker_inbox_items")
       .insert([
@@ -879,7 +1601,7 @@ async function sendMessage() {
     document.getElementById("messageInput").value = "";
     document.getElementById("imageInput").value = "";
 
-    setStatus("Message sent.", "success");
+    setStatus("Reply sent.", "success");
 
     await loadMessages();
 
@@ -901,18 +1623,7 @@ async function reportUser() {
     return;
   }
 
-  const { error } =
-    await supabaseClient
-      .from("task_messages")
-      .update({ is_reported: true })
-      .eq("conversation_id", currentConversationId)
-      .neq("sender_id", user.id);
-
-  if (error) {
-    setStatus(error.message, "error");
-    return;
-  }
-
+  await reportConversationFromInbox(currentConversationId);
   setStatus("Conversation reported.", "success");
 }
 
@@ -929,23 +1640,36 @@ async function blockUser() {
     return;
   }
 
-  const { error } =
-    await supabaseClient
-      .from("task_messages")
-      .update({ is_blocked: true })
-      .eq("conversation_id", currentConversationId)
-      .neq("sender_id", user.id);
+  await blockConversationFromInbox(currentConversationId);
+  setStatus("Conversation blocked.", "success");
+  window.location.href = "worker-message-center.html";
+}
 
-  if (error) {
-    setStatus(error.message, "error");
+async function deleteCurrentConversation() {
+  if (!currentConversationId) {
+    setStatus("No conversation selected to delete.", "error");
     return;
   }
 
-  setStatus("Conversation blocked.", "success");
+  await deleteConversationFromInbox(currentConversationId);
+  window.location.href = "worker-message-center.html";
 }
 
 async function loadMessageCenter() {
-  await loadMessages();
+  const hasThreadParams =
+    currentConversationId ||
+    currentTaskId ||
+    currentQuoteRequestId;
+
+  if (hasThreadParams) {
+    document.getElementById("inboxView").classList.add("hidden");
+    document.getElementById("threadView").classList.remove("hidden");
+    await loadMessages();
+  } else {
+    document.getElementById("inboxView").classList.remove("hidden");
+    document.getElementById("threadView").classList.add("hidden");
+    await loadInbox();
+  }
 }
 
 loadMessageCenter();

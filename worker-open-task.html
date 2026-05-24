@@ -143,7 +143,8 @@
       margin-bottom: 6px;
     }
  
-    .category-pill {
+    .category-pill,
+    .request-pill {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -155,6 +156,18 @@
       font-weight: 900;
       white-space: nowrap;
       text-transform: capitalize;
+    }
+
+    .request-pill {
+      background: #111;
+      color: white;
+      margin-top: 6px;
+    }
+
+    .request-pill.direct {
+      background: #fff7e6;
+      color: #7a4b00;
+      border: 1px solid #ffd27a;
     }
  
     .customer-row {
@@ -226,6 +239,19 @@
       border: 1px solid #eeeeee;
       border-radius: 16px;
       padding: 12px;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .details-box.open {
+      display: block;
+    }
+
+    .summary-box {
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 16px;
+      padding: 11px;
       margin-bottom: 12px;
     }
  
@@ -471,13 +497,87 @@ function getTaskTitle(task) {
 }
  
 function getTaskDetails(task) {
-  return getFirstAvailable(task, [
+  const rawDetails = getFirstAvailable(task, [
     "description",
     "details",
     "task_details",
+    "additional_notes",
     "notes",
     "special_instructions"
-  ], "No additional task details were provided.");
+  ], "");
+
+  if (rawDetails && typeof rawDetails === "object") {
+    return Object.keys(rawDetails)
+      .map(key => {
+        const label =
+          key.replaceAll("_", " ").replace(/\b\w/g, char => char.toUpperCase());
+
+        const value =
+          Array.isArray(rawDetails[key])
+            ? rawDetails[key].join(", ")
+            : rawDetails[key];
+
+        return `${label}: ${value}`;
+      })
+      .join("\n");
+  }
+
+  return rawDetails || "No additional task details were provided.";
+}
+
+function getDirectTaskDetails(task) {
+  const answers =
+    task.task_details && typeof task.task_details === "object"
+      ? Object.keys(task.task_details)
+          .map(key => {
+            const label =
+              key.replaceAll("_", " ").replace(/\b\w/g, char => char.toUpperCase());
+
+            const value =
+              Array.isArray(task.task_details[key])
+                ? task.task_details[key].join(", ")
+                : task.task_details[key];
+
+            return `${label}: ${value || "Not answered"}`;
+          })
+          .join("\n")
+      : "";
+
+  const notes =
+    task.additional_notes || task.description || "";
+
+  if (answers && notes) {
+    return `${answers}\n\nAdditional Notes: ${notes}`;
+  }
+
+  return answers || notes || "No additional task details were provided.";
+}
+
+function getRequestLabel(task) {
+  return task.request_type === "direct_quote" || task.is_direct_request
+    ? "Direct Quote Request"
+    : "Marketplace Task";
+}
+
+function getRequestClass(task) {
+  return task.request_type === "direct_quote" || task.is_direct_request
+    ? "direct"
+    : "";
+}
+
+function getTaskUniqueId(task) {
+  return `${task.source_type || "task"}-${task.id}`;
+}
+
+function toggleTaskCardDetails(detailsId) {
+  const box =
+    document.getElementById(detailsId);
+
+  if (!box) {
+    return;
+  }
+
+  box.classList.toggle("open");
 }
  
 function getTaskCategory(task) {
@@ -774,76 +874,110 @@ async function fetchCustomerProfiles(tasks) {
  
 async function loadTasks() {
   const container = document.getElementById("tasksList");
- 
+
   container.className = "card empty";
   container.innerHTML = `
     <div class="loading-spinner"></div>
-    Loading open tasks...
+    Loading tasks and direct requests...
   `;
- 
+
   if (!currentUser) {
     const loaded = await loadCurrentWorker();
- 
+
     if (!loaded) {
       return;
     }
   }
- 
+
   const selectedCategory =
     document.getElementById("categoryFilter").value;
- 
+
   const selectedCity =
     document.getElementById("cityFilter").value.trim().toLowerCase();
- 
-let query = supabaseClient
-  .from("tasks")
-  .select("*")
-  .eq("status", "open")
-  .or("quote_accepted.is.false,quote_accepted.is.null")
-  .order("created_at", { ascending: false });
- 
+
+  let publicQuery = supabaseClient
+    .from("tasks")
+    .select("*")
+    .eq("status", "open")
+    .or("quote_accepted.is.false,quote_accepted.is.null")
+    .order("created_at", { ascending: false });
+
   if (selectedCategory) {
-    query = query.eq("category", selectedCategory);
+    publicQuery = publicQuery.eq("category", selectedCategory);
   }
- 
-  const { data: tasks, error } = await query;
- 
-  if (error) {
-    console.error(error);
-    container.innerHTML = "<div class='empty'>Error loading tasks.</div>";
+
+  const { data: publicTasks, error: publicError } =
+    await publicQuery;
+
+  if (publicError) {
+    console.error(publicError);
+    container.innerHTML = "<div class='empty'>Error loading marketplace tasks.</div>";
     return;
   }
- 
-  if (!tasks || tasks.length === 0) {
-    container.innerHTML = "<div class='empty'>No open tasks available.</div>";
+
+  const { data: directRequests, error: directError } =
+    await supabaseClient
+      .from("direct_task_requests")
+      .select("*")
+      .eq("worker_id", currentWorkerId)
+      .in("status", ["requested", "open", "pending"])
+      .order("created_at", { ascending: false });
+
+  if (directError) {
+    console.warn("Direct task requests are not ready yet.", directError);
+  }
+
+  const marketplaceTasks =
+    (publicTasks || []).map(task => ({
+      ...task,
+      source_type: "public_task",
+      request_type: "marketplace",
+      is_direct_request: false
+    }));
+
+  const directTasks =
+    (directRequests || []).map(task => ({
+      ...task,
+      source_type: "direct_task_request",
+      request_type: "direct_quote",
+      is_direct_request: true,
+      description: getDirectTaskDetails(task)
+    }));
+
+  let combinedTasks =
+    [...directTasks, ...marketplaceTasks];
+
+  combinedTasks =
+    combinedTasks.filter(task => {
+      const category = getTaskCategory(task);
+      const city = String(getTaskCity(task)).toLowerCase();
+
+      if (selectedCategory && category !== selectedCategory) {
+        return false;
+      }
+
+      if (selectedCity && !city.includes(selectedCity)) {
+        return false;
+      }
+
+      return true;
+    });
+
+  if (combinedTasks.length === 0) {
+    container.innerHTML = "<div class='empty'>No tasks or direct quote requests match your filters.</div>";
     return;
   }
- 
-  const filteredTasks = tasks.filter(task => {
-    const taskCity = String(getTaskCity(task)).toLowerCase();
- 
-    if (selectedCity && !taskCity.includes(selectedCity)) {
-      return false;
-    }
- 
-    return true;
-  });
- 
-  if (filteredTasks.length === 0) {
-    container.innerHTML = "<div class='empty'>No tasks match your filters.</div>";
-    return;
-  }
- 
-  const customerProfiles = await fetchCustomerProfiles(filteredTasks);
- 
+
+  const customerProfiles = await fetchCustomerProfiles(combinedTasks);
+
   container.className = "";
   container.innerHTML = `
     <div class="count-line">
-      ${filteredTasks.length} open task${filteredTasks.length === 1 ? "" : "s"} found
+      ${combinedTasks.length} request${combinedTasks.length === 1 ? "" : "s"} found
     </div>
   `;
- 
-  filteredTasks.forEach(task => {
+
+  combinedTasks.forEach(task => {
     const customerId = getCustomerId(task);
     const customerProfile = customerProfiles[customerId] || null;
     const category = getTaskCategory(task);
@@ -852,23 +986,28 @@ let query = supabaseClient
     const location = getLocationForCard(task);
     const milesAway = getMilesAway(task);
     const fullAddressVisible = canShowFullAddress(task);
- 
+    const detailsId = `details-${getTaskUniqueId(task)}`;
+
     const div = document.createElement("div");
     div.className = "task-card";
- 
+
     div.innerHTML = `
       <div class="task-top">
         <div>
           <div class="task-title">
             ${escapeHTML(getTaskTitle(task))}
           </div>
+
+          <div class="request-pill ${escapeHTML(getRequestClass(task))}">
+            ${escapeHTML(getRequestLabel(task))}
+          </div>
         </div>
- 
+
         <div class="category-pill">
           ${escapeHTML(category)}
         </div>
       </div>
- 
+
       <div class="customer-row">
         <img
           class="customer-photo"
@@ -876,97 +1015,116 @@ let query = supabaseClient
           alt="Customer profile photo"
           onerror="this.src='${DEFAULT_PROFILE_PHOTO}'"
         >
- 
+
         <div>
           <div class="customer-name">
             ${escapeHTML(getCustomerDisplayName(customerProfile))}
           </div>
- 
+
           <div class="customer-sub">
-            Posted ${escapeHTML(createdDate)}
+            ${task.is_direct_request ? "Sent directly to you" : "Posted to marketplace"} • ${escapeHTML(createdDate)}
           </div>
         </div>
       </div>
- 
+
+      <div class="summary-box">
+        <div class="details-label">
+          ${task.is_direct_request ? "Direct Quote Summary" : "Marketplace Task Summary"}
+        </div>
+        <div class="details-text">
+          ${escapeHTML(getTaskTitle(task))}<br>
+          ${escapeHTML(category)} • ${escapeHTML(location)} • ${escapeHTML(taskDate)}
+        </div>
+      </div>
+
       <div class="info-grid">
         <div class="info-box">
           <div class="info-label">Location</div>
           <div class="info-value">${escapeHTML(location)}</div>
         </div>
- 
+
         <div class="info-box">
           <div class="info-label">Distance</div>
           <div class="info-value">${escapeHTML(milesAway)}</div>
         </div>
- 
+
         <div class="info-box">
           <div class="info-label">Date Needed</div>
           <div class="info-value">${escapeHTML(taskDate)}</div>
         </div>
- 
+
         <div class="info-box">
-          <div class="info-label">Category</div>
-          <div class="info-value">${escapeHTML(category)}</div>
+          <div class="info-label">Type</div>
+          <div class="info-value">${escapeHTML(getRequestLabel(task))}</div>
         </div>
       </div>
- 
-      <div class="details-box">
-        <div class="details-label">Task Details</div>
+
+      <div class="details-box" id="${detailsId}">
+        <div class="details-label">Full Task Information</div>
         <div class="details-text">${escapeHTML(getTaskDetails(task))}</div>
       </div>
- 
+
       <div class="privacy-note">
-        ${fullAddressVisible
-          ? "Full address is visible because this task is assigned to you, the customer's quote payment is recorded, and the task is within 7 days."
-          : "Only city and state are shown until the customer accepts and pays your quote and the task is within 7 days of the scheduled date."
+        ${task.is_direct_request
+          ? "This is a direct quote request. It was sent only to you and is not displayed in the public open task feed."
+          : fullAddressVisible
+            ? "Full address is visible because this task is assigned to you, the customer's quote payment is recorded, and the task is within 7 days."
+            : "Only city and state are shown until the customer accepts and pays your quote and the task is within 7 days of the scheduled date."
         }
       </div>
- 
+
       <div class="button-grid">
-        <button class="secondary" onclick="messageCustomer('${task.id}', '${customerId}')">
-          Message
+        <button class="secondary" onclick="messageCustomer('${task.id}', '${customerId}', '${task.source_type}')">
+          Message Customer
         </button>
- 
-        <button onclick="sendQuote('${task.id}')">
+
+        <button onclick="sendQuote('${task.id}', '${task.source_type}')">
           Send Quote
         </button>
- 
-        <button class="secondary full" onclick="viewTask('${task.id}')">
-          View Task Details
+
+        <button class="secondary full" onclick="toggleTaskCardDetails('${detailsId}')">
+          Expand Task Information
         </button>
       </div>
     `;
- 
+
     container.appendChild(div);
   });
 }
- 
+
 function viewTask(taskId) {
   localStorage.setItem("selectedJobId", taskId);
   localStorage.setItem("selectedTaskId", taskId);
   window.location.href = "job-details.html";
 }
- 
-function sendQuote(taskId) {
+
+function sendQuote(taskId, sourceType = "public_task") {
   localStorage.setItem("selectedQuoteTaskId", taskId);
   localStorage.setItem("selectedTaskId", taskId);
-  window.location.href = "send-quote.html";
+  localStorage.setItem("selectedQuoteSourceType", sourceType);
+  localStorage.setItem("quoteRequestType", sourceType === "direct_task_request" ? "direct_quote" : "marketplace_task");
+
+  window.location.href =
+    sourceType === "direct_task_request"
+      ? "send-direct-quote.html"
+      : "send-quote.html";
 }
- 
-async function messageCustomer(taskId, customerId) {
+
+async function messageCustomer(taskId, customerId, sourceType = "public_task") {
   if (!currentUser) {
     const loaded = await loadCurrentWorker();
- 
+
     if (!loaded) {
       return;
     }
   }
- 
+
   localStorage.setItem("selectedMessageTaskId", taskId);
   localStorage.setItem("selectedTaskId", taskId);
   localStorage.setItem("selectedCustomerId", customerId || "");
-  localStorage.setItem("messageContext", "task");
- 
+  localStorage.setItem("messageContext", sourceType === "direct_task_request" ? "direct_quote" : "task");
+  localStorage.setItem("selectedQuoteSourceType", sourceType);
+
   try {
     await supabaseClient
       .from("task_conversations")
@@ -974,6 +1132,7 @@ async function messageCustomer(taskId, customerId) {
         task_id: taskId,
         worker_id: currentWorkerId,
         customer_id: customerId,
+        conversation_type: sourceType === "direct_task_request" ? "direct_quote" : "marketplace_task",
         updated_at: new Date().toISOString()
       }, {
         onConflict: "task_id,worker_id,customer_id"
@@ -981,10 +1140,10 @@ async function messageCustomer(taskId, customerId) {
   } catch (error) {
     console.warn("Task conversation table not ready yet.", error);
   }
- 
+
   window.location.href = "worker-task-message.html";
 }
- 
+
 loadCurrentWorker().then(() => {
   loadTasks();
 });

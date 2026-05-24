@@ -938,31 +938,36 @@ async function normalizeConversationIds(user) {
 }
 
 async function loadQuoteRequest() {
-  if (currentQuoteRequestId) {
-    const { data } = await supabaseClient
+
+  let requestId =
+    currentQuoteRequestId;
+
+  if (!requestId && currentConversationId) {
+
+    const { data: conversation } =
+      await supabaseClient
+        .from("task_conversations")
+        .select("quote_request_id")
+        .eq("id", currentConversationId)
+        .maybeSingle();
+
+    requestId =
+      conversation?.quote_request_id || "";
+  }
+
+  if (!requestId) {
+    return null;
+  }
+
+  const { data } =
+    await supabaseClient
       .from("direct_task_requests")
       .select("*")
-      .eq("id", currentQuoteRequestId)
+      .eq("id", requestId)
       .maybeSingle();
 
-    return data || null;
-  }
-
-  if (currentCustomerId && currentWorkerId) {
-    const { data } = await supabaseClient
-      .from("direct_task_requests")
-      .select("*")
-      .eq("customer_id", currentCustomerId)
-      .eq("worker_id", currentWorkerId)
-      .order("created_at", { ascending: false })
-      .limit(1);
-
-    return data && data.length > 0 ? data[0] : null;
-  }
-
-  return null;
+  return data || null;
 }
-
 async function getQuoteStatusForConversation(conversation) {
   if (!conversation) {
     return { status: "", amount: "" };

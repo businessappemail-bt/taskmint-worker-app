@@ -1075,9 +1075,242 @@ async function ensureConversation(user) {
   return newConversation;
 }
 
+
+async function getQuoteStatusForConversation(conversation) {
+  if (!conversation) {
+    return { status: "", amount: "" };
+  }
+
+  const cacheKey =
+    conversation.id || conversation.task_id || conversation.quote_request_id || "none";
+
+  if (quoteCache[cacheKey]) {
+    return quoteCache[cacheKey];
+  }
+
+  try {
+    let query =
+      supabaseClient
+        .from("worker_quotes")
+        .select("*")
+        .eq("worker_id", currentWorkerId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+    if (conversation.task_id) {
+      query = query.eq("task_id", conversation.task_id);
+    } else if (conversation.quote_request_id) {
+      query = query.eq("direct_request_id", conversation.quote_request_id);
+    }
+
+    const { data, error } =
+      await query;
+
+    if (error) {
+      quoteCache[cacheKey] = { status: "", amount: "" };
+      return quoteCache[cacheKey];
+    }
+
+    const quote =
+      data && data.length > 0
+        ? data[0]
+        : null;
+
+    quoteCache[cacheKey] = {
+      status: quote?.status || "",
+      amount:
+        quote?.quote_amount ??
+        quote?.quote_price ??
+        quote?.offer_amount ??
+        quote?.total_amount ??
+        quote?.amount ??
+        ""
+    };
+
+    return quoteCache[cacheKey];
+
+  } catch (error) {
+    console.error("Quote status lookup error:", error);
+    quoteCache[cacheKey] = { status: "", amount: "" };
+    return quoteCache[cacheKey];
+  }
+}
+
+async function fetchTaskInfo(taskIdValue) {
+  if (!taskIdValue) return {};
+
+  if (taskCache[taskIdValue]) {
+    return taskCache[taskIdValue];
+  }
+
+  const { data } =
+    await supabaseClient
+      .from("tasks")
+      .select("*")
+      .eq("id", taskIdValue)
+      .maybeSingle();
+
+  taskCache[taskIdValue] = data || {};
+  return taskCache[taskIdValue];
+}
+
+async function fetchDirectRequestInfo(requestIdValue, conversation = null) {
+  try {
+    let requestId =
+      requestIdValue || "";
+
+    if (!requestId && conversation && conversation.quote_request_id) {
+      requestId =
+        conversation.quote_request_id;
+    }
+
+    if (!requestId && conversation && conversation.id) {
+      const { data: conversationRow } =
+        await supabaseClient
+          .from("task_conversations")
+          .select("quote_request_id")
+          .eq("id", conversation.id)
+          .maybeSingle();
+
+      requestId =
+        conversationRow?.quote_request_id || "";
+    }
+
+    const cacheKey =
+      requestId ||
+      conversation?.id ||
+      "";
+
+    if (cacheKey && directRequestCache[cacheKey]) {
+      return directRequestCache[cacheKey];
+    }
+
+    if (requestId) {
+      const { data } =
+        await supabaseClient
+          .from("direct_task_requests")
+          .select("*")
+          .eq("id", requestId)
+          .maybeSingle();
+
+      const request =
+        data || {};
+
+      if (cacheKey) {
+        directRequestCache[cacheKey] = request;
+      }
+
+      return request;
+    }
+
+    return {};
+  } catch (error) {
+    console.error("Direct request lookup error:", error);
+    return {};
+  }
+}
+
+async function fetchLatestMessages(conversationIdValue, limitCount = 3) {
+  if (!conversationIdValue) return [];
+
+  const { data } =
+    await supabaseClient
+      .from("task_messages")
+      .select("*")
+      .eq("conversation_id", conversationIdValue)
+      .order("created_at", { ascending: false })
+      .limit(limitCount);
+
+  return data || [];
+}
+
+async function countUnreadMessages(conversationIdValue, user) {
+  if (!conversationIdValue || !user) return 0;
+
+  try {
+    const { count } =
+      await supabaseClient
+        .from("task_messages")
+        .select("*", { count: "exact", head: true })
+        .eq("conversation_id", conversationIdValue)
+        .neq("sender_id", user.id)
+        .eq("is_read", false);
+
+    return Number(count || 0);
+
+  } catch (error) {
+    console.error("Unread count error:", error);
+    return 0;
+  }
+}
+
+async function hydrateConversation(conversation, user) {
+  const type =
+    conversation.conversation_type === "quote_request" ||
+    conversation.quote_request_id
+      ? "direct"
+      : "quote";
+
+  const task =
+    type === "quote"
+      ? await fetchTaskInfo(conversation.task_id)
+      : {};
+
+  const directRequest =
+    type === "direct"
+      ? await fetchDirectRequestInfo(conversation.quote_request_id, conversation)
+      : {};
+
+  const messages =
+    await fetchLatestMessages(conversation.id, 3);
+
+  const latestMessage =
+    messages.length > 0 ? messages[0] : null;
+
+  const unreadCount =
+    await countUnreadMessages(conversation.id, user);
+
+  const quoteInfo =
+    await getQuoteStatusForConversation(conversation);
+
+  const title =
+    type === "direct"
+      ? directRequest.title || "Direct Quote Request"
+      : task.category || task.title || "Quote Message";
+
+  const statusText =
+    quoteInfo.status
+      ? String(quoteInfo.status).replaceAll("_", " ")
+      : "pending";
+
+  return {
+    ...conversation,
+    hydrated_type: type,
+    hydrated_title: title,
+    hydrated_task_title:
+      type === "direct"
+        ? directRequest.category || ""
+        : task.category || task.title || "",
+    hydrated_preview:
+      latestMessage?.message ||
+      directRequest.additional_notes ||
+      "No messages yet.",
+    hydrated_latest_date: latestMessage?.created_at || conversation.updated_at || conversation.created_at || "",
+    hydrated_messages: messages.reverse(),
+    hydrated_unread_count: unreadCount,
+    hydrated_quote_status: statusText,
+    hydrated_quote_amount: quoteInfo.amount,
+    hydrated_direct_request: directRequest,
+    hydrated_search_text:
+      `${title} ${directRequest.category || ""} ${task.category || ""} ${task.title || ""} ${latestMessage?.message || ""} ${statusText}`.toLowerCase()
+  };
+}
+
 async function loadInbox() {
   const directBox = document.getElementById("directQuoteList");
   const quoteBox = document.getElementById("quoteMessageList");
+
+  try {
 
   directBox.innerHTML = `<div class="empty">Loading direct quote requests...</div>`;
   quoteBox.innerHTML = `<div class="empty">Loading quote messages...</div>`;
@@ -1120,6 +1353,14 @@ async function loadInbox() {
 
   allInboxItems = hydrated;
   renderInbox(hydrated);
+
+  } catch (err) {
+    console.error("Worker inbox load error:", err);
+    document.getElementById("directCount").innerText = "0";
+    document.getElementById("quoteCount").innerText = "0";
+    directBox.innerHTML = `<div class="empty">Direct quote requests could not load: ${escapeHTML(err.message || err)}</div>`;
+    quoteBox.innerHTML = `<div class="empty">Quote messages could not load.</div>`;
+  }
 }
 
 function filterInbox() {
@@ -1240,6 +1481,8 @@ function renderInboxGroup(elementId, items, emptyText) {
       unread
         ? "conversation-card unread"
         : "conversation-card read";
+
+    card.setAttribute("data-conversation-id", item.id);
 
     card.innerHTML = `
       <div class="conversation-top" onclick="toggleConversation('${detailsId}', '${item.id}')">
@@ -1663,7 +1906,20 @@ async function markConversationReadFromInbox(conversationIdValue) {
       return item;
     });
 
-  renderInbox(allInboxItems);
+  const card =
+    document.querySelector(`[data-conversation-id="${conversationIdValue}"]`);
+
+  if (card) {
+    card.classList.remove("unread");
+    card.classList.add("read");
+
+    const badge =
+      card.querySelector(".badge");
+
+    if (badge) {
+      badge.innerText = "Read";
+    }
+  }
 }
 
 async function loadMessages() {

@@ -507,7 +507,7 @@ img {
         <button class="block" onclick="blockUser()">Block</button>
         <button class="report" onclick="reportUser()">Report Conversation</button>
         <button class="delete-btn" onclick="deleteCurrentConversation()">Delete Conversation</button>
-        <button class="secondary" onclick="window.location.href='worker-message-center.html'">Back to Inbox</button>
+        <button class="secondary" onclick="clearSelectedConversation()">Back to Inbox</button>
       </div>
 
       <p id="status"></p>
@@ -533,28 +533,23 @@ let allInboxItems = [];
 
 let currentConversationId =
   params.get("conversation_id") ||
-  localStorage.getItem("selectedConversationId") ||
   "";
 
 let currentTaskId =
   params.get("task_id") ||
-  localStorage.getItem("selectedTaskId") ||
   "";
 
 let currentQuoteRequestId =
   params.get("quote_request_id") ||
-  localStorage.getItem("selectedQuoteRequestId") ||
   "";
 
 let currentCustomerId =
   params.get("customer_id") ||
   params.get("receiver_id") ||
-  localStorage.getItem("selectedCustomerId") ||
   "";
 
 let currentWorkerId =
   params.get("worker_id") ||
-  localStorage.getItem("selectedWorkerId") ||
   "";
 
 let otherUserId = "";
@@ -613,6 +608,27 @@ function setStatus(message, type = "") {
   if (!status) return;
   status.className = type;
   status.innerText = message;
+}
+
+function clearSelectedConversation() {
+  localStorage.removeItem("selectedConversationId");
+  localStorage.removeItem("selectedTaskId");
+  localStorage.removeItem("selectedQuoteRequestId");
+  localStorage.removeItem("selectedCustomerId");
+
+  currentConversationId = "";
+  currentTaskId = "";
+  currentQuoteRequestId = "";
+  currentCustomerId = "";
+
+  window.history.replaceState({}, document.title, "worker-message-center.html");
+  loadInboxViewOnly();
+}
+
+async function loadInboxViewOnly() {
+  document.getElementById("inboxView").classList.remove("hidden");
+  document.getElementById("threadView").classList.add("hidden");
+  await loadInbox();
 }
 
 function formatMoney(value) {
@@ -742,7 +758,6 @@ async function normalizeConversationIds(user) {
     currentCustomerId =
       params.get("customer_id") ||
       params.get("receiver_id") ||
-      localStorage.getItem("selectedCustomerId") ||
       "";
   }
 
@@ -1642,7 +1657,7 @@ async function blockUser() {
 
   await blockConversationFromInbox(currentConversationId);
   setStatus("Conversation blocked.", "success");
-  window.location.href = "worker-message-center.html";
+  clearSelectedConversation();
 }
 
 async function deleteCurrentConversation() {
@@ -1652,23 +1667,28 @@ async function deleteCurrentConversation() {
   }
 
   await deleteConversationFromInbox(currentConversationId);
-  window.location.href = "worker-message-center.html";
+  clearSelectedConversation();
 }
 
 async function loadMessageCenter() {
+  const urlParams =
+    new URLSearchParams(window.location.search);
+
   const hasThreadParams =
-    currentConversationId ||
-    currentTaskId ||
-    currentQuoteRequestId;
+    urlParams.get("conversation_id") ||
+    urlParams.get("task_id") ||
+    urlParams.get("quote_request_id");
 
   if (hasThreadParams) {
     document.getElementById("inboxView").classList.add("hidden");
     document.getElementById("threadView").classList.remove("hidden");
     await loadMessages();
   } else {
-    document.getElementById("inboxView").classList.remove("hidden");
-    document.getElementById("threadView").classList.add("hidden");
-    await loadInbox();
+    currentConversationId = "";
+    currentTaskId = "";
+    currentQuoteRequestId = "";
+    currentCustomerId = "";
+    await loadInboxViewOnly();
   }
 }
 

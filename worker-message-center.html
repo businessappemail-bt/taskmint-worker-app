@@ -716,6 +716,38 @@ function formatShortDate(value) {
   return date.toLocaleDateString();
 }
 
+function isWithinSevenDays(value) {
+  if (!value) {
+    return false;
+  }
+
+  const taskDate =
+    new Date(value);
+
+  if (isNaN(taskDate.getTime())) {
+    return false;
+  }
+
+  const today =
+    new Date();
+
+  today.setHours(0, 0, 0, 0);
+  taskDate.setHours(0, 0, 0, 0);
+
+  const daysUntilTask =
+    Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
+
+  return daysUntilTask <= 7;
+}
+
+function getHiddenAddressText(request) {
+  if (!request || !request.task_date) {
+    return "Address hidden until the task is within 7 days.";
+  }
+
+  return "Address hidden until 7 days before the task date.";
+}
+
 function formatTaskDetails(details) {
   if (!details || typeof details !== "object") {
     return "";
@@ -742,20 +774,42 @@ function formatTaskDetails(details) {
 }
 
 function getDirectRequestDetailsHTML(request) {
-  if (!request) {
-    return "";
+  if (!request || !request.id) {
+    return `
+      <div class="task-detail-chip">
+        Direct request details could not be loaded. Refresh the inbox or reopen the direct request conversation.
+      </div>
+    `;
   }
+
+  const showAddress =
+    isWithinSevenDays(request.task_date);
+
+  const cityState =
+    [request.city, request.state]
+      .filter(Boolean)
+      .join(", ");
+
+  const addressText =
+    showAddress
+      ? request.address || "Not listed"
+      : getHiddenAddressText(request);
+
+  const zipText =
+    showAddress
+      ? request.zip_code || "Not listed"
+      : "Hidden until the task is within 7 days.";
 
   return `
     <div class="task-detail-chip"><strong>Category:</strong> ${escapeHTML(request.category || "Not listed")}</div>
     <div class="task-detail-chip"><strong>Title:</strong> ${escapeHTML(request.title || "Not listed")}</div>
     <div class="task-detail-chip"><strong>Date:</strong> ${escapeHTML(formatShortDate(request.task_date))}</div>
     <div class="task-detail-chip"><strong>Time:</strong> ${escapeHTML(request.task_time || "Not listed")}</div>
-    <div class="task-detail-chip"><strong>Location:</strong> ${escapeHTML([request.city, request.state].filter(Boolean).join(", ") || "Not listed")}</div>
-    <div class="task-detail-chip"><strong>Address:</strong> ${escapeHTML(request.address || "Not listed")}</div>
-    <div class="task-detail-chip"><strong>Zip:</strong> ${escapeHTML(request.zip_code || "Not listed")}</div>
+    <div class="task-detail-chip"><strong>City/State:</strong> ${escapeHTML(cityState || "Not listed")}</div>
+    <div class="task-detail-chip"><strong>Street Address:</strong> ${escapeHTML(addressText)}</div>
+    <div class="task-detail-chip"><strong>Zip:</strong> ${escapeHTML(zipText)}</div>
     ${formatTaskDetails(request.task_details)}
-    <div class="task-detail-chip"><strong>Notes:</strong> ${escapeHTML(request.additional_notes || "No extra notes.")}</div>
+    <div class="task-detail-chip"><strong>Notes:</strong> ${escapeHTML(request.additional_notes || request.description || "No extra notes.")}</div>
   `;
 }
 
@@ -884,17 +938,29 @@ async function normalizeConversationIds(user) {
 }
 
 async function loadQuoteRequest() {
-  if (!currentQuoteRequestId) {
-    return null;
+  if (currentQuoteRequestId) {
+    const { data } = await supabaseClient
+      .from("direct_task_requests")
+      .select("*")
+      .eq("id", currentQuoteRequestId)
+      .maybeSingle();
+
+    return data || null;
   }
 
-  const { data } = await supabaseClient
-    .from("direct_task_requests")
-    .select("*")
-    .eq("id", currentQuoteRequestId)
-    .maybeSingle();
+  if (currentCustomerId && currentWorkerId) {
+    const { data } = await supabaseClient
+      .from("direct_task_requests")
+      .select("*")
+      .eq("customer_id", currentCustomerId)
+      .eq("worker_id", currentWorkerId)
+      .order("created_at", { ascending: false })
+      .limit(1);
 
-  return data || null;
+    return data && data.length > 0 ? data[0] : null;
+  }
+
+  return null;
 }
 
 async function getQuoteStatusForConversation(conversation) {
@@ -967,22 +1033,53 @@ async function fetchTaskInfo(taskIdValue) {
   return taskCache[taskIdValue];
 }
 
-async function fetchDirectRequestInfo(requestIdValue) {
-  if (!requestIdValue) return {};
+async function fetchDirectRequestInfo(requestIdValue, conversation = null) {
+  const cacheKey =
+    requestIdValue ||
+    conversation?.id ||
+    "";
 
-  if (directRequestCache[requestIdValue]) {
-    return directRequestCache[requestIdValue];
+  if (cacheKey && directRequestCache[cacheKey]) {
+    return directRequestCache[cacheKey];
   }
 
-  const { data } =
-    await supabaseClient
-      .from("direct_task_requests")
-      .select("*")
-      .eq("id", requestIdValue)
-      .maybeSingle();
+  if (requestIdValue) {
+    const { data } =
+      await supabaseClient
+        .from("direct_task_requests")
+        .select("*")
+        .eq("id", requestIdValue)
+        .maybeSingle();
 
-  directRequestCache[requestIdValue] = data || {};
-  return directRequestCache[requestIdValue];
+    if (data) {
+      directRequestCache[cacheKey] = data;
+      return data;
+    }
+  }
+
+  if (conversation && conversation.customer_id && conversation.worker_id) {
+    const { data } =
+      await supabaseClient
+        .from("direct_task_requests")
+        .select("*")
+        .eq("customer_id", conversation.customer_id)
+        .eq("worker_id", conversation.worker_id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+    const request =
+      data && data.length > 0
+        ? data[0]
+        : {};
+
+    if (cacheKey) {
+      directRequestCache[cacheKey] = request;
+    }
+
+    return request;
+  }
+
+  return {};
 }
 
 async function fetchLatestMessages(conversationIdValue, limitCount = 3) {
@@ -1027,7 +1124,7 @@ async function hydrateConversation(conversation, user) {
 
   const directRequest =
     type === "direct"
-      ? await fetchDirectRequestInfo(conversation.quote_request_id)
+      ? await fetchDirectRequestInfo(conversation.quote_request_id, conversation)
       : {};
 
   const messages =
@@ -1530,7 +1627,14 @@ async function sendDirectQuoteAmount(conversationIdValue, quoteRequestIdValue, c
   }
 
   const request =
-    await fetchDirectRequestInfo(quoteRequestIdValue);
+    await fetchDirectRequestInfo(
+      quoteRequestIdValue,
+      {
+        id: conversationIdValue,
+        customer_id: customerIdValue,
+        worker_id: currentWorkerId
+      }
+    );
 
   const taskTitle =
     request.title || "Direct Quote Request";

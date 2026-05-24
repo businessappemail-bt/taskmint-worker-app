@@ -524,8 +524,17 @@ async function submitQuote() {
   button.disabled = true;
   button.innerText = "Submitting Quote...";
 
-  const workerUserId =
-    currentWorkerUser.id;
+  const workerProfileId =
+    currentWorkerProfile && currentWorkerProfile.id
+      ? currentWorkerProfile.id
+      : "";
+
+  if (!workerProfileId) {
+    button.disabled = false;
+    button.innerText = "Submit Quote";
+    showError("Your worker profile could not be found. Complete or refresh your worker profile before sending a quote.");
+    return;
+  }
 
   const workerDisplayName =
     getWorkerDisplayName(currentWorkerProfile || {}, currentWorkerUser);
@@ -538,7 +547,7 @@ async function submitQuote() {
 
   const quotePayload = {
     task_id: selectedTaskId,
-    worker_id: workerUserId,
+    worker_id: workerProfileId,
     customer_id: selectedTaskCustomerId,
     quote_amount: Number(amount),
     message: cleanedMessage,

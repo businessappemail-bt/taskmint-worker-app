@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reset Worker App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family:Arial;padding:30px;">
+  <h2>Resetting Worker App...</h2>
+  <p>Please wait.</p>
+
+  <script>
+    async function resetApp() {
+      localStorage.clear();
+      sessionStorage.clear();
+
+      if ("caches" in window) {
+        const names = await caches.keys();
+        await Promise.all(names.map(name => caches.delete(name)));
+      }
+
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(reg => reg.unregister()));
+      }
+
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 1000);
+    }
+
+    resetApp();
+  </script>
+</body>
+</html>

@@ -24,6 +24,7 @@
       text-decoration: none;
       display: inline-block;
       margin-bottom: 15px;
+      cursor: pointer;
     }
 
     h1 {
@@ -82,6 +83,11 @@
       cursor: pointer;
     }
 
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
     .notice {
       background: #fff7e6;
       border: 1px solid #ffd27a;
@@ -93,31 +99,43 @@
       line-height: 1.4;
     }
 
-.money-field {
-  display: flex;
-  align-items: center;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  margin-top: 12px;
-  background: white;
-  overflow: hidden;
-}
+    .error {
+      background: #fff2f2;
+      border: 1px solid #ffb7b7;
+      color: #8b0018;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      line-height: 1.4;
+      display: none;
+    }
 
-.money-field span {
-  padding: 0 16px;
-  font-size: 18px;
-  font-weight: bold;
-  color: #111;
-}
+    .money-field {
+      display: flex;
+      align-items: center;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      margin-top: 12px;
+      background: white;
+      overflow: hidden;
+    }
 
-.money-field input {
-  border: none;
-  margin: 0;
-  flex: 1;
-  padding: 14px;
-  font-size: 15px;
-  outline: none;
-}
+    .money-field span {
+      padding: 0 16px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #111;
+    }
+
+    .money-field input {
+      border: none;
+      margin: 0;
+      flex: 1;
+      padding: 14px;
+      font-size: 15px;
+      outline: none;
+    }
   </style>
 </head>
 
@@ -125,7 +143,7 @@
 
 <div class="container">
 
-  <a class="back" href="worker-open-task.html">
+  <a class="back" onclick="window.location.href='worker-open-task.html'">
     ← Back
   </a>
 
@@ -134,6 +152,8 @@
   <div class="notice">
     Workers must complete their profile and be approved before quotes can be submitted.
   </div>
+
+  <div class="error" id="errorBox"></div>
 
   <div class="card">
 
@@ -157,37 +177,37 @@
 
   <div class="card">
 
-<div class="money-field">
-  <span>$</span>
-  <input
-    type="number"
-    id="quoteAmount"
-    placeholder="0.00"
-    step="0.01"
-    min="1"
-    oninput="preventNegative(this)"
-  >
-</div>
+    <div class="money-field">
+      <span>$</span>
+      <input
+        type="number"
+        id="quoteAmount"
+        placeholder="0.00"
+        step="0.01"
+        min="1"
+        oninput="preventNegative(this)"
+      >
+    </div>
 
-   <textarea
-  id="quoteMessage"
-  maxlength="500"
-  placeholder="Describe your experience, timeline, or anything the customer should know..."
-></textarea>
+    <textarea
+      id="quoteMessage"
+      maxlength="500"
+      placeholder="Describe your experience, timeline, or anything the customer should know..."
+    ></textarea>
 
     <div id="characterCount"
-style="
-font-size:13px;
-color:#666;
-margin-top:6px;
-text-align:right;
-">
-0 / 500
-</div>
+      style="
+        font-size:13px;
+        color:#666;
+        margin-top:6px;
+        text-align:right;
+      ">
+      0 / 500
+    </div>
 
-  <button id="submitQuoteBtn" onclick="submitQuote()">
-  Submit Quote
-</button>
+    <button id="submitQuoteBtn" onclick="submitQuote()">
+      Submit Quote
+    </button>
 
   </div>
 
@@ -201,33 +221,42 @@ const supabaseClient = window.supabase.createClient(
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
 
-const selectedTaskId = localStorage.getItem("selectedQuoteTaskId");
+const selectedTaskId =
+  localStorage.getItem("selectedQuoteTaskId");
 
-  let selectedTaskCustomerId = null;
+let selectedTaskCustomerId = null;
+let currentWorkerUser = null;
+let currentWorkerProfile = null;
 
-async function loadTask() {
-  if (!selectedTaskId) {
-    alert("No task selected.");
-    return;
+function showError(message) {
+  const errorBox =
+    document.getElementById("errorBox");
+
+  errorBox.style.display = "block";
+  errorBox.innerText = message;
+}
+
+function clearError() {
+  const errorBox =
+    document.getElementById("errorBox");
+
+  errorBox.style.display = "none";
+  errorBox.innerText = "";
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "Not specified";
   }
 
-  const { data: task, error } = await supabaseClient
-    .from("tasks")
-    .select("*")
-    .eq("id", selectedTaskId)
-    .maybeSingle();
+  const date =
+    new Date(value);
 
-  if (error || !task) {
-    alert("Error loading task.");
-    return;
+  if (isNaN(date.getTime())) {
+    return value;
   }
 
-  document.getElementById("taskTitle").innerText = task.title || "Task";
-  document.getElementById("taskDescription").innerText = task.description || "";
-  document.getElementById("taskLocation").innerText = task.city || "Not specified";
-  document.getElementById("taskDate").innerText = task.task_date || "Not specified";
-
-  selectedTaskCustomerId = task.customer_id;
+  return date.toLocaleDateString();
 }
 
 function preventNegative(input) {
@@ -236,48 +265,86 @@ function preventNegative(input) {
   }
 }
 
-async function submitQuote() {
-  const amount = document.getElementById("quoteAmount").value;
-  const message = document.getElementById("quoteMessage").value;
-  const cleanedMessage = message.trim();
+async function getCurrentWorkerUser() {
+  const { data } =
+    await supabaseClient.auth.getSession();
 
-  if (Number(amount) <= 0) {
-    alert("Quote amount must be greater than $0.");
-    return;
+  if (data.session && data.session.user) {
+    localStorage.setItem("taskmintWorkerUserId", data.session.user.id);
+    localStorage.setItem("taskmintUserId", data.session.user.id);
+    return data.session.user;
   }
 
-  if (cleanedMessage.length < 10) {
-    alert("Please provide more details for the customer.");
-    return;
+  const savedUserId =
+    localStorage.getItem("taskmintWorkerUserId") ||
+    localStorage.getItem("taskmintUserId");
+
+  if (savedUserId) {
+    return { id: savedUserId };
   }
 
-  const button = document.getElementById("submitQuoteBtn");
+  return null;
+}
 
-  button.disabled = true;
-  button.innerText = "Submitting Quote...";
+async function fetchSingleByColumn(tableName, columnName, value) {
+  if (!value) {
+    return null;
+  }
 
-  const { data: sessionData } =
-  await supabaseClient.auth.getSession();
+  const { data, error } =
+    await supabaseClient
+      .from(tableName)
+      .select("*")
+      .eq(columnName, value)
+      .maybeSingle();
 
-const workerUser =
-  sessionData.session.user;
-  console.log(workerUser.id);
+  if (error || !data) {
+    return null;
+  }
 
-  const { data: workerProfile } =
-  await supabaseClient
-    .from("workers")
-    .select("*")
-    .eq("email", workerUser.email)
-    .maybeSingle();
+  return data;
+}
 
+async function getWorkerProfile(workerUser) {
+  if (!workerUser || !workerUser.id) {
+    return null;
+  }
+
+  let profile =
+    await fetchSingleByColumn("worker_profiles", "user_id", workerUser.id) ||
+    await fetchSingleByColumn("worker_profiles", "worker_id", workerUser.id) ||
+    await fetchSingleByColumn("worker_profiles", "profile_id", workerUser.id) ||
+    await fetchSingleByColumn("worker_profiles", "id", workerUser.id);
+
+  if (!profile && workerUser.email) {
+    profile =
+      await fetchSingleByColumn("worker_profiles", "email", workerUser.email);
+  }
+
+  if (!profile && workerUser.email) {
+    profile =
+      await fetchSingleByColumn("workers", "email", workerUser.email);
+  }
+
+  if (!profile) {
+    profile =
+      await fetchSingleByColumn("profiles", "id", workerUser.id);
+  }
+
+  return profile || {};
+}
+
+function getWorkerDisplayName(workerProfile, workerUser) {
   const firstName =
-    workerProfile?.first_name ||
-    workerProfile?.first ||
+    workerProfile.first_name ||
+    workerProfile.first ||
+    workerProfile.worker_first_name ||
     "";
 
   const lastName =
-    workerProfile?.last_name ||
-    workerProfile?.last ||
+    workerProfile.last_name ||
+    workerProfile.last ||
+    workerProfile.worker_last_name ||
     "";
 
   const lastInitial =
@@ -285,49 +352,232 @@ const workerUser =
       ? String(lastName).trim().charAt(0).toUpperCase()
       : "";
 
-  const workerDisplayName =
-    firstName
-      ? `${firstName} ${lastInitial}.`.trim()
-      : workerProfile?.full_name ||
-        workerProfile?.display_name ||
-        "Worker";
-
-const { error } =
-  await supabaseClient
-    .from("worker_quotes")
-   .insert([
-  {
-task_id: selectedTaskId,
-worker_id: workerProfile.id,
-customer_id: selectedTaskCustomerId,
-quote_amount: amount,
-message: cleanedMessage,
-status: "pending",
-worker_display_name: workerDisplayName,
-worker_first_name: firstName,
-worker_last_initial: lastInitial
+  if (firstName) {
+    return `${firstName} ${lastInitial ? lastInitial + "." : ""}`.trim();
   }
-]);
 
-if (error) {
-  alert(error.message);
-  return;
+  const fullName =
+    workerProfile.full_name ||
+    workerProfile.display_name ||
+    workerProfile.worker_name ||
+    "";
+
+  if (fullName) {
+    const parts =
+      String(fullName).trim().split(/\s+/);
+
+    if (parts.length > 1) {
+      return `${parts[0]} ${parts[parts.length - 1].charAt(0).toUpperCase()}.`;
+    }
+
+    return parts[0];
+  }
+
+  if (workerUser && workerUser.email) {
+    return workerUser.email.split("@")[0];
+  }
+
+  return "Worker";
 }
+
+function getWorkerFirstName(workerProfile, workerUser) {
+  if (workerProfile.first_name || workerProfile.first || workerProfile.worker_first_name) {
+    return workerProfile.first_name || workerProfile.first || workerProfile.worker_first_name;
+  }
+
+  const fullName =
+    workerProfile.full_name ||
+    workerProfile.display_name ||
+    "";
+
+  if (fullName) {
+    return String(fullName).trim().split(/\s+/)[0];
+  }
+
+  if (workerUser && workerUser.email) {
+    return workerUser.email.split("@")[0];
+  }
+
+  return "";
+}
+
+function getWorkerLastInitial(workerProfile) {
+  const lastName =
+    workerProfile.last_name ||
+    workerProfile.last ||
+    workerProfile.worker_last_name ||
+    "";
+
+  if (lastName) {
+    return String(lastName).trim().charAt(0).toUpperCase();
+  }
+
+  const fullName =
+    workerProfile.full_name ||
+    workerProfile.display_name ||
+    "";
+
+  if (fullName) {
+    const parts =
+      String(fullName).trim().split(/\s+/);
+
+    if (parts.length > 1) {
+      return parts[parts.length - 1].charAt(0).toUpperCase();
+    }
+  }
+
+  return "";
+}
+
+async function loadTask() {
+  clearError();
+
+  currentWorkerUser =
+    await getCurrentWorkerUser();
+
+  if (!currentWorkerUser || !currentWorkerUser.id) {
+    showError("You must be logged in as a worker to send a quote.");
+    document.getElementById("submitQuoteBtn").disabled = true;
+    return;
+  }
+
+  currentWorkerProfile =
+    await getWorkerProfile(currentWorkerUser);
+
+  if (!selectedTaskId) {
+    showError("No task selected.");
+    return;
+  }
+
+  const { data: task, error } =
+    await supabaseClient
+      .from("tasks")
+      .select("*")
+      .eq("id", selectedTaskId)
+      .maybeSingle();
+
+  if (error || !task) {
+    showError("Error loading task.");
+    return;
+  }
+
+  document.getElementById("taskTitle").innerText =
+    task.title || task.category || "Task";
+
+  document.getElementById("taskDescription").innerText =
+    task.description || task.additional_notes || "";
+
+  document.getElementById("taskLocation").innerText =
+    [task.city, task.state].filter(Boolean).join(", ") ||
+    task.location ||
+    "Not specified";
+
+  document.getElementById("taskDate").innerText =
+    task.date_flexible
+      ? "Flexible"
+      : formatDate(task.task_date || task.date_needed || task.needed_by);
+
+  selectedTaskCustomerId =
+    task.customer_id;
+}
+
+async function submitQuote() {
+  clearError();
+
+  const amount =
+    document.getElementById("quoteAmount").value;
+
+  const message =
+    document.getElementById("quoteMessage").value;
+
+  const cleanedMessage =
+    message.trim();
+
+  if (!currentWorkerUser || !currentWorkerUser.id) {
+    showError("You must be logged in as a worker to submit a quote.");
+    return;
+  }
+
+  if (!selectedTaskId) {
+    showError("No task selected.");
+    return;
+  }
+
+  if (!selectedTaskCustomerId) {
+    showError("This task is missing the customer ID.");
+    return;
+  }
+
+  if (Number(amount) <= 0) {
+    showError("Quote amount must be greater than $0.");
+    return;
+  }
+
+  if (cleanedMessage.length < 10) {
+    showError("Please provide more details for the customer.");
+    return;
+  }
+
+  const button =
+    document.getElementById("submitQuoteBtn");
+
+  button.disabled = true;
+  button.innerText = "Submitting Quote...";
+
+  const workerUserId =
+    currentWorkerUser.id;
+
+  const workerDisplayName =
+    getWorkerDisplayName(currentWorkerProfile || {}, currentWorkerUser);
+
+  const firstName =
+    getWorkerFirstName(currentWorkerProfile || {}, currentWorkerUser);
+
+  const lastInitial =
+    getWorkerLastInitial(currentWorkerProfile || {});
+
+  const quotePayload = {
+    task_id: selectedTaskId,
+    worker_id: workerUserId,
+    customer_id: selectedTaskCustomerId,
+    quote_amount: Number(amount),
+    message: cleanedMessage,
+    status: "pending",
+    worker_display_name: workerDisplayName,
+    worker_first_name: firstName,
+    worker_last_initial: lastInitial
+  };
+
+  const { error } =
+    await supabaseClient
+      .from("worker_quotes")
+      .insert([quotePayload]);
+
+  if (error) {
+    button.disabled = false;
+    button.innerText = "Submit Quote";
+    showError(error.message);
+    return;
+  }
 
   alert("Quote submitted successfully.");
 
-document.getElementById("quoteAmount").value = "";
-document.getElementById("quoteMessage").value = "";
-document.getElementById("characterCount").innerText = "0 / 500";
+  document.getElementById("quoteAmount").value = "";
+  document.getElementById("quoteMessage").value = "";
+  document.getElementById("characterCount").innerText = "0 / 500";
 
-window.location.href = "worker-open-task.html";
+  window.location.href = "worker-open-task.html";
 }
 
-const quoteMessage = document.getElementById("quoteMessage");
-const characterCount = document.getElementById("characterCount");
+const quoteMessage =
+  document.getElementById("quoteMessage");
+
+const characterCount =
+  document.getElementById("characterCount");
 
 quoteMessage.addEventListener("input", () => {
-  characterCount.innerText = `${quoteMessage.value.length} / 500`;
+  characterCount.innerText =
+    `${quoteMessage.value.length} / 500`;
 });
 
 loadTask();

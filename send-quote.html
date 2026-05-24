@@ -310,42 +310,56 @@ async function getWorkerProfile(workerUser) {
     return null;
   }
 
-  const profile =
-    await fetchSingleByColumn(
-      "worker_profiles",
-      "auth_user_id",
-      workerUser.id
-    );
+  let profile =
+    await fetchSingleByColumn("worker_profiles", "auth_user_id", workerUser.id) ||
+    await fetchSingleByColumn("worker_profiles", "id", workerUser.id);
 
-  return profile || {};
+  if (profile && profile.id) {
+    return profile;
+  }
+
+  const { data: mainProfile } =
+    await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("id", workerUser.id)
+      .maybeSingle();
+
+  const fullName =
+    mainProfile?.full_name ||
+    mainProfile?.display_name ||
+    `${mainProfile?.first_name || ""} ${mainProfile?.last_name || ""}`.trim() ||
+    workerUser.email?.split("@")[0] ||
+    "Worker";
+
+  const { data: createdProfile, error: createProfileError } =
+    await supabaseClient
+      .from("worker_profiles")
+      .upsert(
+        [
+          {
+            id: workerUser.id,
+            auth_user_id: workerUser.id,
+            full_name: fullName,
+            is_approved: true
+          }
+        ],
+        { onConflict: "id" }
+      )
+      .select("*")
+      .single();
+
+  if (createProfileError) {
+    showError(createProfileError.message);
+    return null;
+  }
+
+  return createdProfile;
 }
 
 function getWorkerDisplayName(workerProfile, workerUser) {
-  const firstName =
-    workerProfile.first_name ||
-    workerProfile.first ||
-    workerProfile.worker_first_name ||
-    "";
-
-  const lastName =
-    workerProfile.last_name ||
-    workerProfile.last ||
-    workerProfile.worker_last_name ||
-    "";
-
-  const lastInitial =
-    lastName
-      ? String(lastName).trim().charAt(0).toUpperCase()
-      : "";
-
-  if (firstName) {
-    return `${firstName} ${lastInitial ? lastInitial + "." : ""}`.trim();
-  }
-
   const fullName =
     workerProfile.full_name ||
-    workerProfile.display_name ||
-    workerProfile.worker_name ||
     "";
 
   if (fullName) {
@@ -367,13 +381,8 @@ function getWorkerDisplayName(workerProfile, workerUser) {
 }
 
 function getWorkerFirstName(workerProfile, workerUser) {
-  if (workerProfile.first_name || workerProfile.first || workerProfile.worker_first_name) {
-    return workerProfile.first_name || workerProfile.first || workerProfile.worker_first_name;
-  }
-
   const fullName =
     workerProfile.full_name ||
-    workerProfile.display_name ||
     "";
 
   if (fullName) {
@@ -388,19 +397,8 @@ function getWorkerFirstName(workerProfile, workerUser) {
 }
 
 function getWorkerLastInitial(workerProfile) {
-  const lastName =
-    workerProfile.last_name ||
-    workerProfile.last ||
-    workerProfile.worker_last_name ||
-    "";
-
-  if (lastName) {
-    return String(lastName).trim().charAt(0).toUpperCase();
-  }
-
   const fullName =
     workerProfile.full_name ||
-    workerProfile.display_name ||
     "";
 
   if (fullName) {
@@ -551,7 +549,7 @@ async function submitQuote() {
   if (error) {
     button.disabled = false;
     button.innerText = "Submit Quote";
-    showError(error.message);
+    showError(error.message + " | worker_id sent: " + workerProfileId);
     return;
   }
 

@@ -414,6 +414,54 @@ img {
   display: block;
 }
 
+.quote-submit-box {
+  background: #fff7e6;
+  border: 1px solid #ffd27a;
+  border-radius: 16px;
+  padding: 12px;
+  margin: 12px 0;
+}
+
+.quote-submit-title {
+  font-size: 14px;
+  font-weight: 900;
+  color: #7a4b00;
+  margin-bottom: 6px;
+}
+
+.money-row {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #ffd27a;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.money-row span {
+  padding: 0 12px;
+  font-weight: 900;
+  color: #111;
+}
+
+.money-row input {
+  border: none;
+  margin: 0;
+  flex: 1;
+}
+
+.task-detail-chip {
+  background: white;
+  border: 1px solid #e3eee6;
+  border-radius: 12px;
+  padding: 9px;
+  margin-top: 7px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #333;
+}
+
 .hidden {
   display: none;
 }
@@ -530,6 +578,9 @@ const params = new URLSearchParams(window.location.search);
 let currentUser = null;
 let currentWorkerProfile = null;
 let allInboxItems = [];
+let directRequestCache = {};
+let taskCache = {};
+let quoteCache = {};
 
 let currentConversationId =
   params.get("conversation_id") ||
@@ -651,6 +702,61 @@ function formatDate(value) {
   }
 
   return date.toLocaleString();
+}
+
+function formatShortDate(value) {
+  if (!value) return "Not listed";
+
+  const date = new Date(value);
+
+  if (isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString();
+}
+
+function formatTaskDetails(details) {
+  if (!details || typeof details !== "object") {
+    return "";
+  }
+
+  return Object.keys(details)
+    .map(key => {
+      const label =
+        key.replaceAll("_", " ").replace(/\b\w/g, char => char.toUpperCase());
+
+      const value =
+        Array.isArray(details[key])
+          ? details[key].join(", ")
+          : details[key];
+
+      return `
+        <div class="task-detail-chip">
+          <strong>${escapeHTML(label)}:</strong>
+          ${escapeHTML(value || "Not answered")}
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function getDirectRequestDetailsHTML(request) {
+  if (!request) {
+    return "";
+  }
+
+  return `
+    <div class="task-detail-chip"><strong>Category:</strong> ${escapeHTML(request.category || "Not listed")}</div>
+    <div class="task-detail-chip"><strong>Title:</strong> ${escapeHTML(request.title || "Not listed")}</div>
+    <div class="task-detail-chip"><strong>Date:</strong> ${escapeHTML(formatShortDate(request.task_date))}</div>
+    <div class="task-detail-chip"><strong>Time:</strong> ${escapeHTML(request.task_time || "Not listed")}</div>
+    <div class="task-detail-chip"><strong>Location:</strong> ${escapeHTML([request.city, request.state].filter(Boolean).join(", ") || "Not listed")}</div>
+    <div class="task-detail-chip"><strong>Address:</strong> ${escapeHTML(request.address || "Not listed")}</div>
+    <div class="task-detail-chip"><strong>Zip:</strong> ${escapeHTML(request.zip_code || "Not listed")}</div>
+    ${formatTaskDetails(request.task_details)}
+    <div class="task-detail-chip"><strong>Notes:</strong> ${escapeHTML(request.additional_notes || "No extra notes.")}</div>
+  `;
 }
 
 function getHiddenWorkerConversationIds() {
@@ -783,7 +889,7 @@ async function loadQuoteRequest() {
   }
 
   const { data } = await supabaseClient
-    .from("worker_quote_requests")
+    .from("direct_task_requests")
     .select("*")
     .eq("id", currentQuoteRequestId)
     .maybeSingle();
@@ -796,6 +902,13 @@ async function getQuoteStatusForConversation(conversation) {
     return { status: "", amount: "" };
   }
 
+  const cacheKey =
+    conversation.id || conversation.task_id || conversation.quote_request_id || "none";
+
+  if (quoteCache[cacheKey]) {
+    return quoteCache[cacheKey];
+  }
+
   let query =
     supabaseClient
       .from("worker_quotes")
@@ -806,16 +919,23 @@ async function getQuoteStatusForConversation(conversation) {
 
   if (conversation.task_id) {
     query = query.eq("task_id", conversation.task_id);
+  } else if (conversation.quote_request_id) {
+    query = query.eq("direct_request_id", conversation.quote_request_id);
   }
 
-  const { data } = await query;
+  const { data, error } = await query;
+
+  if (error) {
+    quoteCache[cacheKey] = { status: "", amount: "" };
+    return quoteCache[cacheKey];
+  }
 
   const quote =
     data && data.length > 0
       ? data[0]
       : null;
 
-  return {
+  quoteCache[cacheKey] = {
     status: quote?.status || "",
     amount:
       quote?.quote_amount ??
@@ -825,10 +945,16 @@ async function getQuoteStatusForConversation(conversation) {
       quote?.amount ??
       ""
   };
+
+  return quoteCache[cacheKey];
 }
 
 async function fetchTaskInfo(taskIdValue) {
   if (!taskIdValue) return {};
+
+  if (taskCache[taskIdValue]) {
+    return taskCache[taskIdValue];
+  }
 
   const { data } =
     await supabaseClient
@@ -837,7 +963,26 @@ async function fetchTaskInfo(taskIdValue) {
       .eq("id", taskIdValue)
       .maybeSingle();
 
-  return data || {};
+  taskCache[taskIdValue] = data || {};
+  return taskCache[taskIdValue];
+}
+
+async function fetchDirectRequestInfo(requestIdValue) {
+  if (!requestIdValue) return {};
+
+  if (directRequestCache[requestIdValue]) {
+    return directRequestCache[requestIdValue];
+  }
+
+  const { data } =
+    await supabaseClient
+      .from("direct_task_requests")
+      .select("*")
+      .eq("id", requestIdValue)
+      .maybeSingle();
+
+  directRequestCache[requestIdValue] = data || {};
+  return directRequestCache[requestIdValue];
 }
 
 async function fetchLatestMessages(conversationIdValue, limitCount = 3) {
@@ -869,8 +1014,21 @@ async function countUnreadMessages(conversationIdValue, user) {
 }
 
 async function hydrateConversation(conversation, user) {
+  const type =
+    conversation.conversation_type === "quote_request" ||
+    conversation.quote_request_id
+      ? "direct"
+      : "quote";
+
   const task =
-    await fetchTaskInfo(conversation.task_id);
+    type === "quote"
+      ? await fetchTaskInfo(conversation.task_id)
+      : {};
+
+  const directRequest =
+    type === "direct"
+      ? await fetchDirectRequestInfo(conversation.quote_request_id)
+      : {};
 
   const messages =
     await fetchLatestMessages(conversation.id, 3);
@@ -884,15 +1042,9 @@ async function hydrateConversation(conversation, user) {
   const quoteInfo =
     await getQuoteStatusForConversation(conversation);
 
-  const type =
-    conversation.conversation_type === "quote_request" ||
-    conversation.quote_request_id
-      ? "direct"
-      : "quote";
-
   const title =
     type === "direct"
-      ? "Direct Quote Request"
+      ? directRequest.title || "Direct Quote Request"
       : task.category || task.title || "Quote Message";
 
   const statusText =
@@ -904,15 +1056,22 @@ async function hydrateConversation(conversation, user) {
     ...conversation,
     hydrated_type: type,
     hydrated_title: title,
-    hydrated_task_title: task.category || task.title || "",
-    hydrated_preview: latestMessage?.message || "No messages yet.",
+    hydrated_task_title:
+      type === "direct"
+        ? directRequest.category || ""
+        : task.category || task.title || "",
+    hydrated_preview:
+      latestMessage?.message ||
+      directRequest.additional_notes ||
+      "No messages yet.",
     hydrated_latest_date: latestMessage?.created_at || conversation.updated_at || conversation.created_at || "",
     hydrated_messages: messages.reverse(),
     hydrated_unread_count: unreadCount,
     hydrated_quote_status: statusText,
     hydrated_quote_amount: quoteInfo.amount,
+    hydrated_direct_request: directRequest,
     hydrated_search_text:
-      `${title} ${task.category || ""} ${task.title || ""} ${latestMessage?.message || ""} ${statusText}`.toLowerCase()
+      `${title} ${directRequest.category || ""} ${task.category || ""} ${task.title || ""} ${latestMessage?.message || ""} ${statusText}`.toLowerCase()
   };
 }
 
@@ -1237,6 +1396,41 @@ function renderInboxGroup(elementId, items, emptyText) {
           ${previewMessages}
         </div>
 
+        ${
+          item.hydrated_type === "direct"
+            ? `
+              <div style="margin-top:10px;">
+                <div class="context-title">Full Task Details</div>
+                ${getDirectRequestDetailsHTML(item.hydrated_direct_request)}
+              </div>
+
+              <div class="quote-submit-box">
+                <div class="quote-submit-title">Send Quote Amount</div>
+                <div class="money-row">
+                  <span>$</span>
+                  <input
+                    id="quoteAmount-${item.id}"
+                    type="number"
+                    min="1"
+                    step="0.01"
+                    placeholder="0.00"
+                  >
+                </div>
+
+                <textarea
+                  id="quoteMessage-${item.id}"
+                  placeholder="Optional message to customer..."
+                  style="min-height:70px;"
+                ></textarea>
+
+                <button class="send" onclick="event.stopPropagation(); sendDirectQuoteAmount('${item.id}', '${item.quote_request_id || ""}', '${item.customer_id || ""}')">
+                  Send Quote to Customer
+                </button>
+              </div>
+            `
+            : ""
+        }
+
         <div class="action-grid">
           <button class="reply-btn" onclick="event.stopPropagation(); openConversation('${item.id}', '${item.task_id || ""}', '${item.quote_request_id || ""}', '${item.customer_id || ""}')">
             Reply
@@ -1303,6 +1497,102 @@ function openConversation(conversationIdValue, taskIdValue, quoteRequestIdValue,
 
   window.location.href =
     `worker-message-center.html?${parts.join("&")}`;
+}
+
+async function sendDirectQuoteAmount(conversationIdValue, quoteRequestIdValue, customerIdValue, threadMode = false) {
+  const amountInput =
+    threadMode
+      ? document.getElementById("threadQuoteAmount")
+      : document.getElementById(`quoteAmount-${conversationIdValue}`);
+
+  const messageInput =
+    threadMode
+      ? document.getElementById("threadQuoteMessage")
+      : document.getElementById(`quoteMessage-${conversationIdValue}`);
+
+  const amount =
+    amountInput ? amountInput.value : "";
+
+  const quoteMessage =
+    messageInput ? messageInput.value.trim() : "";
+
+  if (!amount || Number(amount) <= 0) {
+    alert("Enter a quote amount greater than $0.");
+    return;
+  }
+
+  const user =
+    currentUser || await getCurrentUser();
+
+  if (!user) {
+    alert("You must be logged in.");
+    return;
+  }
+
+  const request =
+    await fetchDirectRequestInfo(quoteRequestIdValue);
+
+  const taskTitle =
+    request.title || "Direct Quote Request";
+
+  const payload = {
+    task_id: null,
+    direct_request_id: quoteRequestIdValue || null,
+    worker_id: currentWorkerId,
+    customer_id: customerIdValue || request.customer_id || null,
+    quote_amount: Number(amount),
+    message: quoteMessage || `Quote submitted for ${taskTitle}.`,
+    status: "pending",
+    worker_display_name: currentWorkerProfile?.full_name || "Worker",
+    created_at: new Date().toISOString()
+  };
+
+  const { error } =
+    await supabaseClient
+      .from("worker_quotes")
+      .insert([payload]);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  await supabaseClient
+    .from("direct_task_requests")
+    .update({
+      status: "quoted"
+    })
+    .eq("id", quoteRequestIdValue);
+
+  await supabaseClient
+    .from("task_messages")
+    .insert([
+      {
+        conversation_id: conversationIdValue,
+        task_id: null,
+        sender_id: user.id,
+        sender_type: "worker",
+        message: `Quote Amount: $${Number(amount).toFixed(2)}\n\n${quoteMessage || "I sent a quote for your direct request."}`,
+        is_read: false
+      }
+    ]);
+
+  await supabaseClient
+    .from("task_conversations")
+    .update({
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", conversationIdValue);
+
+  alert("Quote sent to customer.");
+
+  quoteCache = {};
+
+  if (threadMode) {
+    await loadMessages();
+  } else {
+    await loadInbox();
+  }
 }
 
 async function reportConversationFromInbox(conversationIdValue) {
@@ -1400,7 +1690,31 @@ async function updateContextBox(conversation) {
       ${escapeHTML(quoteRequest.category || "Category not listed")} •
       ${escapeHTML(quoteRequest.city || "City not listed")}${quoteRequest.state ? ", " + escapeHTML(quoteRequest.state) : ""}<br>
       Date Needed: ${escapeHTML(quoteRequest.task_date || "Not listed")}<br>
-      <span>${escapeHTML(quoteRequest.description || "")}</span>
+      ${getDirectRequestDetailsHTML(quoteRequest)}
+
+      <div class="quote-submit-box">
+        <div class="quote-submit-title">Send Quote Amount</div>
+        <div class="money-row">
+          <span>$</span>
+          <input
+            id="threadQuoteAmount"
+            type="number"
+            min="1"
+            step="0.01"
+            placeholder="0.00"
+          >
+        </div>
+
+        <textarea
+          id="threadQuoteMessage"
+          placeholder="Optional message to customer..."
+          style="min-height:70px;"
+        ></textarea>
+
+        <button class="send" onclick="sendDirectQuoteAmount(currentConversationId, currentQuoteRequestId, currentCustomerId, true)">
+          Send Quote to Customer
+        </button>
+      </div>
     `;
   }
 }

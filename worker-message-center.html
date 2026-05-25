@@ -196,6 +196,56 @@ button {
   white-space: nowrap;
 }
 
+.bulk-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.bulk-delete-btn {
+  background: #b00020;
+  color: white;
+}
+
+.bulk-clear-btn {
+  background: white;
+  color: #111;
+  border: 1px solid #dfe5e0;
+}
+
+.select-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: #444;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.select-row input {
+  width: auto;
+  margin: 0;
+}
+
+.card-select {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.card-select input {
+  width: auto;
+  margin: 3px 0 0;
+  flex-shrink: 0;
+}
+
+.card-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .conversation-card {
   border-radius: 16px;
   padding: 12px;
@@ -504,6 +554,21 @@ img {
           <option value="declined">Declined Quotes</option>
         </select>
       </div>
+
+      <div class="select-row">
+        <input id="selectAllInbox" type="checkbox" onchange="toggleSelectAllVisible(this.checked)">
+        <span>Select all visible messages</span>
+      </div>
+
+      <div class="bulk-actions">
+        <button class="bulk-delete-btn" onclick="deleteSelectedConversations()">
+          Delete Selected
+        </button>
+
+        <button class="bulk-clear-btn" onclick="clearSelectedConversations()">
+          Clear Selection
+        </button>
+      </div>
     </div>
 
     <div class="inbox-section">
@@ -578,6 +643,7 @@ const params = new URLSearchParams(window.location.search);
 let currentUser = null;
 let currentWorkerProfile = null;
 let allInboxItems = [];
+let selectedConversationIds = [];
 let directRequestCache = {};
 let taskCache = {};
 let quoteCache = {};
@@ -1155,17 +1221,17 @@ async function fetchTaskInfo(taskIdValue) {
 }
 
 async function fetchDirectRequestInfo(requestIdValue, conversation = null) {
-
   try {
-
     let requestId =
-      requestIdValue ||
-      conversation?.quote_request_id ||
-      "";
+      requestIdValue || "";
 
-    if (!requestId && conversation?.id) {
+    if (!requestId && conversation && conversation.quote_request_id) {
+      requestId =
+        conversation.quote_request_id;
+    }
 
-      const { data: convoRow } =
+    if (!requestId && conversation && conversation.id) {
+      const { data: conversationRow } =
         await supabaseClient
           .from("task_conversations")
           .select("quote_request_id")
@@ -1173,41 +1239,43 @@ async function fetchDirectRequestInfo(requestIdValue, conversation = null) {
           .maybeSingle();
 
       requestId =
-        convoRow?.quote_request_id || "";
+        conversationRow?.quote_request_id || "";
     }
 
-    if (!requestId) {
-      return {};
+    const cacheKey =
+      requestId ||
+      conversation?.id ||
+      "";
+
+    if (cacheKey && directRequestCache[cacheKey]) {
+      return directRequestCache[cacheKey];
     }
 
-    if (directRequestCache[requestId]) {
-      return directRequestCache[requestId];
+    if (requestId) {
+      const { data } =
+        await supabaseClient
+          .from("direct_task_requests")
+          .select("*")
+          .eq("id", requestId)
+          .maybeSingle();
+
+      const request =
+        data || {};
+
+      if (cacheKey) {
+        directRequestCache[cacheKey] = request;
+      }
+
+      return request;
     }
 
-    const { data, error } =
-      await supabaseClient
-        .from("direct_task_requests")
-        .select("*")
-        .eq("id", requestId)
-        .single();
-
-    if (error || !data) {
-      console.error("Direct request fetch failed:", error);
-      return {};
-    }
-
-    directRequestCache[requestId] = data;
-
-    return data;
-
+    return {};
   } catch (error) {
-
     console.error("Direct request lookup error:", error);
-
     return {};
   }
 }
-  
+
 async function fetchLatestMessages(conversationIdValue, limitCount = 3) {
   if (!conversationIdValue) return [];
 
@@ -1361,12 +1429,37 @@ async function loadInbox() {
   }
 }
 
-function filterInbox() {
+function isConversationSelected(conversationIdValue) {
+  return selectedConversationIds.includes(conversationIdValue);
+}
+
+function toggleConversationSelected(conversationIdValue, checked) {
+  if (!conversationIdValue) {
+    return;
+  }
+
+  if (checked && !selectedConversationIds.includes(conversationIdValue)) {
+    selectedConversationIds.push(conversationIdValue);
+  }
+
+  if (!checked) {
+    selectedConversationIds =
+      selectedConversationIds.filter(id => id !== conversationIdValue);
+  }
+}
+
+function getCurrentVisibleItems() {
+  const searchInput =
+    document.getElementById("searchInput");
+
+  const filterSelect =
+    document.getElementById("filterSelect");
+
   const search =
-    document.getElementById("searchInput").value.toLowerCase().trim();
+    searchInput ? searchInput.value.toLowerCase().trim() : "";
 
   const filter =
-    document.getElementById("filterSelect").value;
+    filterSelect ? filterSelect.value : "";
 
   let filtered =
     allInboxItems.slice();
@@ -1408,6 +1501,73 @@ function filterInbox() {
         String(item.hydrated_quote_status || "").toLowerCase() === "declined"
       );
   }
+
+  return filtered;
+}
+
+function toggleSelectAllVisible(checked) {
+  const visibleItems =
+    getCurrentVisibleItems();
+
+  visibleItems.forEach(item => {
+    if (checked && !selectedConversationIds.includes(item.id)) {
+      selectedConversationIds.push(item.id);
+    }
+
+    if (!checked) {
+      selectedConversationIds =
+        selectedConversationIds.filter(id => id !== item.id);
+    }
+  });
+
+  renderInbox(getCurrentVisibleItems());
+}
+
+function clearSelectedConversations() {
+  selectedConversationIds = [];
+
+  const selectAll =
+    document.getElementById("selectAllInbox");
+
+  if (selectAll) {
+    selectAll.checked = false;
+  }
+
+  renderInbox(getCurrentVisibleItems());
+}
+
+async function deleteSelectedConversations() {
+  if (!selectedConversationIds || selectedConversationIds.length === 0) {
+    alert("Select at least one message to delete.");
+    return;
+  }
+
+  const confirmDelete =
+    confirm(`Delete ${selectedConversationIds.length} selected message${selectedConversationIds.length === 1 ? "" : "s"} from your inbox? Records will still remain in TaskMint.`);
+
+  if (!confirmDelete) {
+    return;
+  }
+
+  selectedConversationIds.forEach(id => {
+    hideWorkerConversationLocally(id);
+  });
+
+  selectedConversationIds = [];
+
+  const selectAll =
+    document.getElementById("selectAllInbox");
+
+  if (selectAll) {
+    selectAll.checked = false;
+  }
+
+  await loadInbox();
+}
+
+function filterInbox() {
+  const filtered =
+    getCurrentVisibleItems();
 
   renderInbox(filtered);
 }
@@ -1483,8 +1643,16 @@ function renderInboxGroup(elementId, items, emptyText) {
     card.setAttribute("data-conversation-id", item.id);
 
     card.innerHTML = `
-      <div class="conversation-top" onclick="toggleConversation('${detailsId}', '${item.id}')">
-        <div>
+      <div class="card-select">
+        <input
+          type="checkbox"
+          ${isConversationSelected(item.id) ? "checked" : ""}
+          onclick="event.stopPropagation(); toggleConversationSelected('${item.id}', this.checked)"
+        >
+
+        <div class="card-main">
+          <div class="conversation-top" onclick="toggleConversation('${detailsId}', '${item.id}')">
+            <div>
           <div class="conversation-title">
             ${escapeHTML(item.hydrated_title)}
           </div>
@@ -1565,6 +1733,8 @@ function renderInboxGroup(elementId, items, emptyText) {
           <button class="delete-btn" onclick="event.stopPropagation(); deleteConversationFromInbox('${item.id}')">
             Delete Conversation
           </button>
+        </div>
+          </div>
         </div>
       </div>
     `;
@@ -1752,6 +1922,8 @@ async function blockConversationFromInbox(conversationIdValue) {
     .neq("sender_id", currentUser.id);
 
   hideWorkerConversationLocally(conversationIdValue);
+  selectedConversationIds =
+    selectedConversationIds.filter(id => id !== conversationIdValue);
   await loadInbox();
 }
 
@@ -1762,6 +1934,8 @@ async function deleteConversationFromInbox(conversationIdValue) {
   if (!confirmDelete) return;
 
   hideWorkerConversationLocally(conversationIdValue);
+  selectedConversationIds =
+    selectedConversationIds.filter(id => id !== conversationIdValue);
   await loadInbox();
 }
 

@@ -574,6 +574,33 @@ async function submitQuote() {
     worker_last_initial: lastInitial
   };
 
+  const { data: existingQuote } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("id, status")
+      .eq("task_id", selectedTaskId)
+      .eq("worker_id", workerProfileId)
+      .eq("customer_id", selectedTaskCustomerId)
+      .in("status", [
+        "pending",
+        "accepted",
+        "in_progress",
+        "completed",
+        "paid"
+      ])
+      .maybeSingle();
+
+  if (existingQuote) {
+    button.disabled = false;
+    button.innerText = "Submit Quote";
+
+    showError(
+      "You've already sent a quote to this customer. Please wait until the customer either accepts or declines your quote."
+    );
+
+    return;
+  }
+
   const { error } =
     await supabaseClient
       .from("worker_quotes")

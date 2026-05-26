@@ -394,6 +394,12 @@
       color: #111;
       border: 1px solid #dfe5e0;
     }
+
+    button.danger {
+      background: #fff5f5;
+      color: #b00020;
+      border: 1px solid #f1c4ca;
+    }
  
     .loading {
       background: white;
@@ -746,18 +752,71 @@ async function loadWorkerProfile(workerId) {
 }
  
 async function loadAvailability(workerId, profile) {
+  const possibleAvailabilityIds = [
+    workerId,
+    profile?.worker_table_id,
+    profile?.id,
+    profile?.auth_user_id,
+    profile?.profile_table_id,
+    profile?.user_id
+  ]
+    .filter(Boolean)
+    .map(id => String(id));
 
-  const { data, error } = await supabaseClient
-    .from("worker_availability")
-    .select("*")
-    .eq("worker_id", workerId)
-    .eq("is_available", true);
+  const uniqueAvailabilityIds = [...new Set(possibleAvailabilityIds)];
 
-  if (error || !data) {
-    return [];
+  for (const id of uniqueAvailabilityIds) {
+    const { data, error } = await supabaseClient
+      .from("worker_availability")
+      .select("*")
+      .eq("worker_id", id)
+      .eq("is_available", true);
+
+    if (!error && data && data.length > 0) {
+      return data;
+    }
   }
 
-  return data;
+  for (const id of uniqueAvailabilityIds) {
+    const { data, error } = await supabaseClient
+      .from("worker_availability")
+      .select("*")
+      .eq("worker_user_id", id)
+      .eq("is_available", true);
+
+    if (!error && data && data.length > 0) {
+      return data;
+    }
+  }
+
+  for (const id of uniqueAvailabilityIds) {
+    const { data, error } = await supabaseClient
+      .from("worker_availability")
+      .select("*")
+      .eq("user_id", id)
+      .eq("is_available", true);
+
+    if (!error && data && data.length > 0) {
+      return data;
+    }
+  }
+
+  const profileAvailability = splitList(getFirstAvailable(profile, [
+    "availability",
+    "available_days",
+    "work_availability"
+  ], ""));
+
+  if (profileAvailability.length > 0) {
+    return profileAvailability.map(item => ({
+      day_of_week: item,
+      start_time: "",
+      end_time: "",
+      is_available: true
+    }));
+  }
+
+  return [];
 }
  
 async function loadReviews(workerId) {
@@ -872,7 +931,11 @@ function renderAvailability(availability) {
           <div>
             <div class="info-main">${escapeHTML(row.day_of_week || "Available Day")}</div>
             <div class="info-sub">
-              ${escapeHTML(formatTime(row.start_time))} - ${escapeHTML(formatTime(row.end_time))}
+              ${
+                row.start_time || row.end_time
+                  ? `${escapeHTML(formatTime(row.start_time))} - ${escapeHTML(formatTime(row.end_time))}`
+                  : "Time not listed"
+              }
             </div>
           </div>
           <div class="status-pill">Available</div>
@@ -1155,10 +1218,18 @@ function renderProfile(profile, availability, reviews, completedJobs, portfolio,
       ${renderReviews(reviews)}
     </div>
  
-    <div class="button-grid">
-      <button class="secondary" onclick="messageWorker()">Message</button>
-      <button onclick="requestQuote()">Request Quote</button>
-    </div>
+    ${
+      isOwnWorkerProfile(profile)
+        ? ""
+        : `
+          <div class="button-grid">
+            <button class="secondary" onclick="messageWorker()">Message</button>
+            <button onclick="requestQuote()">Request Quote</button>
+            <button class="secondary danger" onclick="blockWorker()">Block Worker</button>
+            <button class="secondary danger" onclick="reportWorker()">Report Worker</button>
+          </div>
+        `
+    }
   `;
 }
  
@@ -1284,6 +1355,98 @@ async function uploadWorkPhoto(event) {
 
   event.target.value = "";
   await loadPublicProfile();
+}
+
+async function blockWorker() {
+  if (!currentUser) {
+    alert("Please log in to block this worker.");
+    return;
+  }
+
+  if (!selectedWorkerId || isOwnWorkerProfile(selectedWorkerProfile)) {
+    return;
+  }
+
+  const confirmed = confirm("Block this worker? They will not be able to message you or send you quotes.");
+  if (!confirmed) {
+    return;
+  }
+
+  const blockRecord = {
+    customer_id: currentUser.id,
+    blocked_worker_id: selectedWorkerId,
+    worker_id: selectedWorkerId,
+    blocked_user_id:
+      selectedWorkerProfile?.auth_user_id ||
+      selectedWorkerProfile?.profile_table_id ||
+      selectedWorkerProfile?.user_id ||
+      selectedWorkerId,
+    status: "blocked",
+    created_at: new Date().toISOString()
+  };
+
+  const attempts = [
+    supabaseClient.from("blocked_users").insert(blockRecord),
+    supabaseClient.from("customer_blocked_workers").insert(blockRecord),
+    supabaseClient.from("blocked_workers").insert(blockRecord)
+  ];
+
+  for (const attempt of attempts) {
+    const { error } = await attempt;
+    if (!error) {
+      alert("Worker blocked.");
+      return;
+    }
+  }
+
+  alert("Block could not be saved. Please check your blocked users table setup.");
+}
+
+async function reportWorker() {
+  if (!currentUser) {
+    alert("Please log in to report this worker.");
+    return;
+  }
+
+  if (!selectedWorkerId || isOwnWorkerProfile(selectedWorkerProfile)) {
+    return;
+  }
+
+  const reason = prompt("Briefly explain why you are reporting this worker.");
+  if (!reason || !reason.trim()) {
+    return;
+  }
+
+  const reportRecord = {
+    reporter_id: currentUser.id,
+    customer_id: currentUser.id,
+    reported_worker_id: selectedWorkerId,
+    worker_id: selectedWorkerId,
+    reported_user_id:
+      selectedWorkerProfile?.auth_user_id ||
+      selectedWorkerProfile?.profile_table_id ||
+      selectedWorkerProfile?.user_id ||
+      selectedWorkerId,
+    reason: reason.trim(),
+    status: "open",
+    created_at: new Date().toISOString()
+  };
+
+  const attempts = [
+    supabaseClient.from("worker_reports").insert(reportRecord),
+    supabaseClient.from("reports").insert(reportRecord),
+    supabaseClient.from("user_reports").insert(reportRecord)
+  ];
+
+  for (const attempt of attempts) {
+    const { error } = await attempt;
+    if (!error) {
+      alert("Report submitted.");
+      return;
+    }
+  }
+
+  alert("Report could not be saved. Please check your report table setup.");
 }
 
 function messageWorker() {

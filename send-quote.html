@@ -227,6 +227,7 @@ const selectedTaskId =
 let selectedTaskCustomerId = null;
 let currentWorkerUser = null;
 let currentWorkerProfile = null;
+let currentMainProfile = null;
 
 function showError(message) {
   const errorBox =
@@ -310,20 +311,25 @@ async function getWorkerProfile(workerUser) {
     return null;
   }
 
-  let profile =
-    await fetchSingleByColumn("worker_profiles", "auth_user_id", workerUser.id) ||
-    await fetchSingleByColumn("worker_profiles", "id", workerUser.id);
-
-  if (profile && profile.id) {
-    return profile;
-  }
-
   const { data: mainProfile } =
     await supabaseClient
       .from("profiles")
       .select("*")
       .eq("id", workerUser.id)
       .maybeSingle();
+
+  currentMainProfile = mainProfile || null;
+
+  let profile =
+    await fetchSingleByColumn("worker_profiles", "auth_user_id", workerUser.id) ||
+    await fetchSingleByColumn("worker_profiles", "id", workerUser.id);
+
+  if (profile && profile.id) {
+    return {
+      ...(mainProfile || {}),
+      ...profile
+    };
+  }
 
   const fullName =
     mainProfile?.full_name ||
@@ -341,7 +347,8 @@ async function getWorkerProfile(workerUser) {
             id: workerUser.id,
             auth_user_id: workerUser.id,
             full_name: fullName,
-            is_approved: true
+            is_approved: false,
+            approval_status: "pending_review"
           }
         ],
         { onConflict: "id" }
@@ -351,10 +358,26 @@ async function getWorkerProfile(workerUser) {
 
   if (createProfileError) {
     showError(createProfileError.message);
-    return null;
+    return mainProfile || null;
   }
 
-  return createdProfile;
+  return {
+    ...(mainProfile || {}),
+    ...(createdProfile || {})
+  };
+}
+
+function isWorkerApprovedForQuotes(profile) {
+  return (
+    profile &&
+    (
+      profile.is_worker_approved === true ||
+      profile.is_approved === true ||
+      String(profile.worker_status || "").toLowerCase() === "approved" ||
+      String(profile.approval_status || "").toLowerCase() === "approved" ||
+      String(profile.verification_status || "").toLowerCase() === "approved"
+    )
+  );
 }
 
 function getWorkerDisplayName(workerProfile, workerUser) {
@@ -428,6 +451,11 @@ async function loadTask() {
   currentWorkerProfile =
     await getWorkerProfile(currentWorkerUser);
 
+  if (!isWorkerApprovedForQuotes(currentWorkerProfile)) {
+    showError("Your worker profile is pending TaskMint approval. You can submit quotes after TaskMint approves your account.");
+    document.getElementById("submitQuoteBtn").disabled = true;
+  }
+
   if (!selectedTaskId) {
     showError("No task selected.");
     return;
@@ -479,6 +507,11 @@ async function submitQuote() {
 
   if (!currentWorkerUser || !currentWorkerUser.id) {
     showError("You must be logged in as a worker to submit a quote.");
+    return;
+  }
+
+  if (!isWorkerApprovedForQuotes(currentWorkerProfile)) {
+    showError("Your worker profile is pending TaskMint approval. You can submit quotes after TaskMint approves your account.");
     return;
   }
 

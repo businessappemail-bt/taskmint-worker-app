@@ -709,6 +709,10 @@ let currentProfile = {
   full_name: "",
   tax_setup_complete: false,
   payout_setup_complete: false,
+  payout_status: "",
+  stripe_account_id: "",
+  bank_account_last4: "",
+  debit_card_last4: "",
   identity_verified: false,
   worker_verification_status: "",
   submitted_for_verification: false,
@@ -770,8 +774,15 @@ function getLiveProfileSnapshot() {
     worker_state: getInputValue("workerState"),
     worker_zip: getInputValue("workerZip"),
     tax_setup_complete: currentProfile.tax_setup_complete,
+    tax_status: currentProfile.tax_status,
     payout_setup_complete: currentProfile.payout_setup_complete,
-    identity_verified: currentProfile.identity_verified
+    payout_status: currentProfile.payout_status,
+    stripe_account_id: currentProfile.stripe_account_id,
+    bank_account_last4: currentProfile.bank_account_last4,
+    debit_card_last4: currentProfile.debit_card_last4,
+    identity_verified: currentProfile.identity_verified,
+    worker_verification_status: currentProfile.worker_verification_status,
+    submitted_for_verification: currentProfile.submitted_for_verification
   };
 }
  
@@ -807,6 +818,7 @@ function calculateCompletion(profile) {
     areaDone,
     servicesDone,
     taxDone,
+    payoutDone,
     verificationDone
   ];
  
@@ -917,6 +929,7 @@ function updateCompletionUI(profile) {
   setChecklistState("serviceAreaCheck", result.areaDone, "Saved");
   setChecklistState("servicesCheck", result.servicesDone, "Done");
   setChecklistState("taxCheck", result.taxDone, "Done");
+  setChecklistState("payoutCheck", result.payoutDone, "Done");
   setChecklistState("verificationCheck", result.verificationDone, "Done");
  
   updateServicesPreview(profile.skills);

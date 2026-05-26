@@ -390,7 +390,7 @@
  
     .quote-actions {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       margin-top: 12px;
     }
@@ -1186,18 +1186,42 @@ async function loadWorkerRating(workerId) {
 }
  
 async function loadPendingQuotesByEmail(email) {
- 
+
   const container =
     document.getElementById("pendingQuotesList");
- 
-  const { data: workerProfile, error: workerError } =
+
+  const pendingQuotesCount =
+    document.getElementById("pendingQuotes");
+
+  pendingQuotesCount.innerText =
+    "0";
+
+  const workerIds =
+    [];
+
+  if (currentUser && currentUser.id) {
+    workerIds.push(currentUser.id);
+  }
+
+  if (currentWorkerId) {
+    workerIds.push(currentWorkerId);
+  }
+
+  const { data: workerProfile } =
     await supabaseClient
       .from("workers")
       .select("id")
       .eq("email", email)
       .maybeSingle();
- 
-  if (workerError || !workerProfile) {
+
+  if (workerProfile && workerProfile.id) {
+    workerIds.push(workerProfile.id);
+  }
+
+  const uniqueWorkerIds =
+    [...new Set(workerIds.filter(Boolean).map(String))];
+
+  if (uniqueWorkerIds.length === 0) {
     container.innerHTML = `
       <div class="small-text">
         Worker record not found for pending quotes.
@@ -1205,15 +1229,15 @@ async function loadPendingQuotesByEmail(email) {
     `;
     return;
   }
- 
+
   const { data: quotes, error } =
     await supabaseClient
       .from("worker_quotes")
       .select("*")
-      .eq("worker_id", workerProfile.id)
-      .ilike("status", "pending")
+      .in("worker_id", uniqueWorkerIds)
+      .eq("status", "pending")
       .order("created_at", { ascending: false });
- 
+
   if (error) {
     container.innerHTML = `
       <div class="small-text">
@@ -1222,11 +1246,11 @@ async function loadPendingQuotesByEmail(email) {
     `;
     return;
   }
- 
+
   if (!quotes || quotes.length === 0) {
-    document.getElementById("pendingQuotes").innerText =
+    pendingQuotesCount.innerText =
       "0";
- 
+
     container.innerHTML = `
       <div class="small-text">
         No pending quotes yet. Browse available tasks to send your next quote.
@@ -1234,52 +1258,58 @@ async function loadPendingQuotesByEmail(email) {
     `;
     return;
   }
- 
-  document.getElementById("pendingQuotes").innerText =
+
+  pendingQuotesCount.innerText =
     quotes.length;
- 
+
   container.innerHTML = "";
- 
+
   quotes.forEach((quote) => {
- 
+
     container.innerHTML += `
       <div class="quote-card">
- 
+
         <div class="small-text">
           Quote Amount
         </div>
- 
+
         <div class="quote-amount">
           $${quote.quote_amount || "0.00"}
         </div>
- 
+
         <div class="small-text" style="margin-top:8px;">
           Status: Pending
         </div>
- 
+
         <div class="quote-actions">
- 
+
           <button
             class="secondary"
-            onclick="editQuote('${quote.id}')">
-            Edit
+            onclick="editQuote('${quote.id}', '${quote.task_id || ""}', '${quote.customer_id || ""}')">
+            Edit Quote
           </button>
- 
+
+          <button
+            class="secondary"
+            onclick="messageCustomerFromQuote('${quote.id}', '${quote.task_id || ""}', '${quote.customer_id || ""}')">
+            Message
+          </button>
+
           <button
             class="danger"
             onclick="cancelQuote('${quote.id}')">
             Cancel
           </button>
- 
+
         </div>
- 
+
       </div>
     `;
- 
+
   });
- 
+
 }
- 
+
 async function cancelQuote(quoteId) {
  
   const confirmed =
@@ -1308,18 +1338,73 @@ async function cancelQuote(quoteId) {
  
 }
  
-function editQuote(quoteId) {
- 
+function editQuote(quoteId, taskId = "", customerId = "") {
+
   localStorage.setItem(
     "selectedQuoteId",
     quoteId
   );
- 
+
+  if (taskId) {
+    localStorage.setItem(
+      "selectedQuoteTaskId",
+      taskId
+    );
+
+    localStorage.setItem(
+      "selectedTaskId",
+      taskId
+    );
+  }
+
+  if (customerId) {
+    localStorage.setItem(
+      "selectedCustomerId",
+      customerId
+    );
+  }
+
   window.location.href =
     "edit-quote.html";
- 
+
 }
- 
+
+function messageCustomerFromQuote(quoteId, taskId = "", customerId = "") {
+
+  localStorage.setItem(
+    "selectedQuoteId",
+    quoteId
+  );
+
+  if (taskId) {
+    localStorage.setItem(
+      "selectedMessageTaskId",
+      taskId
+    );
+
+    localStorage.setItem(
+      "selectedTaskId",
+      taskId
+    );
+  }
+
+  if (customerId) {
+    localStorage.setItem(
+      "selectedCustomerId",
+      customerId
+    );
+  }
+
+  localStorage.setItem(
+    "messageContext",
+    "quote"
+  );
+
+  window.location.href =
+    "worker-task-message.html";
+
+}
+
 async function loadWorkerEarnings(workerId) {
  
   const { data, error } =

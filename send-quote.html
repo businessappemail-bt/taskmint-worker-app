@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html>
 <head>
   <title>Send Quote - TaskMint</title>
@@ -287,6 +287,30 @@ async function getCurrentWorkerUser() {
   return null;
 }
 
+
+async function isApprovedFromProfiles(workerUser) {
+  if (!workerUser || !workerUser.id) {
+    return false;
+  }
+
+  const { data: profile, error } =
+    await supabaseClient
+      .from("profiles")
+      .select("is_worker_approved, can_send_quotes, worker_verification_status")
+      .eq("id", workerUser.id)
+      .maybeSingle();
+
+  if (error || !profile) {
+    return false;
+  }
+
+  return (
+    profile.is_worker_approved === true &&
+    profile.can_send_quotes === true &&
+    String(profile.worker_verification_status || "").toLowerCase() === "approved"
+  );
+}
+
 async function fetchSingleByColumn(tableName, columnName, value) {
   if (!value) {
     return null;
@@ -338,32 +362,10 @@ async function getWorkerProfile(workerUser) {
     workerUser.email?.split("@")[0] ||
     "Worker";
 
-  const { data: createdProfile, error: createProfileError } =
-    await supabaseClient
-      .from("worker_profiles")
-      .upsert(
-        [
-          {
-            id: workerUser.id,
-            auth_user_id: workerUser.id,
-            full_name: fullName,
-            is_approved: false,
-            approval_status: "pending_review"
-          }
-        ],
-        { onConflict: "id" }
-      )
-      .select("*")
-      .single();
-
-  if (createProfileError) {
-    showError(createProfileError.message);
-    return mainProfile || null;
-  }
-
-  return {
-    ...(mainProfile || {}),
-    ...(createdProfile || {})
+  return mainProfile || {
+    id: workerUser.id,
+    auth_user_id: workerUser.id,
+    full_name: fullName
   };
 }
 
@@ -451,7 +453,10 @@ async function loadTask() {
   currentWorkerProfile =
     await getWorkerProfile(currentWorkerUser);
 
-  if (!isWorkerApprovedForQuotes(currentWorkerProfile)) {
+  const approvedFromProfiles =
+    await isApprovedFromProfiles(currentWorkerUser);
+
+  if (!approvedFromProfiles) {
     showError("Your worker profile is pending TaskMint approval. You can submit quotes after TaskMint approves your account.");
     document.getElementById("submitQuoteBtn").disabled = true;
   }
@@ -510,7 +515,10 @@ async function submitQuote() {
     return;
   }
 
-  if (!isWorkerApprovedForQuotes(currentWorkerProfile)) {
+  const approvedFromProfiles =
+    await isApprovedFromProfiles(currentWorkerUser);
+
+  if (!approvedFromProfiles) {
     showError("Your worker profile is pending TaskMint approval. You can submit quotes after TaskMint approves your account.");
     return;
   }

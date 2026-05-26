@@ -1283,7 +1283,7 @@ async function saveServiceArea() {
     console.error(error);
     setMessage(
       "locationStatusMessage",
-      "error.message",
+      error.message,
       "red"
     );
     return;
@@ -1373,7 +1373,7 @@ async function saveProfile() {
   if (error) {
     console.error(error);
     status.style.color = "red";
-    status.innerText = "Error saving profile.";
+    status.innerText = error.message;
     return;
   }
  

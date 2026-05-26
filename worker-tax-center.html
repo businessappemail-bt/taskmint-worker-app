@@ -22,6 +22,11 @@
     .note { font-size:13px; color:#666; line-height:1.5; margin-top:10px; }
     button { width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; background:#0b7a28; color:white; font-size:15px; font-weight:bold; cursor:pointer; }
     button.disabled { background:#999; cursor:not-allowed; }
+    input, select { width:100%; padding:12px; margin-top:6px; margin-bottom:10px; border:1px solid #ddd; border-radius:10px; font-size:14px; box-sizing:border-box; }
+    label { display:block; font-size:13px; font-weight:bold; margin-top:10px; color:#333; }
+    .checkbox-row { display:flex; align-items:flex-start; gap:10px; margin-top:10px; font-size:13px; color:#555; line-height:1.4; }
+    .checkbox-row input { width:auto; margin-top:3px; }
+    #taxSetupMessage { margin-top:10px; font-size:14px; font-weight:bold; text-align:center; }
   </style>
 </head>
 
@@ -57,6 +62,58 @@
   </div>
 
   <div class="card">
+    <div class="section-title">Complete W-9 Tax Setup</div>
+
+    <label for="taxLegalName">Legal Name</label>
+    <input id="taxLegalName" type="text" placeholder="Full legal name">
+
+    <label for="taxBusinessName">Business Name Optional</label>
+    <input id="taxBusinessName" type="text" placeholder="Business name, if applicable">
+
+    <label for="taxClassification">Tax Classification</label>
+    <select id="taxClassification">
+      <option value="">Select classification</option>
+      <option value="individual">Individual / Sole Proprietor</option>
+      <option value="single_member_llc">Single-Member LLC</option>
+      <option value="llc">LLC</option>
+      <option value="corporation">Corporation</option>
+      <option value="partnership">Partnership</option>
+    </select>
+
+    <label for="taxIdLast4">SSN / EIN Last 4</label>
+    <input id="taxIdLast4" type="text" maxlength="4" placeholder="Last 4 digits only">
+
+    <label for="taxAddress">Tax Address</label>
+    <input id="taxAddress" type="text" placeholder="Street address">
+
+    <label for="taxCity">City</label>
+    <input id="taxCity" type="text" placeholder="City">
+
+    <label for="taxState">State</label>
+    <input id="taxState" type="text" maxlength="2" placeholder="GA">
+
+    <label for="taxZip">Zip Code</label>
+    <input id="taxZip" type="text" placeholder="Zip code">
+
+    <div class="checkbox-row">
+      <input id="taxCertification" type="checkbox">
+      <div>
+        I certify that the tax information provided is accurate and that I understand TaskMint does not withhold taxes from worker payouts.
+      </div>
+    </div>
+
+    <button onclick="saveTaxSetup()">
+      Save W-9 Tax Setup
+    </button>
+
+    <p id="taxSetupMessage"></p>
+
+    <div class="note">
+      Once this is completed, your worker profile checklist will mark Tax and Payout Setup as complete.
+    </div>
+  </div>
+
+  <div class="card">
     <div class="section-title">Yearly Earnings</div>
 
     <div class="row">
@@ -77,6 +134,16 @@
     <div class="row">
       <div class="label">Estimated Net Payout</div>
       <div class="value" id="netPayout">$0.00</div>
+    </div>
+
+    <div class="row">
+      <div class="label">1099 Threshold Tracker</div>
+      <div class="value" id="thresholdTracker">$0.00 / $600.00</div>
+    </div>
+
+    <div class="row">
+      <div class="label">1099 Eligibility</div>
+      <div class="value" id="eligibilityStatus">Not Yet Eligible</div>
     </div>
   </div>
 
@@ -123,13 +190,47 @@ async function loadTaxCenter() {
 async function loadTaxStatus() {
   const { data: profile } = await supabaseClient
     .from("profiles")
-    .select("tax_status")
+    .select("*")
     .eq("id", currentUser.id)
     .maybeSingle();
 
+  if (profile) {
+    document.getElementById("taxLegalName").value =
+      profile.tax_legal_name || profile.full_name || "";
+
+    document.getElementById("taxBusinessName").value =
+      profile.tax_business_name || "";
+
+    document.getElementById("taxClassification").value =
+      profile.tax_classification || "";
+
+    document.getElementById("taxIdLast4").value =
+      profile.ssn_last4 || profile.tax_id_last4 || "";
+
+    document.getElementById("taxAddress").value =
+      profile.tax_address || profile.worker_address || "";
+
+    document.getElementById("taxCity").value =
+      profile.tax_city || profile.worker_city || "";
+
+    document.getElementById("taxState").value =
+      profile.tax_state || profile.worker_state || "";
+
+    document.getElementById("taxZip").value =
+      profile.tax_zip || profile.worker_zip || "";
+  }
+
+  const taxCompleted =
+    profile &&
+    (
+      profile.tax_setup_complete === true ||
+      profile.tax_status === "verified" ||
+      profile.tax_status === "completed"
+    );
+
   document.getElementById("w9Status").innerHTML =
-    profile && profile.tax_status === "verified"
-      ? "<span class='status-good'>Verified</span>"
+    taxCompleted
+      ? "<span class='status-good'>Completed</span>"
       : "<span class='status-warning'>Not Completed</span>";
 
   const { data: payout } = await supabaseClient
@@ -138,10 +239,85 @@ async function loadTaxStatus() {
     .eq("email", currentUser.email)
     .maybeSingle();
 
+  const payoutCompleted =
+    (profile && profile.payout_setup_complete === true) ||
+    (payout && payout.payout_status === "verified");
+
   document.getElementById("payoutStatus").innerHTML =
-    payout && payout.payout_status === "verified"
-      ? "<span class='status-good'>Verified</span>"
+    payoutCompleted
+      ? "<span class='status-good'>Completed</span>"
       : "<span class='status-warning'>Not Completed</span>";
+}
+
+
+function setTaxSetupMessage(message, color) {
+  const box = document.getElementById("taxSetupMessage");
+  box.style.color = color;
+  box.innerText = message;
+}
+
+async function saveTaxSetup() {
+  const legalName = document.getElementById("taxLegalName").value.trim();
+  const businessName = document.getElementById("taxBusinessName").value.trim();
+  const classification = document.getElementById("taxClassification").value;
+  const last4 = document.getElementById("taxIdLast4").value.trim();
+  const address = document.getElementById("taxAddress").value.trim();
+  const city = document.getElementById("taxCity").value.trim();
+  const state = document.getElementById("taxState").value.trim();
+  const zip = document.getElementById("taxZip").value.trim();
+  const certified = document.getElementById("taxCertification").checked;
+
+  if (!legalName || !classification || !last4 || !address || !city || !state || !zip) {
+    setTaxSetupMessage("Complete all required W-9 fields before saving.", "red");
+    return;
+  }
+
+  if (!/^\d{4}$/.test(last4)) {
+    setTaxSetupMessage("Enter exactly 4 digits for SSN / EIN last 4.", "red");
+    return;
+  }
+
+  if (!certified) {
+    setTaxSetupMessage("You must certify that the tax information is accurate.", "red");
+    return;
+  }
+
+  setTaxSetupMessage("Saving tax setup...", "#0b7a28");
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .upsert({
+      id: currentUser.id,
+      email: currentUser.email,
+      account_type: "worker",
+      tax_legal_name: legalName,
+      tax_business_name: businessName,
+      tax_classification: classification,
+      ssn_last4: last4,
+      tax_id_last4: last4,
+      tax_address: address,
+      tax_city: city,
+      tax_state: state,
+      tax_zip: zip,
+      tax_status: "completed",
+      tax_setup_complete: true,
+      tax_certification_acknowledged: true,
+      tax_certification_acknowledged_at: new Date().toISOString()
+    });
+
+  if (error) {
+    console.error(error);
+    setTaxSetupMessage(error.message, "red");
+    return;
+  }
+
+  document.getElementById("w9Status").innerHTML =
+    "<span class='status-good'>Completed</span>";
+
+  setTaxSetupMessage(
+    "W-9 tax setup saved. Your worker profile checklist will now read Tax and Payout Setup as complete.",
+    "green"
+  );
 }
 
 async function loadEarnings() {
@@ -170,6 +346,14 @@ async function loadEarnings() {
 
   document.getElementById("netPayout").innerText =
     "$" + net.toFixed(2);
+
+  document.getElementById("thresholdTracker").innerText =
+    "$" + gross.toFixed(2) + " / $600.00";
+
+  document.getElementById("eligibilityStatus").innerHTML =
+    gross >= 600
+      ? "<span class='status-good'>Eligible</span>"
+      : "<span class='status-warning'>Not Yet Eligible</span>";
 }
 
 async function loadTaxDocuments() {

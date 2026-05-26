@@ -390,7 +390,7 @@
  
     .quote-actions {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: 1fr 1fr;
       gap: 8px;
       margin-top: 12px;
     }
@@ -917,8 +917,8 @@
       </div>
  
       <div class="section-link"
-        onclick="window.location.href='worker-open-task.html'">
-        Browse More
+        onclick="scrollToPendingQuotes()">
+        View Pending
       </div>
     </div>
  
@@ -1285,12 +1285,6 @@ async function loadPendingQuotesByEmail(email) {
 
           <button
             class="secondary"
-            onclick="editQuote('${quote.id}', '${quote.task_id || ""}', '${quote.customer_id || ""}')">
-            Edit Quote
-          </button>
-
-          <button
-            class="secondary"
             onclick="messageCustomerFromQuote('${quote.id}', '${quote.task_id || ""}', '${quote.customer_id || ""}')">
             Message
           </button>
@@ -1338,37 +1332,6 @@ async function cancelQuote(quoteId) {
  
 }
  
-function editQuote(quoteId, taskId = "", customerId = "") {
-
-  localStorage.setItem(
-    "selectedQuoteId",
-    quoteId
-  );
-
-  if (taskId) {
-    localStorage.setItem(
-      "selectedQuoteTaskId",
-      taskId
-    );
-
-    localStorage.setItem(
-      "selectedTaskId",
-      taskId
-    );
-  }
-
-  if (customerId) {
-    localStorage.setItem(
-      "selectedCustomerId",
-      customerId
-    );
-  }
-
-  window.location.href =
-    "edit-quote.html";
-
-}
-
 function messageCustomerFromQuote(quoteId, taskId = "", customerId = "") {
 
   localStorage.setItem(

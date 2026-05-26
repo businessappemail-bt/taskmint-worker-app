@@ -368,7 +368,8 @@
  
     #statusMessage,
     #locationStatusMessage,
-    #photoStatusMessage {
+    #photoStatusMessage,
+    #emailStatusMessage {
       margin-top: 12px;
       font-weight: 800;
       text-align: center;
@@ -508,6 +509,32 @@
     </div>
   </div>
  
+  <div class="card">
+    <div class="section-title">Login Email</div>
+
+    <label for="loginEmail">Email Address</label>
+    <input
+      id="loginEmail"
+      type="email"
+      placeholder="worker@email.com"
+    >
+
+    <div class="help-text">
+      This is the email used to log in to your worker account. You may need to confirm the change from your inbox.
+    </div>
+
+    <button
+      type="button"
+      class="secondary"
+      onclick="updateLoginEmail()"
+    >
+      Update Login Email
+    </button>
+
+    <p id="emailStatusMessage"></p>
+  </div>
+
+
   <div class="card">
     <div class="section-title">Experience & Services</div>
  
@@ -682,8 +709,16 @@ let currentProfile = {
   full_name: "",
   tax_setup_complete: false,
   payout_setup_complete: false,
-  identity_verified: false
+  identity_verified: false,
+  worker_verification_status: "",
+  submitted_for_verification: false,
+  verification_submitted_at: "",
+  can_send_quotes: false,
+  is_worker_approved: false
 };
+
+let profileSubmitInProgress = false;
+let profileAlreadySubmitted = false;
  
 function getInputValue(id) {
   return document.getElementById(id).value.trim();
@@ -792,6 +827,81 @@ function calculateCompletion(profile) {
   };
 }
  
+function isProfileAlreadySentForVerification() {
+  return (
+    profileAlreadySubmitted === true ||
+    currentProfile.submitted_for_verification === true ||
+    String(currentProfile.worker_verification_status || "").toLowerCase() === "pending" ||
+    String(currentProfile.worker_verification_status || "").toLowerCase() === "approved" ||
+    currentProfile.is_worker_approved === true
+  );
+}
+
+async function submitProfileForVerificationIfReady(profile, completionResult) {
+  if (!currentUser || !completionResult || completionResult.percent < 100) {
+    return;
+  }
+
+  if (profileSubmitInProgress || isProfileAlreadySentForVerification()) {
+    return;
+  }
+
+  profileSubmitInProgress = true;
+
+  const submittedAt =
+    new Date().toISOString();
+
+  const payload = {
+    id: currentUser.id,
+    email: currentUser.email,
+    profile_photo_url: profile.profile_photo_url,
+    experience: profile.experience,
+    skills: profile.skills,
+    service_area: profile.service_area,
+    service_radius: profile.service_radius,
+    worker_address: profile.worker_address,
+    worker_city: profile.worker_city,
+    worker_state: profile.worker_state,
+    worker_zip: profile.worker_zip,
+    account_type: "worker",
+    submitted_for_verification: true,
+    worker_verification_status: "pending",
+    verification_submitted_at: submittedAt,
+    can_send_quotes: false,
+    is_worker_approved: false
+  };
+
+  const { error } =
+    await supabaseClient
+      .from("profiles")
+      .upsert(payload);
+
+  profileSubmitInProgress = false;
+
+  if (error) {
+    console.error(error);
+    setMessage(
+      "statusMessage",
+      "Profile is complete, but it could not be sent to TaskMint for verification.",
+      "red"
+    );
+    return;
+  }
+
+  profileAlreadySubmitted = true;
+
+  currentProfile = {
+    ...currentProfile,
+    ...payload
+  };
+
+  setMessage(
+    "statusMessage",
+    "Profile is 100% complete and has been sent to TaskMint for verification. Quote access stays locked until TaskMint approves the account.",
+    "green"
+  );
+}
+
 function updateCompletionUI(profile) {
   const result =
     calculateCompletion(profile);
@@ -818,6 +928,8 @@ function updateCompletionUI(profile) {
     profile.worker_state,
     profile.worker_zip
   );
+
+  submitProfileForVerificationIfReady(profile, result);
 }
  
 function handleLiveProfileUpdate() {
@@ -961,6 +1073,75 @@ document.getElementById("workerZip").value =
   updateCompletionUI(getLiveProfileSnapshot());
 }
  
+async function updateLoginEmail() {
+  if (!currentUser) {
+    alert("You must log in first.");
+    window.location.href = "worker-login.html";
+    return;
+  }
+
+  const newEmail =
+    getInputValue("loginEmail");
+
+  if (!hasValue(newEmail)) {
+    setMessage(
+      "emailStatusMessage",
+      "Enter the new login email before saving.",
+      "red"
+    );
+    return;
+  }
+
+  if (newEmail.toLowerCase() === String(currentUser.email || "").toLowerCase()) {
+    setMessage(
+      "emailStatusMessage",
+      "This is already your current login email.",
+      "#555"
+    );
+    return;
+  }
+
+  setMessage(
+    "emailStatusMessage",
+    "Updating login email...",
+    "#0b7a28"
+  );
+
+  const { error } =
+    await supabaseClient.auth.updateUser({
+      email: newEmail
+    });
+
+  if (error) {
+    console.error(error);
+    setMessage(
+      "emailStatusMessage",
+      error.message,
+      "red"
+    );
+    return;
+  }
+
+  await supabaseClient
+    .from("profiles")
+    .upsert({
+      id: currentUser.id,
+      email: newEmail,
+      account_type: "worker"
+    });
+
+  currentUser = {
+    ...currentUser,
+    email: newEmail
+  };
+
+  setMessage(
+    "emailStatusMessage",
+    "Login email update started. Check your inbox to confirm the new email if required.",
+    "green"
+  );
+}
+
 async function uploadProfilePhoto(event) {
   const file = event.target.files[0];
  
@@ -1183,7 +1364,10 @@ async function saveProfile() {
         worker_state: state,
         worker_zip: zip,
         account_type: "worker",
-        is_worker_approved: false
+        submitted_for_verification: currentProfile.submitted_for_verification === true,
+        worker_verification_status: currentProfile.submitted_for_verification === true ? currentProfile.worker_verification_status : "incomplete",
+        can_send_quotes: currentProfile.is_worker_approved === true,
+        is_worker_approved: currentProfile.is_worker_approved === true
       });
  
   if (error) {
@@ -1202,7 +1386,8 @@ async function saveProfile() {
     worker_address: address,
     worker_city: city,
     worker_state: state,
-    worker_zip: zip
+    worker_zip: zip,
+    can_send_quotes: currentProfile.is_worker_approved === true
   };
  
   updateCompletionUI(getLiveProfileSnapshot());
@@ -1216,7 +1401,3 @@ checkLogin();
 </script>
 </body>
 </html>
-
-
-
-

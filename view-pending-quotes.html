@@ -615,36 +615,48 @@ async function loadCurrentWorker() {
 }
 
 async function fetchTaskForQuote(quote) {
-  if (!quote.task_id) {
+  const possibleTaskIds = [
+    quote.task_id,
+    quote.job_id,
+    quote.request_id,
+    quote.direct_request_id,
+    quote.task_uuid
+  ]
+    .filter(Boolean)
+    .map(String);
+
+  if (possibleTaskIds.length === 0) {
     return null;
   }
 
-  const { data: task } =
-    await supabaseClient
-      .from("tasks")
-      .select("*")
-      .eq("id", quote.task_id)
-      .maybeSingle();
+  for (const taskId of possibleTaskIds) {
+    const { data: task } =
+      await supabaseClient
+        .from("tasks")
+        .select("*")
+        .eq("id", taskId)
+        .maybeSingle();
 
-  if (task) {
-    return {
-      ...task,
-      source_type: "marketplace"
-    };
-  }
+    if (task) {
+      return {
+        ...task,
+        source_type: "marketplace"
+      };
+    }
 
-  const { data: directTask } =
-    await supabaseClient
-      .from("direct_task_requests")
-      .select("*")
-      .eq("id", quote.task_id)
-      .maybeSingle();
+    const { data: directTask } =
+      await supabaseClient
+        .from("direct_task_requests")
+        .select("*")
+        .eq("id", taskId)
+        .maybeSingle();
 
-  if (directTask) {
-    return {
-      ...directTask,
-      source_type: "direct_quote"
-    };
+    if (directTask) {
+      return {
+        ...directTask,
+        source_type: "direct_quote"
+      };
+    }
   }
 
   return null;

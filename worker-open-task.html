@@ -808,6 +808,30 @@ function getLocationForCard(task) {
   return getCityState(task);
 }
  
+function isWorkerApprovedForQuotes() {
+  const profileApproved =
+    currentWorkerProfile &&
+    (
+      currentWorkerProfile.is_worker_approved === true ||
+      currentWorkerProfile.is_approved === true ||
+      String(currentWorkerProfile.worker_status || "").toLowerCase() === "approved" ||
+      String(currentWorkerProfile.approval_status || "").toLowerCase() === "approved" ||
+      String(currentWorkerProfile.verification_status || "").toLowerCase() === "approved"
+    );
+
+  const workerRecordApproved =
+    currentWorkerRecord &&
+    (
+      currentWorkerRecord.is_worker_approved === true ||
+      currentWorkerRecord.is_approved === true ||
+      String(currentWorkerRecord.worker_status || "").toLowerCase() === "approved" ||
+      String(currentWorkerRecord.approval_status || "").toLowerCase() === "approved" ||
+      String(currentWorkerRecord.verification_status || "").toLowerCase() === "approved"
+    );
+
+  return profileApproved || workerRecordApproved;
+}
+
 async function loadCurrentWorker() {
   const { data, error } = await supabaseClient.auth.getUser();
  
@@ -1098,7 +1122,20 @@ function viewTask(taskId) {
   window.location.href = "job-details.html";
 }
 
-function sendQuote(taskId, sourceType = "public_task") {
+async function sendQuote(taskId, sourceType = "public_task") {
+  if (!currentUser) {
+    const loaded = await loadCurrentWorker();
+
+    if (!loaded) {
+      return;
+    }
+  }
+
+  if (!isWorkerApprovedForQuotes()) {
+    alert("Your worker profile is pending TaskMint approval. You can send quotes after TaskMint approves your account.");
+    return;
+  }
+
   localStorage.setItem("selectedQuoteTaskId", taskId);
   localStorage.setItem("selectedTaskId", taskId);
   localStorage.setItem("selectedQuoteSourceType", sourceType);

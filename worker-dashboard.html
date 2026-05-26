@@ -390,7 +390,7 @@
  
     .quote-actions {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       margin-top: 12px;
     }
@@ -917,7 +917,7 @@
       </div>
  
       <div class="section-link"
-        onclick="scrollToPendingQuotes()">
+        onclick="openPendingQuotesPage()">
         View Pending
       </div>
     </div>
@@ -1332,6 +1332,37 @@ async function cancelQuote(quoteId) {
  
 }
  
+function editQuote(quoteId, taskId = "", customerId = "") {
+
+  localStorage.setItem(
+    "selectedQuoteId",
+    quoteId
+  );
+
+  if (taskId) {
+    localStorage.setItem(
+      "selectedQuoteTaskId",
+      taskId
+    );
+
+    localStorage.setItem(
+      "selectedTaskId",
+      taskId
+    );
+  }
+
+  if (customerId) {
+    localStorage.setItem(
+      "selectedCustomerId",
+      customerId
+    );
+  }
+
+  window.location.href =
+    "edit-quote.html";
+
+}
+
 function messageCustomerFromQuote(quoteId, taskId = "", customerId = "") {
 
   localStorage.setItem(
@@ -1922,6 +1953,14 @@ async function loadWorkerNotifications() {
   );
 
   updateNotificationBadge(total);
+
+}
+
+
+function openPendingQuotesPage() {
+
+  window.location.href =
+    "view-pending-quotes.html";
 
 }
 

@@ -790,13 +790,13 @@ function calculateCompletion(profile) {
   const photoDone =
     hasValue(profile.profile_photo_url) &&
     !profile.profile_photo_url.includes("Taskmintlogo.png");
- 
+
   const experienceDone =
     hasValue(profile.experience);
- 
+
   const servicesDone =
     hasValue(profile.skills);
- 
+
   const areaDone =
     hasValue(profile.service_area) &&
     hasValue(profile.service_radius) &&
@@ -804,14 +804,26 @@ function calculateCompletion(profile) {
     hasValue(profile.worker_city) &&
     hasValue(profile.worker_state) &&
     hasValue(profile.worker_zip);
- 
+
   const taxDone =
     profile.tax_setup_complete === true ||
-    profile.payout_setup_complete === true;
- 
+    profile.tax_status === "completed" ||
+    profile.tax_status === "verified";
+
+  const payoutDone =
+    profile.payout_setup_complete === true ||
+    profile.payout_status === "completed" ||
+    profile.payout_status === "verified" ||
+    hasValue(profile.stripe_account_id) ||
+    hasValue(profile.bank_account_last4) ||
+    hasValue(profile.debit_card_last4);
+
   const verificationDone =
-    profile.identity_verified === true;
- 
+    profile.identity_verified === true ||
+    profile.worker_verification_status === "pending" ||
+    profile.worker_verification_status === "approved" ||
+    profile.submitted_for_verification === true;
+
   const items = [
     photoDone,
     experienceDone,
@@ -821,13 +833,13 @@ function calculateCompletion(profile) {
     payoutDone,
     verificationDone
   ];
- 
+
   const doneCount =
     items.filter(Boolean).length;
- 
+
   const percent =
     Math.round((doneCount / items.length) * 100);
- 
+
   return {
     percent,
     photoDone,
@@ -835,6 +847,7 @@ function calculateCompletion(profile) {
     areaDone,
     servicesDone,
     taxDone,
+    payoutDone,
     verificationDone
   };
 }

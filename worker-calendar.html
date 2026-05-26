@@ -1,22 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Worker Calendar - TaskMint</title>
+  <title>Completed Tasks - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: #f4f4f4;
       color: #111;
+      padding-bottom: 90px;
     }
 
     .container {
       max-width: 420px;
       margin: 0 auto;
+      background: white;
+      min-height: 100vh;
       padding: 20px;
       box-sizing: border-box;
     }
@@ -24,125 +28,83 @@
     .back {
       color: #0b7a28;
       font-weight: bold;
-      text-decoration: none;
+      margin-bottom: 18px;
       display: inline-block;
-      margin-bottom: 16px;
-      font-size: 15px;
+      text-decoration: none;
     }
 
-    .calendar-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    h1 {
+      margin-top: 0;
+      color: #0b7a28;
       margin-bottom: 18px;
     }
 
-    .month-title {
-      font-size: 24px;
-      font-weight: bold;
-      color: #0b7a28;
-    }
-
-    .month-btn {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      border: none;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      font-size: 20px;
-      font-weight: bold;
-      cursor: pointer;
-      color: #0b7a28;
-    }
-
-   .calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-}
-
-    .day-name {
-      text-align: center;
-      font-size: 13px;
-      font-weight: bold;
-      color: #666;
-      margin-bottom: 6px;
-    }
-
-    .calendar-day {
-  background: white;
-  border-radius: 10px;
-  min-height: 58px;
-  padding: 6px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  position: relative;
-}
-
-    .day-number {
-      font-size: 14px;
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
-
-    .job-pill {
+    .summary-card {
       background: #0b7a28;
       color: white;
-      font-size: 11px;
-      border-radius: 8px;
-      padding: 5px;
-      margin-top: 5px;
-      line-height: 1.3;
-      word-break: break-word;
-      cursor: pointer;
+      padding: 22px;
+      border-radius: 18px;
+      margin-bottom: 20px;
     }
 
-    .job-time {
-      display: block;
-      font-size: 10px;
-      opacity: 0.9;
-      margin-top: 2px;
+    .summary-number {
+      font-size: 34px;
+      font-weight: bold;
+      margin-top: 8px;
     }
 
-    .job-pill.completed {
-      background: #888;
-      text-decoration: line-through;
-    }
-
-    .empty-day {
-      background: transparent;
-      box-shadow: none;
-    }
-
-    .legend {
-      margin-top: 18px;
-      background: white;
-      border-radius: 14px;
-      padding: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-
-    .legend-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
+    .summary-label {
       font-size: 14px;
+      opacity: 0.9;
     }
 
-    .legend-color {
-      width: 18px;
-      height: 18px;
-      border-radius: 5px;
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid #eee;
     }
 
-    .green {
-      background: #0b7a28;
+    .task-title {
+      font-size: 17px;
+      font-weight: bold;
+      margin-bottom: 6px;
     }
 
-    .gray {
-      background: #888;
+    .small-text {
+      color: #666;
+      font-size: 13px;
+      margin-top: 5px;
+      line-height: 1.4;
     }
+
+    .status {
+      display: inline-block;
+      background: #e6f4ea;
+      color: #0b7a28;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 12px;
+    }
+
+    .amount {
+      color: #0b7a28;
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 14px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #777;
+      margin-top: 60px;
+      font-size: 15px;
+    }
+
   </style>
 </head>
 
@@ -150,498 +112,160 @@
 
 <div class="container">
 
-  <a class="back" href="worker-dashboard.html">
+  <a class="back"
+  href="worker-dashboard.html">
     ← Back to Dashboard
   </a>
 
-  <div class="calendar-header">
+  <h1>Completed Tasks</h1>
 
-    <button class="month-btn" onclick="previousMonth()">
-      ←
-    </button>
+  <div class="summary-card">
 
-    <div class="month-title" id="monthTitle">
-      Loading...
+    <div class="summary-label">
+      Total Completed Tasks
     </div>
 
-    <button class="month-btn" onclick="nextMonth()">
-      →
-    </button>
-
-  </div>
-
-  <div class="calendar-grid" id="calendarGrid"></div>
-
-  <div class="legend">
-
-    <div class="legend-row">
-      <div class="legend-color green"></div>
-      Upcoming / Scheduled Jobs
-    </div>
-
-    <div class="legend-row">
-      <div class="legend-color gray"></div>
-      Completed Jobs
+    <div class="summary-number"
+    id="completedCount">
+      0
     </div>
 
   </div>
+
+  <div id="completedTasksList"></div>
 
 </div>
 
 <script>
 
-const SUPABASE_URL =
-  "https://dbcthtjmtlumidpbucrc.supabase.co";
+const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+);
 
-const SUPABASE_ANON_KEY =
-  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
+loadCompletedTasks();
 
-const supabaseClient =
-  supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+async function loadCompletedTasks() {
 
-const monthTitle =
-  document.getElementById("monthTitle");
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
 
-const calendarGrid =
-  document.getElementById("calendarGrid");
-
-const currentDate = new Date();
-
-let currentMonth = currentDate.getMonth();
-let currentYear = currentDate.getFullYear();
-
-let scheduledJobs = [];
-
-function getCalendarFirstAvailable(record, keys, fallback = "") {
-  if (!record) {
-    return fallback;
-  }
-
-  for (const key of keys) {
-    if (
-      record[key] !== null &&
-      record[key] !== undefined &&
-      String(record[key]).trim() !== ""
-    ) {
-      return record[key];
-    }
-  }
-
-  return fallback;
-}
-
-function escapeCalendarHTML(value) {
-  if (value === null || value === undefined) {
-    return "";
-  }
-
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function getCalendarTaskDate(job) {
-  return getCalendarFirstAvailable(job, [
-    "task_date",
-    "date_needed",
-    "needed_by",
-    "scheduled_date",
-    "scheduled_start",
-    "due_date"
-  ], "");
-}
-
-function getCalendarTaskTitle(job) {
-  return getCalendarFirstAvailable(job, [
-    "title",
-    "task_title",
-    "job_title",
-    "category",
-    "service_type"
-  ], "Task");
-}
-
-function formatCalendarDate(value) {
-  if (!value) {
-    return "Not scheduled";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString([], {
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  });
-}
-
-function formatCalendarTime(job) {
-  const timeValue =
-    getCalendarFirstAvailable(job, [
-      "scheduled_start",
-      "start_time",
-      "task_time",
-      "scheduled_time",
-      "time_needed",
-      "arrival_time"
-    ], "");
-
-  if (!timeValue) {
-    return "Time not set";
-  }
-
-  const date = new Date(timeValue);
-
-  if (!Number.isNaN(date.getTime())) {
-    return date.toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit"
-    });
-  }
-
-  const parts = String(timeValue).split(":");
-  const hour = Number(parts[0]);
-  const minute = Number(parts[1] || 0);
-
-  if (Number.isNaN(hour) || Number.isNaN(minute)) {
-    return timeValue;
-  }
-
-  const suffix = hour >= 12 ? "PM" : "AM";
-  const displayHour = hour % 12 || 12;
-  const displayMinute = String(minute).padStart(2, "0");
-
-  return `${displayHour}:${displayMinute} ${suffix}`;
-}
-
-function getCalendarCityState(job) {
-  const city =
-    getCalendarFirstAvailable(job, [
-      "city",
-      "task_city",
-      "service_city"
-    ], "City not listed");
-
-  const state =
-    getCalendarFirstAvailable(job, [
-      "state",
-      "task_state",
-      "service_state"
-    ], "");
-
-  return state ? `${city}, ${state}` : city;
-}
-
-function getCalendarFullAddress(job) {
-  const street =
-    getCalendarFirstAvailable(job, [
-      "street_address",
-      "full_address",
-      "address",
-      "task_address",
-      "service_address"
-    ], "Address not listed");
-
-  const unit =
-    getCalendarFirstAvailable(job, [
-      "unit",
-      "apt",
-      "apartment",
-      "suite"
-    ], "");
-
-  const city =
-    getCalendarFirstAvailable(job, [
-      "city",
-      "task_city",
-      "service_city"
-    ], "");
-
-  const state =
-    getCalendarFirstAvailable(job, [
-      "state",
-      "task_state",
-      "service_state"
-    ], "");
-
-  const zip =
-    getCalendarFirstAvailable(job, [
-      "zip_code",
-      "zip",
-      "postal_code"
-    ], "");
-
-  const unitLine =
-    unit ? `, Unit ${unit}` : "";
-
-  const cityStateZip =
-    [city, state, zip].filter(Boolean).join(" ");
-
-  return `${street}${unitLine}${cityStateZip ? ", " + cityStateZip : ""}`;
-}
-
-function getCalendarDaysUntil(job) {
-  const dateValue =
-    getCalendarTaskDate(job);
-
-  if (!dateValue) {
-    return null;
-  }
-
-  const jobDate =
-    new Date(dateValue);
-
-  if (Number.isNaN(jobDate.getTime())) {
-    return null;
-  }
-
-  const today =
-    new Date();
-
-  today.setHours(0, 0, 0, 0);
-  jobDate.setHours(0, 0, 0, 0);
-
-  return Math.ceil((jobDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-}
-
-function canShowCalendarFullAddress(job) {
-  const daysUntil =
-    getCalendarDaysUntil(job);
-
-  return daysUntil !== null && daysUntil <= 7;
-}
-
-function getCalendarLocation(job) {
-  if (canShowCalendarFullAddress(job)) {
-    return getCalendarFullAddress(job);
-  }
-
-  return `${getCalendarCityState(job)} — full address unlocks 7 days before the scheduled task date.`;
-}
-
-function getCalendarDetails(job) {
-  return getCalendarFirstAvailable(job, [
-    "description",
-    "details",
-    "task_details",
-    "notes",
-    "special_instructions"
-  ], "No additional task details were provided.");
-}
-
-function openJobDetails(jobId) {
-  const job =
-    scheduledJobs.find(item => String(item.id) === String(jobId));
-
-  if (!job) {
-    return;
-  }
-
-  document.getElementById("detailJobTitle").innerText =
-    getCalendarTaskTitle(job);
-
-  document.getElementById("detailJobBody").innerHTML = `
-    <div class="detail-row">
-      <div class="detail-label">Date</div>
-      <div class="detail-value">${escapeCalendarHTML(formatCalendarDate(getCalendarTaskDate(job)))}</div>
-    </div>
-
-    <div class="detail-row">
-      <div class="detail-label">Time</div>
-      <div class="detail-value">${escapeCalendarHTML(formatCalendarTime(job))}</div>
-    </div>
-
-    <div class="detail-row">
-      <div class="detail-label">Location</div>
-      <div class="detail-value">${escapeCalendarHTML(getCalendarLocation(job))}</div>
-    </div>
-
-    <div class="detail-row">
-      <div class="detail-label">Status</div>
-      <div class="detail-value">${escapeCalendarHTML(String(job.status || "scheduled").replaceAll("_", " "))}</div>
-    </div>
-
-    <div class="detail-row">
-      <div class="detail-label">Task Details</div>
-      <div class="detail-value">${escapeCalendarHTML(getCalendarDetails(job))}</div>
+if (!user) {
+  document.getElementById("completedTasksList").innerHTML = `
+    <div class="empty-state">
+      No active worker session found. Please log in again.
     </div>
   `;
-
-  document.getElementById("jobDetailModal").classList.add("show");
-}
-
-function closeJobDetails(event) {
-  if (event && event.target && event.target.id !== "jobDetailModal") {
-    return;
-  }
-
-  document.getElementById("jobDetailModal").classList.remove("show");
-}
-
-
-async function loadWorkerJobs() {
-
-  const { data: sessionData } =
-    await supabaseClient.auth.getSession();
-
-  if (!sessionData.session) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  const workerUser = sessionData.session.user;
-
- const { data, error } =
-  await supabaseClient
-    .from("tasks")
-    .select("*")
-    .eq("worker_id", workerUser.id)
-    .in("status", [
-      "accepted",
-      "in_progress",
-      "completed"
-    ]);
-
-if (error) {
-  console.error(error);
-  monthTitle.innerText = "Calendar";
-  renderCalendar();
   return;
 }
 
-  scheduledJobs = data || [];
+  const { data: worker } =
+    await supabaseClient
+      .from("workers")
+      .select("*")
+      .eq("auth_user_id", user.id)
+      .maybeSingle();
 
-  renderCalendar();
+  const workerIds = [
+    user.id,
+    worker?.id
+  ]
+    .filter(Boolean)
+    .map(String);
 
-}
+  const uniqueWorkerIds =
+    [...new Set(workerIds)];
 
-function renderCalendar() {
+  if (uniqueWorkerIds.length === 0) {
+    return;
+  }
 
-  calendarGrid.innerHTML = "";
+  const workerFilters =
+    [];
 
-  const monthNames = [
-    "January","February","March","April",
-    "May","June","July","August",
-    "September","October","November","December"
-  ];
+  uniqueWorkerIds.forEach((id) => {
+    workerFilters.push(`worker_id.eq.${id}`);
+    workerFilters.push(`assigned_worker_id.eq.${id}`);
+    workerFilters.push(`accepted_worker_id.eq.${id}`);
+  });
 
-  monthTitle.innerText =
-    `${monthNames[currentMonth]} ${currentYear}`;
+  const { data: completedTasks, error } =
+    await supabaseClient
+      .from("tasks")
+      .select("*")
+      .or(workerFilters.join(","))
+      .eq("status", "completed")
+      .eq("customer_completed", true)
+      .order("created_at", {
+        ascending: false
+      });
 
-  const dayNames = [
-    "Sun","Mon","Tue",
-    "Wed","Thu","Fri","Sat"
-  ];
+  if (error) {
+    console.log(error);
+    return;
+  }
 
-  dayNames.forEach(day => {
+  document.getElementById("completedCount")
+    .innerText =
+      completedTasks.length;
 
-    calendarGrid.innerHTML += `
-      <div class="day-name">${day}</div>
+  const container =
+    document.getElementById("completedTasksList");
+
+  if (!completedTasks ||
+      completedTasks.length === 0) {
+
+    container.innerHTML = `
+      <div class="empty-state">
+        No completed tasks yet.
+      </div>
+    `;
+
+    return;
+  }
+
+  completedTasks.forEach((task) => {
+
+    container.innerHTML += `
+
+      <div class="card">
+
+        <div class="task-title">
+          ${task.title || "Task"}
+        </div>
+
+        <div class="small-text">
+          ${task.description || ""}
+        </div>
+
+        <div class="small-text">
+          Completed:
+          ${
+            task.customer_completed_at ||
+            task.completed_at
+            ? new Date(task.customer_completed_at || task.completed_at)
+                .toLocaleDateString()
+            : "Recently"
+          }
+        </div>
+
+        <div class="amount">
+          $${Number(task.quote_amount || 0)
+            .toFixed(2)}
+        </div>
+
+        <div class="status">
+          Completed
+        </div>
+
+      </div>
+
     `;
 
   });
 
-  const firstDay =
-    new Date(currentYear, currentMonth, 1).getDay();
-
-  const totalDays =
-    new Date(currentYear, currentMonth + 1, 0).getDate();
-
-  for (let i = 0; i < firstDay; i++) {
-
-    calendarGrid.innerHTML += `
-      <div class="calendar-day empty-day"></div>
-    `;
-
-  }
-
-  for (let day = 1; day <= totalDays; day++) {
-
-    const jobsForDay =
-      scheduledJobs.filter(job => {
-
-        const taskDateValue = getCalendarTaskDate(job);
-
-        if (!taskDateValue) return false;
-
-        const jobDate = new Date(taskDateValue);
-
-        return (
-          jobDate.getDate() === day &&
-          jobDate.getMonth() === currentMonth &&
-          jobDate.getFullYear() === currentYear
-        );
-
-      });
-
-    let jobsHtml = "";
-
-    jobsForDay.forEach(job => {
-
-      jobsHtml += `
-        <div
-          class="job-pill ${job.status === 'completed' ? 'completed' : ''}"
-          onclick="openJobDetails('${job.id}')">
-          ${escapeCalendarHTML(getCalendarTaskTitle(job))}
-          <span class="job-time">${escapeCalendarHTML(formatCalendarTime(job))}</span>
-        </div>
-      `;
-
-    });
-
-    calendarGrid.innerHTML += `
-      <div class="calendar-day">
-
-        <div class="day-number">
-          ${day}
-        </div>
-
-        ${jobsHtml}
-
-      </div>
-    `;
-
-  }
-
 }
-
-function nextMonth() {
-
-  currentMonth++;
-
-  if (currentMonth > 11) {
-    currentMonth = 0;
-    currentYear++;
-  }
-
-  renderCalendar();
-
-}
-
-function previousMonth() {
-
-  currentMonth--;
-
-  if (currentMonth < 0) {
-    currentMonth = 11;
-    currentYear--;
-  }
-
- renderCalendar();
-
-}
-
-loadWorkerJobs();
 
 </script>
 

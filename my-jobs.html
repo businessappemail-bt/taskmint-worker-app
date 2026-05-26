@@ -351,6 +351,14 @@
     button.full {
       grid-column: 1 / -1;
     }
+
+    button:disabled {
+      background: #b9b9b9;
+      color: white;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
  
     .empty {
       text-align: center;
@@ -415,6 +423,7 @@
         <option value="">All Jobs</option>
         <option value="accepted">Accepted</option>
         <option value="in_progress">In Progress</option>
+        <option value="worker_completed">Worker Completed</option>
         <option value="completed">Completed</option>
         <option value="paid">Paid</option>
       </select>
@@ -757,6 +766,10 @@ function getStatusPill(status, assignment) {
     return `<div class="pill green">Paid</div>`;
   }
  
+  if (normalized === "worker_completed") {
+    return `<div class="pill orange">Awaiting Customer Confirmation</div>`;
+  }
+
   if (normalized === "completed") {
     return `<div class="pill orange">Awaiting Pay</div>`;
   }
@@ -771,7 +784,7 @@ function getStatusPill(status, assignment) {
 function shouldShowArrivalBox(quote, assignment) {
   const status = normalizeStatus(quote.status);
  
-  if (["completed", "paid"].includes(status)) {
+  if (["worker_completed", "completed", "paid"].includes(status)) {
     return false;
   }
  
@@ -825,6 +838,83 @@ function getArrivalSection(job) {
   `;
 }
  
+
+function canMarkWorkerComplete(task, quote, assignment) {
+  const taskDate =
+    getDateObject(getTaskDate(task));
+
+  if (!taskDate) {
+    return false;
+  }
+
+  const today =
+    new Date();
+
+  today.setHours(0, 0, 0, 0);
+  taskDate.setHours(0, 0, 0, 0);
+
+  const status =
+    normalizeStatus(quote.status);
+
+  const dateReached =
+    taskDate.getTime() <= today.getTime();
+
+  const started =
+    status === "in_progress" ||
+    (
+      assignment &&
+      assignment.arrival_verified === true
+    ) ||
+    task.worker_arrival_confirmed === true ||
+    task.arrival_verified === true;
+
+  return (
+    dateReached &&
+    started &&
+    !["worker_completed", "completed", "paid"].includes(status)
+  );
+}
+
+function getWorkerCompleteSection(job) {
+  const task =
+    job.task;
+
+  const quote =
+    job.quote;
+
+  const assignment =
+    job.assignment;
+
+  const status =
+    normalizeStatus(quote.status);
+
+  if (["paid", "completed"].includes(status)) {
+    return "";
+  }
+
+  if (status === "worker_completed") {
+    return `
+      <button class="secondary full" disabled>
+        Waiting for Customer Completion
+      </button>
+    `;
+  }
+
+  if (canMarkWorkerComplete(task, quote, assignment)) {
+    return `
+      <button class="full" onclick="markWorkerTaskComplete('${task.id}', '${quote.id}')">
+        Mark Task Complete
+      </button>
+    `;
+  }
+
+  return `
+    <button class="secondary full" disabled>
+      Task Complete Unlocks On Task Date After Arrival Code
+    </button>
+  `;
+}
+
 function setLoading() {
   const jobsList = document.getElementById("jobsList");
  
@@ -845,7 +935,7 @@ function showEmpty(message) {
 function updateSummary(jobs) {
   const active = jobs.filter(job => {
     const status = normalizeStatus(job.quote.status);
-    return ["accepted", "in_progress"].includes(status);
+    return ["accepted", "in_progress", "worker_completed"].includes(status);
   }).length;
  
   const today = new Date();
@@ -857,7 +947,7 @@ function updateSummary(jobs) {
  
   const pendingPay = jobs.filter(job => {
     const status = normalizeStatus(job.quote.status);
-    return status === "completed";
+    return status === "worker_completed" || status === "completed";
   }).length;
  
   document.getElementById("activeCount").innerText = active;
@@ -908,7 +998,7 @@ async function fetchAcceptedQuotes() {
     .from("worker_quotes")
     .select("*")
     .in("worker_id", currentWorkerIds)
-    .in("status", ["accepted", "in_progress", "completed", "paid"])
+    .in("status", ["accepted", "in_progress", "worker_completed", "completed", "paid"])
     .order("created_at", { ascending: false });
  
   if (error) {
@@ -1201,6 +1291,8 @@ function renderJobs() {
         </button>
  
         ${getArrivalSection(job)}
+
+        ${getWorkerCompleteSection(job)}
       </div>
     `;
  
@@ -1231,15 +1323,15 @@ function toggleArrivalBox(taskId) {
 async function verifyArrivalCode(taskId, quoteId) {
   const codeInput = document.getElementById(`arrivalCode-${taskId}`);
   const code = codeInput ? codeInput.value.trim() : "";
- 
+
   if (!code) {
     alert("Enter the arrival code from the customer.");
     return;
   }
- 
+
   let assignment = null;
   let assignmentError = null;
- 
+
   const firstAttempt = await supabaseClient
     .from("task_assignments")
     .select("*")
@@ -1247,12 +1339,12 @@ async function verifyArrivalCode(taskId, quoteId) {
     .in("worker_user_id", currentWorkerIds)
     .eq("arrival_code", code)
     .maybeSingle();
- 
+
   if (!firstAttempt.error && firstAttempt.data) {
     assignment = firstAttempt.data;
   } else {
     assignmentError = firstAttempt.error;
- 
+
     const secondAttempt = await supabaseClient
       .from("task_assignments")
       .select("*")
@@ -1260,46 +1352,130 @@ async function verifyArrivalCode(taskId, quoteId) {
       .in("worker_id", currentWorkerIds)
       .eq("arrival_code", code)
       .maybeSingle();
- 
+
     if (!secondAttempt.error && secondAttempt.data) {
       assignment = secondAttempt.data;
       assignmentError = null;
     }
   }
- 
-  if (assignmentError || !assignment) {
-    alert("Invalid arrival code.");
-    return;
+
+  if (assignment) {
+    const { error: updateAssignmentError } = await supabaseClient
+      .from("task_assignments")
+      .update({
+        arrival_verified: true,
+        assignment_status: "in_progress",
+        arrived_at: new Date().toISOString()
+      })
+      .eq("id", assignment.id);
+
+    if (updateAssignmentError) {
+      alert("Error verifying arrival.");
+      return;
+    }
+  } else {
+    const { data: taskRecord, error: taskCodeError } =
+      await supabaseClient
+        .from("tasks")
+        .select("arrival_code, customer_arrival_code, task_code, access_code")
+        .eq("id", taskId)
+        .maybeSingle();
+
+    if (taskCodeError || !taskRecord) {
+      alert("Invalid arrival code.");
+      return;
+    }
+
+    const validCodes = [
+      taskRecord.arrival_code,
+      taskRecord.customer_arrival_code,
+      taskRecord.task_code,
+      taskRecord.access_code
+    ]
+      .filter(Boolean)
+      .map(item => String(item).trim());
+
+    if (!validCodes.includes(code)) {
+      alert("Invalid arrival code.");
+      return;
+    }
   }
- 
-  const { error: updateAssignmentError } = await supabaseClient
-    .from("task_assignments")
-    .update({
-      arrival_verified: true,
-      assignment_status: "in_progress",
-      arrived_at: new Date().toISOString()
-    })
-    .eq("id", assignment.id);
- 
-  if (updateAssignmentError) {
-    alert("Error verifying arrival.");
-    return;
-  }
- 
+
   await supabaseClient
     .from("worker_quotes")
     .update({ status: "in_progress" })
     .eq("id", quoteId);
- 
+
   await supabaseClient
     .from("tasks")
-    .update({ status: "in_progress" })
+    .update({
+      status: "in_progress",
+      worker_arrival_confirmed: true,
+      arrival_verified: true,
+      arrived_at: new Date().toISOString()
+    })
     .eq("id", taskId);
- 
+
   alert("Arrival verified. Task started.");
   loadMyJobs();
 }
  
+
+async function markWorkerTaskComplete(taskId, quoteId) {
+  const job =
+    loadedJobs.find(item => item.task.id === taskId);
+
+  if (!job) {
+    alert("Job not found.");
+    return;
+  }
+
+  if (!canMarkWorkerComplete(job.task, job.quote, job.assignment)) {
+    alert("You can mark this task complete on the task date after the arrival code has been verified.");
+    return;
+  }
+
+  const confirmed =
+    confirm("Mark this task complete from your side? The customer will still need to confirm completion.");
+
+  if (!confirmed) {
+    return;
+  }
+
+  const { error: quoteError } =
+    await supabaseClient
+      .from("worker_quotes")
+      .update({
+        status: "worker_completed",
+        worker_completed_at: new Date().toISOString()
+      })
+      .eq("id", quoteId);
+
+  if (quoteError) {
+    alert(quoteError.message);
+    return;
+  }
+
+  const { error: taskError } =
+    await supabaseClient
+      .from("tasks")
+      .update({
+        status: "worker_completed",
+        worker_completed: true,
+        worker_completed_at: new Date().toISOString()
+      })
+      .eq("id", taskId);
+
+  if (taskError) {
+    alert(taskError.message);
+    return;
+  }
+
+  alert("Task marked complete. Waiting for customer confirmation.");
+  loadMyJobs();
+}
+
+
 function messageCustomer(taskId, customerId) {
   localStorage.setItem("selectedMessageTaskId", taskId);
   localStorage.setItem("selectedTaskId", taskId);

@@ -171,6 +171,13 @@
       text-align:center;
     }
 
+    #verificationMessage {
+      margin-top:10px;
+      font-size:14px;
+      font-weight:bold;
+      text-align:center;
+    }
+
     .document-card {
       background:#f7faf8;
       border:1px solid #e3eee6;
@@ -315,6 +322,31 @@
 
     <div class="note">
       Once completed, your worker profile checklist will mark Tax and Payout Setup as complete. Full SSN/EIN storage should be handled through a secure backend or tax provider, not stored in plain browser-side code.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Identity Verification</div>
+
+    <div class="row">
+      <div class="label">Verification Status</div>
+      <div class="value" id="verificationStatus">Checking...</div>
+    </div>
+
+    <label for="idFrontUpload">Upload Front of ID</label>
+    <input id="idFrontUpload" type="file" accept="image/*,.pdf">
+
+    <label for="idBackUpload">Upload Back of ID</label>
+    <input id="idBackUpload" type="file" accept="image/*,.pdf">
+
+    <button onclick="uploadVerificationDocuments()">
+      Submit Verification Documents
+    </button>
+
+    <p id="verificationMessage"></p>
+
+    <div class="note">
+      Upload the front and back of your government-issued ID. TaskMint will review the documents before quote access is approved.
     </div>
   </div>
 
@@ -555,6 +587,20 @@ async function loadTaxStatus() {
     taxCompleted
       ? "<span class='status-good'>Ready for Year-End Review</span>"
       : "<span class='status-warning'>Tax Setup Needed</span>";
+
+  const verificationStatus =
+    profile && profile.worker_verification_status
+      ? profile.worker_verification_status
+      : "not_submitted";
+
+  document.getElementById("verificationStatus").innerHTML =
+    verificationStatus === "approved"
+      ? "<span class='status-good'>Approved</span>"
+      : verificationStatus === "pending"
+        ? "<span class='status-warning'>Pending Review</span>"
+        : verificationStatus === "rejected"
+          ? "<span class='status-danger'>Rejected</span>"
+          : "<span class='status-warning'>Not Submitted</span>";
 }
 
 async function saveTaxSetup() {
@@ -942,6 +988,140 @@ async function loadTaxDocuments() {
     document.getElementById("currentYearDocumentStatus").innerHTML =
       "<span class='status-warning'>Not Generated Yet</span>";
   }
+}
+
+
+function setVerificationMessage(message, color) {
+  const box =
+    document.getElementById("verificationMessage");
+
+  if (!box) {
+    return;
+  }
+
+  box.style.color =
+    color;
+
+  box.innerText =
+    message;
+}
+
+async function uploadVerificationDocuments() {
+  const frontFile =
+    document.getElementById("idFrontUpload").files[0];
+
+  const backFile =
+    document.getElementById("idBackUpload").files[0];
+
+  if (!currentUser) {
+    window.location.href =
+      "login.html";
+    return;
+  }
+
+  if (!frontFile || !backFile) {
+    setVerificationMessage(
+      "Upload both the front and back of your ID.",
+      "red"
+    );
+    return;
+  }
+
+  setVerificationMessage(
+    "Uploading verification documents...",
+    "#0b7a28"
+  );
+
+  const frontPath =
+    `${currentUser.id}/front-${Date.now()}-${frontFile.name}`;
+
+  const backPath =
+    `${currentUser.id}/back-${Date.now()}-${backFile.name}`;
+
+  const frontUpload =
+    await supabaseClient.storage
+      .from("worker-verification-documents")
+      .upload(frontPath, frontFile);
+
+  if (frontUpload.error) {
+    setVerificationMessage(
+      frontUpload.error.message,
+      "red"
+    );
+    return;
+  }
+
+  const backUpload =
+    await supabaseClient.storage
+      .from("worker-verification-documents")
+      .upload(backPath, backFile);
+
+  if (backUpload.error) {
+    setVerificationMessage(
+      backUpload.error.message,
+      "red"
+    );
+    return;
+  }
+
+  const frontUrl =
+    supabaseClient.storage
+      .from("worker-verification-documents")
+      .getPublicUrl(frontPath)
+      .data.publicUrl;
+
+  const backUrl =
+    supabaseClient.storage
+      .from("worker-verification-documents")
+      .getPublicUrl(backPath)
+      .data.publicUrl;
+
+  const { error } =
+    await supabaseClient
+      .from("worker_verification_documents")
+      .insert({
+        worker_id: currentUser.id,
+        document_type: "government_id",
+        front_document_url: frontUrl,
+        back_document_url: backUrl,
+        verification_status: "pending"
+      });
+
+  if (error) {
+    setVerificationMessage(
+      error.message,
+      "red"
+    );
+    return;
+  }
+
+  const { error: profileError } =
+    await supabaseClient
+      .from("profiles")
+      .update({
+        worker_verification_status: "pending",
+        verification_submitted_at: new Date().toISOString(),
+        submitted_for_verification: true,
+        is_worker_approved: false,
+        can_send_quotes: false
+      })
+      .eq("id", currentUser.id);
+
+  if (profileError) {
+    setVerificationMessage(
+      profileError.message,
+      "red"
+    );
+    return;
+  }
+
+  document.getElementById("verificationStatus").innerHTML =
+    "<span class='status-warning'>Pending Review</span>";
+
+  setVerificationMessage(
+    "Verification documents submitted successfully.",
+    "green"
+  );
 }
 
 loadTaxCenter();

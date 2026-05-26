@@ -679,6 +679,28 @@
 
     <div class="notification-list" id="notificationList">
 
+      <div class="notification-item" onclick="window.location.href='worker-direct-requests.html'">
+        <div class="notification-left">
+          <div class="notification-icon">📩</div>
+          <div>
+            <div class="notification-main">Direct Requests</div>
+            <div class="notification-sub">Customers requesting a quote from you directly.</div>
+          </div>
+        </div>
+        <div class="notification-count" id="directRequestNotificationCount">0</div>
+      </div>
+
+      <div class="notification-item" onclick="window.location.href='my-jobs.html'">
+        <div class="notification-left">
+          <div class="notification-icon">✅</div>
+          <div>
+            <div class="notification-main">Accepted Tasks / Quotes</div>
+            <div class="notification-sub">Quotes accepted by customers or active accepted tasks.</div>
+          </div>
+        </div>
+        <div class="notification-count" id="acceptedNotificationCount">0</div>
+      </div>
+
       <div class="notification-item" onclick="window.location.href='worker-message-center.html'">
         <div class="notification-left">
           <div class="notification-icon">💬</div>
@@ -701,15 +723,37 @@
         <div class="notification-count" id="disputeNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='worker-open-task.html'">
+      <div class="notification-item" onclick="window.location.href='worker-reviews.html'">
         <div class="notification-left">
-          <div class="notification-icon">🔎</div>
+          <div class="notification-icon">⭐</div>
           <div>
-            <div class="notification-main">New Jobs</div>
-            <div class="notification-sub">Open customer tasks available to quote.</div>
+            <div class="notification-main">New Ratings / Reviews</div>
+            <div class="notification-sub">Recent customer ratings and written reviews.</div>
           </div>
         </div>
-        <div class="notification-count" id="jobNotificationCount">0</div>
+        <div class="notification-count" id="reviewNotificationCount">0</div>
+      </div>
+
+      <div class="notification-item" onclick="window.location.href='worker-payout-status.html'">
+        <div class="notification-left">
+          <div class="notification-icon">💵</div>
+          <div>
+            <div class="notification-main">Payouts</div>
+            <div class="notification-sub">Pending, processing, or recently paid payouts.</div>
+          </div>
+        </div>
+        <div class="notification-count" id="payoutNotificationCount">0</div>
+      </div>
+
+      <div class="notification-item" onclick="window.location.href='worker-calendar.html'">
+        <div class="notification-left">
+          <div class="notification-icon">📅</div>
+          <div>
+            <div class="notification-main">Scheduled Today</div>
+            <div class="notification-sub">Jobs scheduled for today.</div>
+          </div>
+        </div>
+        <div class="notification-count" id="todayScheduleNotificationCount">0</div>
       </div>
 
     </div>
@@ -1597,7 +1641,152 @@ async function countDisputeNotifications() {
 
 }
 
-async function countOpenJobs() {
+async function countDirectRequests() {
+
+  if (!currentWorkerId) {
+    return 0;
+  }
+
+  const { count, error } =
+    await supabaseClient
+      .from("direct_quote_requests")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("worker_id", currentWorkerId)
+      .in("status", [
+        "new",
+        "pending",
+        "requested"
+      ]);
+
+  if (error || count === null || count === undefined) {
+    return 0;
+  }
+
+  return count;
+
+}
+
+async function countAcceptedTasksAndQuotes() {
+
+  if (!currentWorkerId) {
+    return 0;
+  }
+
+  let acceptedTaskCount = 0;
+  let acceptedQuoteCount = 0;
+
+  const { count: taskCount, error: taskError } =
+    await supabaseClient
+      .from("tasks")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .or(`worker_id.eq.${currentWorkerId},accepted_worker_id.eq.${currentWorkerId}`)
+      .in("status", [
+        "accepted",
+        "scheduled",
+        "in_progress"
+      ]);
+
+  if (!taskError && taskCount) {
+    acceptedTaskCount = taskCount;
+  }
+
+  const { count: quoteCount, error: quoteError } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("worker_id", currentWorkerId)
+      .in("status", [
+        "accepted",
+        "approved"
+      ]);
+
+  if (!quoteError && quoteCount) {
+    acceptedQuoteCount = quoteCount;
+  }
+
+  return acceptedTaskCount + acceptedQuoteCount;
+
+}
+
+async function countNewReviews() {
+
+  if (!currentWorkerId) {
+    return 0;
+  }
+
+  const since = new Date();
+  since.setDate(since.getDate() - 14);
+
+  const { count, error } =
+    await supabaseClient
+      .from("reviews")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("worker_id", currentWorkerId)
+      .gte("created_at", since.toISOString());
+
+  if (error || count === null || count === undefined) {
+    return 0;
+  }
+
+  return count;
+
+}
+
+async function countPayoutNotifications() {
+
+  if (!currentWorkerId) {
+    return 0;
+  }
+
+  const { count, error } =
+    await supabaseClient
+      .from("worker_earnings")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("worker_id", currentWorkerId)
+      .in("payout_status", [
+        "pending",
+        "processing",
+        "paid"
+      ]);
+
+  if (error || count === null || count === undefined) {
+    return 0;
+  }
+
+  return count;
+
+}
+
+async function countTodayScheduledJobs() {
+
+  if (!currentWorkerId) {
+    return 0;
+  }
+
+  const today = new Date();
+  const start = new Date(today);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(today);
+  end.setHours(23, 59, 59, 999);
+
+  const startIso = start.toISOString();
+  const endIso = end.toISOString();
 
   const { count, error } =
     await supabaseClient
@@ -1606,8 +1795,14 @@ async function countOpenJobs() {
         count: "exact",
         head: true
       })
-      .eq("status", "open")
-      .or("quote_accepted.is.false,quote_accepted.is.null");
+      .or(`worker_id.eq.${currentWorkerId},accepted_worker_id.eq.${currentWorkerId}`)
+      .gte("scheduled_start", startIso)
+      .lte("scheduled_start", endIso)
+      .in("status", [
+        "accepted",
+        "in_progress",
+        "scheduled"
+      ]);
 
   if (error || count === null || count === undefined) {
     return 0;
@@ -1619,17 +1814,39 @@ async function countOpenJobs() {
 
 async function loadWorkerNotifications() {
 
+  const directRequestCount =
+    await countDirectRequests();
+
+  const acceptedCount =
+    await countAcceptedTasksAndQuotes();
+
   const messageCount =
     await countUnreadMessages();
 
   const disputeCount =
     await countDisputeNotifications();
 
-  const jobCount =
-    await countOpenJobs();
+  const reviewCount =
+    await countNewReviews();
+
+  const payoutCount =
+    await countPayoutNotifications();
+
+  const todayScheduleCount =
+    await countTodayScheduledJobs();
 
   const total =
-    messageCount + disputeCount + jobCount;
+    directRequestCount + acceptedCount + messageCount + disputeCount + reviewCount + payoutCount + todayScheduleCount;
+
+  setNotificationCount(
+    "directRequestNotificationCount",
+    directRequestCount
+  );
+
+  setNotificationCount(
+    "acceptedNotificationCount",
+    acceptedCount
+  );
 
   setNotificationCount(
     "messageNotificationCount",
@@ -1642,8 +1859,18 @@ async function loadWorkerNotifications() {
   );
 
   setNotificationCount(
-    "jobNotificationCount",
-    jobCount
+    "reviewNotificationCount",
+    reviewCount
+  );
+
+  setNotificationCount(
+    "payoutNotificationCount",
+    payoutCount
+  );
+
+  setNotificationCount(
+    "todayScheduleNotificationCount",
+    todayScheduleCount
   );
 
   updateNotificationBadge(total);

@@ -1638,61 +1638,90 @@ function updateNotificationBadge(total) {
 
 }
 
-async function countUnreadMessages() {
 
-  if (!currentUser) {
+function getWorkerNotificationIds() {
+  const ids = [];
+
+  if (currentUser && currentUser.id) {
+    ids.push(currentUser.id);
+  }
+
+  if (currentWorkerId) {
+    ids.push(currentWorkerId);
+  }
+
+  return [...new Set(ids.filter(Boolean).map(String))];
+}
+
+async function countRows(tableName, columnName, values, extraBuilder) {
+  if (!values || values.length === 0) {
     return 0;
   }
 
-  const { count, error } =
-    await supabaseClient
-      .from("messages")
+  let query =
+    supabaseClient
+      .from(tableName)
       .select("id", {
         count: "exact",
         head: true
       })
-      .eq("receiver_id", currentUser.id)
-      .eq("is_read", false);
+      .in(columnName, values);
+
+  if (typeof extraBuilder === "function") {
+    query = extraBuilder(query);
+  }
+
+  const { count, error } =
+    await query;
 
   if (error || count === null || count === undefined) {
     return 0;
   }
 
   return count;
+}
+
+async function countUnreadMessages() {
+
+  const ids =
+    getWorkerNotificationIds();
+
+  return await countRows(
+    "messages",
+    "receiver_id",
+    ids,
+    (query) => query.eq("is_read", false)
+  );
 
 }
 
 async function countDisputeNotifications() {
 
-  if (!currentWorkerId) {
+  const ids =
+    getWorkerNotificationIds();
+
+  if (ids.length === 0) {
     return 0;
   }
 
-  let activeDisputeCount = 0;
-  let taskMintReplyCount = 0;
-
-  const { count: activeCount, error: activeError } =
-    await supabaseClient
-      .from("disputes")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("worker_id", currentWorkerId)
-      .in("status", [
+  let activeDisputeCount =
+    await countRows(
+      "disputes",
+      "worker_id",
+      ids,
+      (query) => query.in("status", [
         "open",
         "reviewing"
-      ]);
+      ])
+    );
 
-  if (!activeError && activeCount) {
-    activeDisputeCount = activeCount;
-  }
+  let taskMintReplyCount = 0;
 
   const { data: workerDisputes, error: disputeError } =
     await supabaseClient
       .from("disputes")
       .select("id")
-      .eq("worker_id", currentWorkerId);
+      .in("worker_id", ids);
 
   if (!disputeError && workerDisputes && workerDisputes.length > 0) {
 
@@ -1722,40 +1751,40 @@ async function countDisputeNotifications() {
 
 async function countDirectRequests() {
 
-  if (!currentWorkerId) {
-    return 0;
-  }
+  const ids =
+    getWorkerNotificationIds();
 
-  const { count, error } =
-    await supabaseClient
-      .from("direct_quote_requests")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("worker_id", currentWorkerId)
-      .in("status", [
-        "new",
-        "pending",
-        "requested"
-      ]);
-
-  if (error || count === null || count === undefined) {
-    return 0;
-  }
-
-  return count;
+  return await countRows(
+    "direct_quote_requests",
+    "worker_id",
+    ids,
+    (query) => query.in("status", [
+      "new",
+      "pending",
+      "requested"
+    ])
+  );
 
 }
 
 async function countAcceptedTasksAndQuotes() {
 
-  if (!currentWorkerId) {
+  const ids =
+    getWorkerNotificationIds();
+
+  if (ids.length === 0) {
     return 0;
   }
 
   let acceptedTaskCount = 0;
   let acceptedQuoteCount = 0;
+
+  const workerFilters = [];
+
+  ids.forEach((id) => {
+    workerFilters.push(`worker_id.eq.${id}`);
+    workerFilters.push(`accepted_worker_id.eq.${id}`);
+  });
 
   const { count: taskCount, error: taskError } =
     await supabaseClient
@@ -1764,7 +1793,7 @@ async function countAcceptedTasksAndQuotes() {
         count: "exact",
         head: true
       })
-      .or(`worker_id.eq.${currentWorkerId},accepted_worker_id.eq.${currentWorkerId}`)
+      .or(workerFilters.join(","))
       .in("status", [
         "accepted",
         "scheduled",
@@ -1775,22 +1804,16 @@ async function countAcceptedTasksAndQuotes() {
     acceptedTaskCount = taskCount;
   }
 
-  const { count: quoteCount, error: quoteError } =
-    await supabaseClient
-      .from("worker_quotes")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("worker_id", currentWorkerId)
-      .in("status", [
+  acceptedQuoteCount =
+    await countRows(
+      "worker_quotes",
+      "worker_id",
+      ids,
+      (query) => query.in("status", [
         "accepted",
         "approved"
-      ]);
-
-  if (!quoteError && quoteCount) {
-    acceptedQuoteCount = quoteCount;
-  }
+      ])
+    );
 
   return acceptedTaskCount + acceptedQuoteCount;
 
@@ -1798,62 +1821,45 @@ async function countAcceptedTasksAndQuotes() {
 
 async function countNewReviews() {
 
-  if (!currentWorkerId) {
-    return 0;
-  }
+  const ids =
+    getWorkerNotificationIds();
 
   const since = new Date();
   since.setDate(since.getDate() - 14);
 
-  const { count, error } =
-    await supabaseClient
-      .from("reviews")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("worker_id", currentWorkerId)
-      .gte("created_at", since.toISOString());
-
-  if (error || count === null || count === undefined) {
-    return 0;
-  }
-
-  return count;
+  return await countRows(
+    "reviews",
+    "worker_id",
+    ids,
+    (query) => query.gte("created_at", since.toISOString())
+  );
 
 }
 
 async function countPayoutNotifications() {
 
-  if (!currentWorkerId) {
-    return 0;
-  }
+  const ids =
+    getWorkerNotificationIds();
 
-  const { count, error } =
-    await supabaseClient
-      .from("worker_earnings")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("worker_id", currentWorkerId)
-      .in("payout_status", [
-        "pending",
-        "processing",
-        "paid"
-      ]);
-
-  if (error || count === null || count === undefined) {
-    return 0;
-  }
-
-  return count;
+  return await countRows(
+    "worker_earnings",
+    "worker_id",
+    ids,
+    (query) => query.in("payout_status", [
+      "pending",
+      "processing",
+      "paid"
+    ])
+  );
 
 }
 
 async function countTodayScheduledJobs() {
 
-  if (!currentWorkerId) {
+  const ids =
+    getWorkerNotificationIds();
+
+  if (ids.length === 0) {
     return 0;
   }
 
@@ -1864,8 +1870,12 @@ async function countTodayScheduledJobs() {
   const end = new Date(today);
   end.setHours(23, 59, 59, 999);
 
-  const startIso = start.toISOString();
-  const endIso = end.toISOString();
+  const workerFilters = [];
+
+  ids.forEach((id) => {
+    workerFilters.push(`worker_id.eq.${id}`);
+    workerFilters.push(`accepted_worker_id.eq.${id}`);
+  });
 
   const { count, error } =
     await supabaseClient
@@ -1874,9 +1884,9 @@ async function countTodayScheduledJobs() {
         count: "exact",
         head: true
       })
-      .or(`worker_id.eq.${currentWorkerId},accepted_worker_id.eq.${currentWorkerId}`)
-      .gte("scheduled_start", startIso)
-      .lte("scheduled_start", endIso)
+      .or(workerFilters.join(","))
+      .gte("scheduled_start", start.toISOString())
+      .lte("scheduled_start", end.toISOString())
       .in("status", [
         "accepted",
         "in_progress",

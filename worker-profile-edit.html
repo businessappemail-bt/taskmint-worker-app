@@ -440,12 +440,20 @@
         <div class="check-status">Needed</div>
       </div>
  
-      <div class="checklist-item" id="taxCheck">
+      <div class="checklist-item" id="taxCheck" onclick="window.location.href='worker-tax-center.html'">
         <div class="check-left">
           <div class="check-icon">•</div>
-          <div>Tax and payout setup</div>
+          <div>Tax setup</div>
         </div>
-        <div class="check-status">Later</div>
+        <div class="check-status">Needed</div>
+      </div>
+
+      <div class="checklist-item" id="payoutCheck" onclick="window.location.href='worker-payout-info.html'">
+        <div class="check-left">
+          <div class="check-icon">•</div>
+          <div>Payout setup</div>
+        </div>
+        <div class="check-status">Needed</div>
       </div>
  
       <div class="checklist-item" id="verificationCheck">
@@ -740,9 +748,14 @@ function setMessage(id, text, color) {
  
 function setChecklistState(id, done, doneText) {
   const row = document.getElementById(id);
+
+  if (!row) {
+    return;
+  }
+
   const icon = row.querySelector(".check-icon");
   const status = row.querySelector(".check-status");
- 
+
   if (done) {
     row.classList.add("done");
     icon.innerText = "✓";

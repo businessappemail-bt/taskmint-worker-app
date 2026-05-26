@@ -387,40 +387,38 @@ function getApprovalStatus(profile) {
     profile.worker_approval_status ||
     profile.approval_status ||
     profile.worker_status ||
+    profile.worker_verification_status ||
     "";
- 
-  const normalized = String(rawStatus).toLowerCase().trim();
- 
+
+  const normalized =
+    String(rawStatus).toLowerCase().trim();
+
   if (
     profile.is_worker_approved === true ||
     normalized === "approved"
   ) {
     return "approved";
   }
- 
+
   if (
-    profile.is_worker_approved === false &&
-    (
-      normalized === "denied" ||
-      normalized === "rejected" ||
-      hasValue(profile.worker_denial_reason)
-    )
+    normalized === "denied" ||
+    normalized === "rejected" ||
+    hasValue(profile.worker_denial_reason) ||
+    hasValue(profile.denial_reason) ||
+    hasValue(profile.taskmint_denial_note)
   ) {
     return "denied";
   }
- 
-  if (normalized === "denied" || normalized === "rejected") {
-    return "denied";
-  }
- 
+
   if (
+    profile.submitted_for_verification === true ||
     normalized === "pending" ||
     normalized === "under_review" ||
     normalized === "reviewing"
   ) {
     return "pending";
   }
- 
+
   return "not_submitted";
 }
  
@@ -473,6 +471,149 @@ function updateApprovalPanel(profile) {
   heroSubText.innerText = "Your account status will appear here.";
 }
  
+
+function calculateProfileChecklistComplete(profile, idDocumentCount) {
+  const photoDone =
+    hasValue(profile.profile_photo_url);
+
+  const experienceDone =
+    hasValue(profile.experience);
+
+  const serviceAreaDone =
+    hasValue(profile.service_area) &&
+    hasValue(profile.service_radius) &&
+    (
+      hasValue(profile.worker_address) ||
+      hasValue(profile.address) ||
+      hasValue(profile.street_address)
+    ) &&
+    (
+      hasValue(profile.worker_city) ||
+      hasValue(profile.city)
+    ) &&
+    (
+      hasValue(profile.worker_state) ||
+      hasValue(profile.state)
+    ) &&
+    (
+      hasValue(profile.worker_zip) ||
+      hasValue(profile.zip_code) ||
+      hasValue(profile.zip)
+    );
+
+  const servicesDone =
+    hasValue(profile.skills) ||
+    hasValue(profile.services_offered) ||
+    hasValue(profile.services);
+
+  const taxDone =
+    profile.tax_setup_complete === true ||
+    profile.tax_status === "completed" ||
+    profile.tax_status === "verified";
+
+  const payoutDone =
+    profile.payout_setup_complete === true ||
+    profile.payout_status === "completed" ||
+    profile.payout_status === "verified" ||
+    hasValue(profile.stripe_account_id) ||
+    hasValue(profile.bank_account_last4) ||
+    hasValue(profile.debit_card_last4);
+
+  const idDone =
+    profile.identity_verified === true ||
+    profile.worker_verification_status === "pending" ||
+    profile.worker_verification_status === "approved" ||
+    Number(idDocumentCount || 0) > 0;
+
+  return (
+    photoDone &&
+    experienceDone &&
+    serviceAreaDone &&
+    servicesDone &&
+    taxDone &&
+    payoutDone &&
+    idDone
+  );
+}
+
+async function getWorkerIdDocumentCount(workerId) {
+  const { count, error } =
+    await supabaseClient
+      .from("worker_verification_documents")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("worker_id", workerId);
+
+  if (error || count === null || count === undefined) {
+    return 0;
+  }
+
+  return count;
+}
+
+async function submitForVerificationIfComplete(profile) {
+  if (!currentUser || !profile) {
+    return profile;
+  }
+
+  const idDocumentCount =
+    await getWorkerIdDocumentCount(currentUser.id);
+
+  const checklistComplete =
+    calculateProfileChecklistComplete(
+      profile,
+      idDocumentCount
+    );
+
+  if (!checklistComplete) {
+    return profile;
+  }
+
+  const status =
+    getApprovalStatus(profile);
+
+  if (
+    status === "approved" ||
+    status === "denied" ||
+    profile.submitted_for_verification === true
+  ) {
+    return profile;
+  }
+
+  const submittedAt =
+    new Date().toISOString();
+
+  const { error } =
+    await supabaseClient
+      .from("profiles")
+      .update({
+        submitted_for_verification: true,
+        worker_verification_status: "pending",
+        worker_approval_status: "pending",
+        verification_submitted_at: submittedAt,
+        can_send_quotes: false,
+        is_worker_approved: false
+      })
+      .eq("id", currentUser.id);
+
+  if (error) {
+    console.error(error);
+    return profile;
+  }
+
+  return {
+    ...profile,
+    submitted_for_verification: true,
+    worker_verification_status: "pending",
+    worker_approval_status: "pending",
+    verification_submitted_at: submittedAt,
+    can_send_quotes: false,
+    is_worker_approved: false
+  };
+}
+
 function updateCompletion(profile) {
   updateApprovalPanel(profile);
 }
@@ -480,38 +621,41 @@ function updateCompletion(profile) {
 async function loadVerificationStatus() {
   const { data, error } =
     await supabaseClient.auth.getUser();
- 
+
   if (error || !data || !data.user) {
     window.location.href = "worker-login.html";
     return;
   }
- 
+
   currentUser = data.user;
- 
+
   const { data: profile, error: profileError } =
     await supabaseClient
       .from("profiles")
       .select("*")
       .eq("id", currentUser.id)
       .maybeSingle();
- 
+
   if (profileError) {
     document.getElementById("loadingMessage").innerText =
       "Error loading verification status.";
     return;
   }
- 
+
   currentProfile = profile || {
     id: currentUser.id,
     email: currentUser.email
   };
- 
+
+  currentProfile =
+    await submitForVerificationIfComplete(currentProfile);
+
   updateCompletion(currentProfile);
- 
+
   document.getElementById("loadingMessage").style.display = "none";
   document.getElementById("pageContent").style.display = "block";
 }
- 
+
 
 loadVerificationStatus();
 </script>

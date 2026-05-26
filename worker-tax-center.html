@@ -7,26 +7,196 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    body { margin:0; font-family:Arial, sans-serif; background:#f5f5f5; color:#111; }
-    .container { max-width:420px; margin:0 auto; padding:20px; }
-    .back { color:#0b7a28; font-weight:bold; text-decoration:none; display:inline-block; margin-bottom:18px; }
-    h1 { text-align:center; color:#0b7a28; margin-bottom:18px; }
-    .card { background:white; border-radius:14px; padding:18px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
-    .section-title { font-size:18px; font-weight:bold; margin-bottom:12px; }
-    .row { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid #eee; padding:10px 0; font-size:14px; }
+    * { box-sizing:border-box; }
+
+    body {
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:linear-gradient(180deg, #e9f7ee 0%, #f5f5f5 100%);
+      color:#111;
+      padding-bottom:80px;
+    }
+
+    .container {
+      max-width:420px;
+      margin:0 auto;
+      padding:20px;
+    }
+
+    .back {
+      color:#0b7a28;
+      font-weight:bold;
+      text-decoration:none;
+      display:inline-block;
+      margin-bottom:18px;
+    }
+
+    h1 {
+      text-align:center;
+      color:#0b7a28;
+      margin-bottom:18px;
+    }
+
+    .card {
+      background:white;
+      border-radius:18px;
+      padding:18px;
+      margin-bottom:16px;
+      box-shadow:0 4px 14px rgba(0,0,0,0.08);
+      border:1px solid #edf1ee;
+    }
+
+    .section-title {
+      font-size:18px;
+      font-weight:bold;
+      margin-bottom:12px;
+    }
+
+    .row {
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      border-bottom:1px solid #eee;
+      padding:10px 0;
+      font-size:14px;
+    }
+
     .row:last-child { border-bottom:none; }
+
     .label { color:#555; }
-    .value { font-weight:bold; text-align:right; }
-    .status-good { color:#0b7a28; font-weight:bold; }
-    .status-warning { color:#b36b00; font-weight:bold; }
-    .note { font-size:13px; color:#666; line-height:1.5; margin-top:10px; }
-    button { width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; background:#0b7a28; color:white; font-size:15px; font-weight:bold; cursor:pointer; }
-    button.disabled { background:#999; cursor:not-allowed; }
-    input, select { width:100%; padding:12px; margin-top:6px; margin-bottom:10px; border:1px solid #ddd; border-radius:10px; font-size:14px; box-sizing:border-box; }
-    label { display:block; font-size:13px; font-weight:bold; margin-top:10px; color:#333; }
-    .checkbox-row { display:flex; align-items:flex-start; gap:10px; margin-top:10px; font-size:13px; color:#555; line-height:1.4; }
-    .checkbox-row input { width:auto; margin-top:3px; }
-    #taxSetupMessage { margin-top:10px; font-size:14px; font-weight:bold; text-align:center; }
+
+    .value {
+      font-weight:bold;
+      text-align:right;
+    }
+
+    .status-good {
+      color:#0b7a28;
+      font-weight:bold;
+    }
+
+    .status-warning {
+      color:#b36b00;
+      font-weight:bold;
+    }
+
+    .status-danger {
+      color:#b00020;
+      font-weight:bold;
+    }
+
+    .note {
+      font-size:13px;
+      color:#666;
+      line-height:1.5;
+      margin-top:10px;
+    }
+
+    .alert {
+      background:#fff7e6;
+      border:1px solid #ffd27a;
+      color:#7a4b00;
+      border-radius:14px;
+      padding:12px;
+      font-size:13px;
+      line-height:1.45;
+      margin-top:12px;
+    }
+
+    button {
+      width:100%;
+      padding:14px;
+      margin-top:12px;
+      border:none;
+      border-radius:12px;
+      background:#0b7a28;
+      color:white;
+      font-size:15px;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    button.secondary {
+      background:white;
+      color:#111;
+      border:1px solid #ddd;
+    }
+
+    button.disabled {
+      background:#999;
+      cursor:not-allowed;
+    }
+
+    input,
+    select {
+      width:100%;
+      padding:12px;
+      margin-top:6px;
+      margin-bottom:10px;
+      border:1px solid #ddd;
+      border-radius:10px;
+      font-size:14px;
+      box-sizing:border-box;
+      background:white;
+    }
+
+    label {
+      display:block;
+      font-size:13px;
+      font-weight:bold;
+      margin-top:10px;
+      color:#333;
+    }
+
+    .checkbox-row {
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      margin-top:10px;
+      font-size:13px;
+      color:#555;
+      line-height:1.4;
+    }
+
+    .checkbox-row input {
+      width:auto;
+      margin-top:3px;
+      flex-shrink:0;
+    }
+
+    #taxSetupMessage {
+      margin-top:10px;
+      font-size:14px;
+      font-weight:bold;
+      text-align:center;
+    }
+
+    .document-card {
+      background:#f7faf8;
+      border:1px solid #e3eee6;
+      border-radius:14px;
+      padding:12px;
+      margin-top:10px;
+    }
+
+    .document-title {
+      font-weight:bold;
+      color:#111;
+      margin-bottom:4px;
+    }
+
+    .document-meta {
+      font-size:13px;
+      color:#666;
+      line-height:1.4;
+    }
+
+    .tiny {
+      font-size:12px;
+      color:#777;
+      line-height:1.4;
+      margin-top:6px;
+    }
   </style>
 </head>
 
@@ -56,8 +226,13 @@
       <div class="value" id="payoutStatus">Checking...</div>
     </div>
 
-    <div class="note">
-      TaskMint workers are responsible for their own tax filings and estimated taxes.
+    <div class="row">
+      <div class="label">Tax Form Status</div>
+      <div class="value" id="taxFormStatus">Checking...</div>
+    </div>
+
+    <div class="alert">
+      TaskMint does not withhold federal, state, or local taxes from worker payouts. Workers are responsible for reporting income and paying applicable taxes.
     </div>
   </div>
 
@@ -70,18 +245,34 @@
     <label for="taxBusinessName">Business Name Optional</label>
     <input id="taxBusinessName" type="text" placeholder="Business name, if applicable">
 
-    <label for="taxClassification">Tax Classification</label>
+    <label for="taxClassification">Federal Tax Classification</label>
     <select id="taxClassification">
       <option value="">Select classification</option>
       <option value="individual">Individual / Sole Proprietor</option>
       <option value="single_member_llc">Single-Member LLC</option>
-      <option value="llc">LLC</option>
-      <option value="corporation">Corporation</option>
+      <option value="c_corporation">C Corporation</option>
+      <option value="s_corporation">S Corporation</option>
       <option value="partnership">Partnership</option>
+      <option value="trust_estate">Trust / Estate</option>
+      <option value="other">Other</option>
     </select>
 
-    <label for="taxIdLast4">SSN / EIN Last 4</label>
+    <label for="taxIdType">Tax ID Type</label>
+    <select id="taxIdType">
+      <option value="">Select ID type</option>
+      <option value="ssn">SSN</option>
+      <option value="ein">EIN</option>
+      <option value="itin">ITIN</option>
+    </select>
+
+    <label for="taxIdLast4">Tax ID Last 4</label>
     <input id="taxIdLast4" type="text" maxlength="4" placeholder="Last 4 digits only">
+
+    <label for="taxExemptCode">Exempt Payee Code Optional</label>
+    <input id="taxExemptCode" type="text" placeholder="Leave blank if not applicable">
+
+    <label for="fatcaCode">FATCA Exemption Code Optional</label>
+    <input id="fatcaCode" type="text" placeholder="Leave blank if not applicable">
 
     <label for="taxAddress">Tax Address</label>
     <input id="taxAddress" type="text" placeholder="Street address">
@@ -96,9 +287,23 @@
     <input id="taxZip" type="text" placeholder="Zip code">
 
     <div class="checkbox-row">
+      <input id="backupWithholdingExempt" type="checkbox">
+      <div>
+        I certify I am not subject to backup withholding unless I have been notified otherwise.
+      </div>
+    </div>
+
+    <div class="checkbox-row">
+      <input id="usPersonCertification" type="checkbox">
+      <div>
+        I certify that I am a U.S. person, including a U.S. resident alien, for federal tax purposes.
+      </div>
+    </div>
+
+    <div class="checkbox-row">
       <input id="taxCertification" type="checkbox">
       <div>
-        I certify that the tax information provided is accurate and that I understand TaskMint does not withhold taxes from worker payouts.
+        I certify under penalty of perjury that the tax information provided is accurate and may be used by TaskMint to prepare year-end tax forms.
       </div>
     </div>
 
@@ -109,7 +314,7 @@
     <p id="taxSetupMessage"></p>
 
     <div class="note">
-      Once this is completed, your worker profile checklist will mark Tax and Payout Setup as complete.
+      Once completed, your worker profile checklist will mark Tax and Payout Setup as complete. Full SSN/EIN storage should be handled through a secure backend or tax provider, not stored in plain browser-side code.
     </div>
   </div>
 
@@ -127,6 +332,11 @@
     </div>
 
     <div class="row">
+      <div class="label">Completed Paid Jobs</div>
+      <div class="value" id="paidJobCount">0</div>
+    </div>
+
+    <div class="row">
       <div class="label">Estimated TaskMint Fees</div>
       <div class="value" id="platformFees">$0.00</div>
     </div>
@@ -137,25 +347,48 @@
     </div>
 
     <div class="row">
-      <div class="label">1099 Threshold Tracker</div>
-      <div class="value" id="thresholdTracker">$0.00 / $600.00</div>
+      <div class="label">1099-NEC Tracker</div>
+      <div class="value" id="necTracker">$0.00 / $2,000.00</div>
+    </div>
+
+    <div class="row">
+      <div class="label">1099-K Tracker</div>
+      <div class="value" id="kTracker">$0.00 / $20,000.00 + 200 payments</div>
     </div>
 
     <div class="row">
       <div class="label">1099 Eligibility</div>
       <div class="value" id="eligibilityStatus">Not Yet Eligible</div>
     </div>
+
+    <button class="secondary" onclick="saveAnnualTaxSummary()">
+      Update Yearly Tax Summary
+    </button>
+
+    <div class="note">
+      Tax form eligibility may depend on payment processor, federal rules, and state reporting thresholds.
+    </div>
   </div>
 
   <div class="card">
-    <div class="section-title">Tax Documents</div>
+    <div class="section-title">Year-End Tax Forms</div>
+
+    <div class="row">
+      <div class="label">Forms Release Date</div>
+      <div class="value" id="releaseDate">January 1</div>
+    </div>
+
+    <div class="row">
+      <div class="label">Current Year Status</div>
+      <div class="value" id="currentYearDocumentStatus">Checking...</div>
+    </div>
 
     <div id="taxDocuments">
       Loading tax documents...
     </div>
 
     <div class="note">
-      1099 forms are usually available after the end of the tax year if earnings meet reporting requirements.
+      If a form is generated for your account, it will appear here for download. Form generation must be handled by TaskMint’s backend/admin system after yearly earnings are finalized.
     </div>
   </div>
 
@@ -168,31 +401,91 @@ const supabaseClient = window.supabase.createClient(
 );
 
 let currentUser = null;
+let currentProfile = null;
+let currentGross = 0;
+let currentNet = 0;
+let currentFees = 0;
+let currentPaidJobCount = 0;
+
+const CURRENT_YEAR =
+  new Date().getFullYear();
+
+const NEC_THRESHOLD =
+  CURRENT_YEAR >= 2026 ? 2000 : 600;
+
+const K_THRESHOLD_AMOUNT =
+  20000;
+
+const K_THRESHOLD_TRANSACTIONS =
+  200;
+
+function money(value) {
+  const numberValue =
+    Number(value || 0);
+
+  if (Number.isNaN(numberValue)) {
+    return "$0.00";
+  }
+
+  return "$" + numberValue.toFixed(2);
+}
+
+function setTaxSetupMessage(message, color) {
+  const box =
+    document.getElementById("taxSetupMessage");
+
+  box.style.color =
+    color;
+
+  box.innerText =
+    message;
+}
+
+function isAfterJanuaryFirst() {
+  const now =
+    new Date();
+
+  const release =
+    new Date(CURRENT_YEAR, 0, 1, 0, 0, 0);
+
+  return now >= release;
+}
 
 async function loadTaxCenter() {
-  const year = new Date().getFullYear();
-  document.getElementById("taxYear").innerText = year;
+  document.getElementById("taxYear").innerText =
+    CURRENT_YEAR;
 
-  const { data: userData } = await supabaseClient.auth.getUser();
+  document.getElementById("releaseDate").innerText =
+    "January 1, " + (CURRENT_YEAR + 1);
+
+  const { data: userData } =
+    await supabaseClient.auth.getUser();
 
   if (!userData || !userData.user) {
-    window.location.href = "login.html";
+    window.location.href =
+      "login.html";
     return;
   }
 
-  currentUser = userData.user;
+  currentUser =
+    userData.user;
 
   await loadTaxStatus();
   await loadEarnings();
+  await saveAnnualTaxSummary(false);
   await loadTaxDocuments();
 }
 
 async function loadTaxStatus() {
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("*")
-    .eq("id", currentUser.id)
-    .maybeSingle();
+  const { data: profile } =
+    await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("id", currentUser.id)
+      .maybeSingle();
+
+  currentProfile =
+    profile || null;
 
   if (profile) {
     document.getElementById("taxLegalName").value =
@@ -204,8 +497,17 @@ async function loadTaxStatus() {
     document.getElementById("taxClassification").value =
       profile.tax_classification || "";
 
+    document.getElementById("taxIdType").value =
+      profile.tax_id_type || "";
+
     document.getElementById("taxIdLast4").value =
       profile.ssn_last4 || profile.tax_id_last4 || "";
+
+    document.getElementById("taxExemptCode").value =
+      profile.tax_exempt_payee_code || "";
+
+    document.getElementById("fatcaCode").value =
+      profile.tax_fatca_code || "";
 
     document.getElementById("taxAddress").value =
       profile.tax_address || profile.worker_address || "";
@@ -233,11 +535,12 @@ async function loadTaxStatus() {
       ? "<span class='status-good'>Completed</span>"
       : "<span class='status-warning'>Not Completed</span>";
 
-  const { data: payout } = await supabaseClient
-    .from("worker_payouts")
-    .select("payout_status")
-    .eq("email", currentUser.email)
-    .maybeSingle();
+  const { data: payout } =
+    await supabaseClient
+      .from("worker_payouts")
+      .select("payout_status")
+      .eq("email", currentUser.email)
+      .maybeSingle();
 
   const payoutCompleted =
     (profile && profile.payout_setup_complete === true) ||
@@ -247,149 +550,398 @@ async function loadTaxStatus() {
     payoutCompleted
       ? "<span class='status-good'>Completed</span>"
       : "<span class='status-warning'>Not Completed</span>";
-}
 
-
-function setTaxSetupMessage(message, color) {
-  const box = document.getElementById("taxSetupMessage");
-  box.style.color = color;
-  box.innerText = message;
+  document.getElementById("taxFormStatus").innerHTML =
+    taxCompleted
+      ? "<span class='status-good'>Ready for Year-End Review</span>"
+      : "<span class='status-warning'>Tax Setup Needed</span>";
 }
 
 async function saveTaxSetup() {
-  const legalName = document.getElementById("taxLegalName").value.trim();
-  const businessName = document.getElementById("taxBusinessName").value.trim();
-  const classification = document.getElementById("taxClassification").value;
-  const last4 = document.getElementById("taxIdLast4").value.trim();
-  const address = document.getElementById("taxAddress").value.trim();
-  const city = document.getElementById("taxCity").value.trim();
-  const state = document.getElementById("taxState").value.trim();
-  const zip = document.getElementById("taxZip").value.trim();
-  const certified = document.getElementById("taxCertification").checked;
+  const legalName =
+    document.getElementById("taxLegalName").value.trim();
 
-  if (!legalName || !classification || !last4 || !address || !city || !state || !zip) {
-    setTaxSetupMessage("Complete all required W-9 fields before saving.", "red");
+  const businessName =
+    document.getElementById("taxBusinessName").value.trim();
+
+  const classification =
+    document.getElementById("taxClassification").value;
+
+  const taxIdType =
+    document.getElementById("taxIdType").value;
+
+  const last4 =
+    document.getElementById("taxIdLast4").value.trim();
+
+  const exemptCode =
+    document.getElementById("taxExemptCode").value.trim();
+
+  const fatcaCode =
+    document.getElementById("fatcaCode").value.trim();
+
+  const address =
+    document.getElementById("taxAddress").value.trim();
+
+  const city =
+    document.getElementById("taxCity").value.trim();
+
+  const state =
+    document.getElementById("taxState").value.trim().toUpperCase();
+
+  const zip =
+    document.getElementById("taxZip").value.trim();
+
+  const backupWithholdingExempt =
+    document.getElementById("backupWithholdingExempt").checked;
+
+  const usPersonCertified =
+    document.getElementById("usPersonCertification").checked;
+
+  const certified =
+    document.getElementById("taxCertification").checked;
+
+  if (!legalName || !classification || !taxIdType || !last4 || !address || !city || !state || !zip) {
+    setTaxSetupMessage(
+      "Complete all required W-9 fields before saving.",
+      "red"
+    );
     return;
   }
 
   if (!/^\d{4}$/.test(last4)) {
-    setTaxSetupMessage("Enter exactly 4 digits for SSN / EIN last 4.", "red");
+    setTaxSetupMessage(
+      "Enter exactly 4 digits for SSN / EIN / ITIN last 4.",
+      "red"
+    );
     return;
   }
 
-  if (!certified) {
-    setTaxSetupMessage("You must certify that the tax information is accurate.", "red");
+  if (!backupWithholdingExempt || !usPersonCertified || !certified) {
+    setTaxSetupMessage(
+      "You must complete all tax certifications before saving.",
+      "red"
+    );
     return;
   }
 
-  setTaxSetupMessage("Saving tax setup...", "#0b7a28");
+  setTaxSetupMessage(
+    "Saving tax setup...",
+    "#0b7a28"
+  );
 
-  const { error } = await supabaseClient
-    .from("profiles")
-    .upsert({
-      id: currentUser.id,
-      email: currentUser.email,
-      account_type: "worker",
-      tax_legal_name: legalName,
-      tax_business_name: businessName,
-      tax_classification: classification,
-      ssn_last4: last4,
-      tax_id_last4: last4,
-      tax_address: address,
-      tax_city: city,
-      tax_state: state,
-      tax_zip: zip,
-      tax_status: "completed",
-      tax_setup_complete: true,
-      tax_certification_acknowledged: true,
-      tax_certification_acknowledged_at: new Date().toISOString()
-    });
+  const payload = {
+    id: currentUser.id,
+    email: currentUser.email,
+    account_type: "worker",
+
+    tax_legal_name: legalName,
+    tax_business_name: businessName,
+    tax_classification: classification,
+    tax_id_type: taxIdType,
+    ssn_last4: last4,
+    tax_id_last4: last4,
+    tax_exempt_payee_code: exemptCode,
+    tax_fatca_code: fatcaCode,
+
+    tax_address: address,
+    tax_city: city,
+    tax_state: state,
+    tax_zip: zip,
+
+    tax_status: "completed",
+    tax_setup_complete: true,
+    tax_certification_acknowledged: true,
+    tax_certification_acknowledged_at: new Date().toISOString(),
+    backup_withholding_certified: backupWithholdingExempt,
+    us_person_certified: usPersonCertified,
+    w9_signed_at: new Date().toISOString(),
+    w9_consent: true
+  };
+
+  const { error } =
+    await supabaseClient
+      .from("profiles")
+      .upsert(payload);
 
   if (error) {
     console.error(error);
-    setTaxSetupMessage(error.message, "red");
+    setTaxSetupMessage(
+      error.message,
+      "red"
+    );
     return;
   }
 
+  currentProfile = {
+    ...(currentProfile || {}),
+    ...payload
+  };
+
   document.getElementById("w9Status").innerHTML =
     "<span class='status-good'>Completed</span>";
+
+  document.getElementById("taxFormStatus").innerHTML =
+    "<span class='status-good'>Ready for Year-End Review</span>";
 
   setTaxSetupMessage(
     "W-9 tax setup saved. Your worker profile checklist will now read Tax and Payout Setup as complete.",
     "green"
   );
+
+  await saveAnnualTaxSummary(false);
 }
 
 async function loadEarnings() {
-  const { data: quotes } = await supabaseClient
-    .from("worker_quotes")
-    .select("quote_amount, status")
-    .eq("worker_id", currentUser.id)
-    .in("status", ["paid", "completed"]);
+  let quotes = [];
 
-  let gross = 0;
+  const { data: directQuotes } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("id, quote_amount, status, worker_id, created_at, paid_at, completed_at")
+      .eq("worker_id", currentUser.id)
+      .in("status", ["paid", "completed"]);
 
-  if (quotes && quotes.length > 0) {
+  if (directQuotes && directQuotes.length > 0) {
+    quotes =
+      directQuotes;
+  }
+
+  const { data: earnings } =
+    await supabaseClient
+      .from("worker_earnings")
+      .select("*")
+      .eq("worker_id", currentUser.id);
+
+  let gross =
+    0;
+
+  let jobCount =
+    0;
+
+  if (earnings && earnings.length > 0) {
+    earnings.forEach(item => {
+      gross += Number(
+        item.gross_amount ||
+        item.amount ||
+        item.worker_payout ||
+        0
+      );
+      jobCount += 1;
+    });
+  } else if (quotes && quotes.length > 0) {
     quotes.forEach(q => {
       gross += Number(q.quote_amount || 0);
+      jobCount += 1;
     });
   }
 
-  const fee = gross * 0.15;
-  const net = gross - fee;
+  const fee =
+    gross * 0.15;
+
+  const net =
+    gross - fee;
+
+  currentGross =
+    gross;
+
+  currentFees =
+    fee;
+
+  currentNet =
+    net;
+
+  currentPaidJobCount =
+    jobCount;
 
   document.getElementById("grossEarnings").innerText =
-    "$" + gross.toFixed(2);
+    money(gross);
+
+  document.getElementById("paidJobCount").innerText =
+    String(jobCount);
 
   document.getElementById("platformFees").innerText =
-    "$" + fee.toFixed(2);
+    money(fee);
 
   document.getElementById("netPayout").innerText =
-    "$" + net.toFixed(2);
+    money(net);
 
-  document.getElementById("thresholdTracker").innerText =
-    "$" + gross.toFixed(2) + " / $600.00";
+  document.getElementById("necTracker").innerText =
+    money(gross) + " / " + money(NEC_THRESHOLD);
+
+  document.getElementById("kTracker").innerText =
+    money(gross) + " / " + money(K_THRESHOLD_AMOUNT) + " + " + jobCount + " / " + K_THRESHOLD_TRANSACTIONS + " payments";
+
+  const necEligible =
+    gross >= NEC_THRESHOLD;
+
+  const kEligible =
+    gross >= K_THRESHOLD_AMOUNT &&
+    jobCount >= K_THRESHOLD_TRANSACTIONS;
 
   document.getElementById("eligibilityStatus").innerHTML =
-    gross >= 600
-      ? "<span class='status-good'>Eligible</span>"
+    necEligible || kEligible
+      ? "<span class='status-good'>Eligible for Year-End Form Review</span>"
       : "<span class='status-warning'>Not Yet Eligible</span>";
 }
 
-async function loadTaxDocuments() {
-  const container = document.getElementById("taxDocuments");
+async function saveAnnualTaxSummary(showMessage = true) {
+  if (!currentUser) {
+    return;
+  }
 
-  const { data: docs, error } = await supabaseClient
-    .from("worker_tax_documents")
-    .select("*")
-    .eq("worker_id", currentUser.id)
-    .order("tax_year", { ascending: false });
+  const eligibleNec =
+    currentGross >= NEC_THRESHOLD;
+
+  const eligibleK =
+    currentGross >= K_THRESHOLD_AMOUNT &&
+    currentPaidJobCount >= K_THRESHOLD_TRANSACTIONS;
+
+  const formType =
+    eligibleK
+      ? "1099-K"
+      : eligibleNec
+        ? "1099-NEC"
+        : "Annual Earnings Summary";
+
+  const formStatus =
+    eligibleNec || eligibleK
+      ? "ready_for_generation"
+      : "not_required_yet";
+
+  try {
+    const { error } =
+      await supabaseClient
+        .from("worker_tax_documents")
+        .upsert({
+          worker_id: currentUser.id,
+          tax_year: CURRENT_YEAR,
+          document_type: formType,
+          gross_earnings: currentGross,
+          platform_fees: currentFees,
+          net_payout: currentNet,
+          paid_job_count: currentPaidJobCount,
+          tax_status: formStatus,
+          form_available_date: `${CURRENT_YEAR + 1}-01-01`,
+          tax_legal_name: document.getElementById("taxLegalName").value.trim(),
+          tax_business_name: document.getElementById("taxBusinessName").value.trim(),
+          tax_classification: document.getElementById("taxClassification").value,
+          tax_id_type: document.getElementById("taxIdType").value,
+          tax_id_last4: document.getElementById("taxIdLast4").value.trim(),
+          tax_address: document.getElementById("taxAddress").value.trim(),
+          tax_city: document.getElementById("taxCity").value.trim(),
+          tax_state: document.getElementById("taxState").value.trim(),
+          tax_zip: document.getElementById("taxZip").value.trim(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: "worker_id,tax_year,document_type"
+        });
+
+    if (error && showMessage) {
+      alert(error.message);
+      return;
+    }
+
+    if (showMessage) {
+      alert("Yearly tax summary updated.");
+      await loadTaxDocuments();
+    }
+  } catch (error) {
+    if (showMessage) {
+      alert("Tax summary could not be updated. Check your worker_tax_documents table.");
+    }
+  }
+}
+
+async function loadTaxDocuments() {
+  const container =
+    document.getElementById("taxDocuments");
+
+  const { data: docs, error } =
+    await supabaseClient
+      .from("worker_tax_documents")
+      .select("*")
+      .eq("worker_id", currentUser.id)
+      .order("tax_year", { ascending: false });
 
   if (error || !docs || docs.length === 0) {
+    document.getElementById("currentYearDocumentStatus").innerHTML =
+      "<span class='status-warning'>Not Generated Yet</span>";
+
     container.innerHTML = `
       <div class="note">
-        No tax documents are available yet.
+        No tax documents are available yet. Eligible forms should appear after January 1 once TaskMint generates the final document.
       </div>
     `;
     return;
   }
 
-  container.innerHTML = "";
+  container.innerHTML =
+    "";
+
+  let currentYearFound =
+    false;
 
   docs.forEach(doc => {
+    const taxYear =
+      doc.tax_year || "";
+
+    const documentType =
+      doc.document_type || "Tax Document";
+
+    const status =
+      doc.tax_status || doc.status || "pending";
+
+    const url =
+      doc.document_url || "";
+
+    const availableDate =
+      doc.form_available_date || "";
+
+    const canDownload =
+      url &&
+      String(url).trim() !== "";
+
+    if (Number(taxYear) === CURRENT_YEAR) {
+      currentYearFound = true;
+
+      document.getElementById("currentYearDocumentStatus").innerHTML =
+        canDownload
+          ? "<span class='status-good'>Available</span>"
+          : "<span class='status-warning'>Pending Generation</span>";
+    }
+
     container.innerHTML += `
-      <div class="row">
-        <div>
-          <strong>${doc.document_type || "Tax Document"}</strong><br>
-          <span class="label">${doc.tax_year || ""}</span>
+      <div class="document-card">
+        <div class="document-title">
+          ${documentType} - ${taxYear}
         </div>
 
-        <button onclick="window.location.href='${doc.document_url}'">
-          Download
-        </button>
+        <div class="document-meta">
+          Gross Earnings: ${money(doc.gross_earnings)}<br>
+          TaskMint Fees: ${money(doc.platform_fees)}<br>
+          Net Payout: ${money(doc.net_payout)}<br>
+          Paid Jobs: ${doc.paid_job_count || 0}<br>
+          Status: ${status.replaceAll("_", " ")}<br>
+          Available Date: ${availableDate || "January 1 after year-end"}
+        </div>
+
+        ${
+          canDownload
+            ? `<button onclick="window.location.href='${url}'">Download ${documentType}</button>`
+            : `<button class="disabled" disabled>Document Not Generated Yet</button>`
+        }
+
+        <div class="tiny">
+          Document details must be generated and finalized by TaskMint’s backend/admin tax process before download.
+        </div>
       </div>
     `;
   });
+
+  if (!currentYearFound) {
+    document.getElementById("currentYearDocumentStatus").innerHTML =
+      "<span class='status-warning'>Not Generated Yet</span>";
+  }
 }
 
 loadTaxCenter();

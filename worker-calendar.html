@@ -94,6 +94,14 @@
       margin-top: 5px;
       line-height: 1.3;
       word-break: break-word;
+      cursor: pointer;
+    }
+
+    .job-time {
+      display: block;
+      font-size: 10px;
+      opacity: 0.9;
+      margin-top: 2px;
     }
 
     .job-pill.completed {
@@ -207,6 +215,280 @@ let currentYear = currentDate.getFullYear();
 
 let scheduledJobs = [];
 
+function getCalendarFirstAvailable(record, keys, fallback = "") {
+  if (!record) {
+    return fallback;
+  }
+
+  for (const key of keys) {
+    if (
+      record[key] !== null &&
+      record[key] !== undefined &&
+      String(record[key]).trim() !== ""
+    ) {
+      return record[key];
+    }
+  }
+
+  return fallback;
+}
+
+function escapeCalendarHTML(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function getCalendarTaskDate(job) {
+  return getCalendarFirstAvailable(job, [
+    "task_date",
+    "date_needed",
+    "needed_by",
+    "scheduled_date",
+    "scheduled_start",
+    "due_date"
+  ], "");
+}
+
+function getCalendarTaskTitle(job) {
+  return getCalendarFirstAvailable(job, [
+    "title",
+    "task_title",
+    "job_title",
+    "category",
+    "service_type"
+  ], "Task");
+}
+
+function formatCalendarDate(value) {
+  if (!value) {
+    return "Not scheduled";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+
+function formatCalendarTime(job) {
+  const timeValue =
+    getCalendarFirstAvailable(job, [
+      "scheduled_start",
+      "start_time",
+      "task_time",
+      "scheduled_time",
+      "time_needed",
+      "arrival_time"
+    ], "");
+
+  if (!timeValue) {
+    return "Time not set";
+  }
+
+  const date = new Date(timeValue);
+
+  if (!Number.isNaN(date.getTime())) {
+    return date.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  }
+
+  const parts = String(timeValue).split(":");
+  const hour = Number(parts[0]);
+  const minute = Number(parts[1] || 0);
+
+  if (Number.isNaN(hour) || Number.isNaN(minute)) {
+    return timeValue;
+  }
+
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  const displayMinute = String(minute).padStart(2, "0");
+
+  return `${displayHour}:${displayMinute} ${suffix}`;
+}
+
+function getCalendarCityState(job) {
+  const city =
+    getCalendarFirstAvailable(job, [
+      "city",
+      "task_city",
+      "service_city"
+    ], "City not listed");
+
+  const state =
+    getCalendarFirstAvailable(job, [
+      "state",
+      "task_state",
+      "service_state"
+    ], "");
+
+  return state ? `${city}, ${state}` : city;
+}
+
+function getCalendarFullAddress(job) {
+  const street =
+    getCalendarFirstAvailable(job, [
+      "street_address",
+      "full_address",
+      "address",
+      "task_address",
+      "service_address"
+    ], "Address not listed");
+
+  const unit =
+    getCalendarFirstAvailable(job, [
+      "unit",
+      "apt",
+      "apartment",
+      "suite"
+    ], "");
+
+  const city =
+    getCalendarFirstAvailable(job, [
+      "city",
+      "task_city",
+      "service_city"
+    ], "");
+
+  const state =
+    getCalendarFirstAvailable(job, [
+      "state",
+      "task_state",
+      "service_state"
+    ], "");
+
+  const zip =
+    getCalendarFirstAvailable(job, [
+      "zip_code",
+      "zip",
+      "postal_code"
+    ], "");
+
+  const unitLine =
+    unit ? `, Unit ${unit}` : "";
+
+  const cityStateZip =
+    [city, state, zip].filter(Boolean).join(" ");
+
+  return `${street}${unitLine}${cityStateZip ? ", " + cityStateZip : ""}`;
+}
+
+function getCalendarDaysUntil(job) {
+  const dateValue =
+    getCalendarTaskDate(job);
+
+  if (!dateValue) {
+    return null;
+  }
+
+  const jobDate =
+    new Date(dateValue);
+
+  if (Number.isNaN(jobDate.getTime())) {
+    return null;
+  }
+
+  const today =
+    new Date();
+
+  today.setHours(0, 0, 0, 0);
+  jobDate.setHours(0, 0, 0, 0);
+
+  return Math.ceil((jobDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function canShowCalendarFullAddress(job) {
+  const daysUntil =
+    getCalendarDaysUntil(job);
+
+  return daysUntil !== null && daysUntil <= 7;
+}
+
+function getCalendarLocation(job) {
+  if (canShowCalendarFullAddress(job)) {
+    return getCalendarFullAddress(job);
+  }
+
+  return `${getCalendarCityState(job)} — full address unlocks 7 days before the scheduled task date.`;
+}
+
+function getCalendarDetails(job) {
+  return getCalendarFirstAvailable(job, [
+    "description",
+    "details",
+    "task_details",
+    "notes",
+    "special_instructions"
+  ], "No additional task details were provided.");
+}
+
+function openJobDetails(jobId) {
+  const job =
+    scheduledJobs.find(item => String(item.id) === String(jobId));
+
+  if (!job) {
+    return;
+  }
+
+  document.getElementById("detailJobTitle").innerText =
+    getCalendarTaskTitle(job);
+
+  document.getElementById("detailJobBody").innerHTML = `
+    <div class="detail-row">
+      <div class="detail-label">Date</div>
+      <div class="detail-value">${escapeCalendarHTML(formatCalendarDate(getCalendarTaskDate(job)))}</div>
+    </div>
+
+    <div class="detail-row">
+      <div class="detail-label">Time</div>
+      <div class="detail-value">${escapeCalendarHTML(formatCalendarTime(job))}</div>
+    </div>
+
+    <div class="detail-row">
+      <div class="detail-label">Location</div>
+      <div class="detail-value">${escapeCalendarHTML(getCalendarLocation(job))}</div>
+    </div>
+
+    <div class="detail-row">
+      <div class="detail-label">Status</div>
+      <div class="detail-value">${escapeCalendarHTML(String(job.status || "scheduled").replaceAll("_", " "))}</div>
+    </div>
+
+    <div class="detail-row">
+      <div class="detail-label">Task Details</div>
+      <div class="detail-value">${escapeCalendarHTML(getCalendarDetails(job))}</div>
+    </div>
+  `;
+
+  document.getElementById("jobDetailModal").classList.add("show");
+}
+
+function closeJobDetails(event) {
+  if (event && event.target && event.target.id !== "jobDetailModal") {
+    return;
+  }
+
+  document.getElementById("jobDetailModal").classList.remove("show");
+}
+
+
 async function loadWorkerJobs() {
 
   const { data: sessionData } =
@@ -288,9 +570,11 @@ function renderCalendar() {
     const jobsForDay =
       scheduledJobs.filter(job => {
 
-        if (!job.task_date) return false;
+        const taskDateValue = getCalendarTaskDate(job);
 
-        const jobDate = new Date(job.task_date);
+        if (!taskDateValue) return false;
+
+        const jobDate = new Date(taskDateValue);
 
         return (
           jobDate.getDate() === day &&
@@ -305,8 +589,11 @@ function renderCalendar() {
     jobsForDay.forEach(job => {
 
       jobsHtml += `
-        <div class="job-pill ${job.status === 'completed' ? 'completed' : ''}">
-          ${job.title || 'Task'}
+        <div
+          class="job-pill ${job.status === 'completed' ? 'completed' : ''}"
+          onclick="openJobDetails('${job.id}')">
+          ${escapeCalendarHTML(getCalendarTaskTitle(job))}
+          <span class="job-time">${escapeCalendarHTML(formatCalendarTime(job))}</span>
         </div>
       `;
 

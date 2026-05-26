@@ -167,16 +167,36 @@ if (!user) {
       .eq("auth_user_id", user.id)
       .maybeSingle();
 
-  if (!worker) {
+  const workerIds = [
+    user.id,
+    worker?.id
+  ]
+    .filter(Boolean)
+    .map(String);
+
+  const uniqueWorkerIds =
+    [...new Set(workerIds)];
+
+  if (uniqueWorkerIds.length === 0) {
     return;
   }
+
+  const workerFilters =
+    [];
+
+  uniqueWorkerIds.forEach((id) => {
+    workerFilters.push(`worker_id.eq.${id}`);
+    workerFilters.push(`assigned_worker_id.eq.${id}`);
+    workerFilters.push(`accepted_worker_id.eq.${id}`);
+  });
 
   const { data: completedTasks, error } =
     await supabaseClient
       .from("tasks")
       .select("*")
-      .eq("worker_id", worker.id)
+      .or(workerFilters.join(","))
       .eq("status", "completed")
+      .eq("customer_completed", true)
       .order("created_at", {
         ascending: false
       });
@@ -222,8 +242,9 @@ if (!user) {
         <div class="small-text">
           Completed:
           ${
+            task.customer_completed_at ||
             task.completed_at
-            ? new Date(task.completed_at)
+            ? new Date(task.customer_completed_at || task.completed_at)
                 .toLocaleDateString()
             : "Recently"
           }

@@ -1074,7 +1074,7 @@ async function loadDashboard() {
  
   const { data: workerRecord } =
     await supabaseClient
-      .from("workers")
+      .from("worker_profiles")
       .select("*")
       .eq("email", user.email)
       .maybeSingle();
@@ -1488,7 +1488,6 @@ async function loadTodaySchedule(workerId) {
  
   const tableOptions = [
     "tasks",
-    "jobs"
   ];
  
   for (const tableName of tableOptions) {
@@ -1697,7 +1696,7 @@ async function countUnreadMessages() {
   let total = 0;
 
   total += await countByColumn(
-    "messages",
+    "task_messages",
     "receiver_id",
     ids,
     (query) => query.eq("is_read", false)
@@ -1787,7 +1786,7 @@ async function countDirectRequests() {
 
   const { count, error } =
     await supabaseClient
-      .from("direct_quote_requests")
+      .from("direct_task_requests")
       .select("id", {
         count: "exact",
         head: true

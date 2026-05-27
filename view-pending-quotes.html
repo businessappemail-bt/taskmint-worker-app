@@ -596,7 +596,7 @@ async function loadCurrentWorker() {
 
   const { data: workerRecord } =
     await supabaseClient
-      .from("workers")
+      .from("worker_profiles")
       .select("id, email")
       .eq("email", currentUser.email)
       .maybeSingle();
@@ -690,7 +690,7 @@ async function fetchQuoteMessages(quote) {
 
   let query =
     supabaseClient
-      .from("messages")
+      .from("task_messages")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(3);

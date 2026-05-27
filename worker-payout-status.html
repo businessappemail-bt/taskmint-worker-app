@@ -529,7 +529,7 @@ async function getCurrentWorker() {
  
   const { data: workerRecord } =
     await supabaseClient
-      .from("workers")
+      .from("worker_profiles")
       .select("id, email, stripe_account_id, payout_status")
       .eq("email", currentUser.email)
       .maybeSingle();
@@ -648,7 +648,7 @@ async function loadPayoutRequests() {
  
   const { data, error } =
     await supabaseClient
-      .from("worker_payout_requests")
+      .from("worker_payouts")
       .select("*")
       .eq("worker_id", currentWorkerId)
       .order("created_at", { ascending: false });
@@ -810,7 +810,7 @@ async function requestPayout() {
   try {
     const { data: requestRow, error: insertError } =
       await supabaseClient
-        .from("worker_payout_requests")
+        .from("worker_payouts")
         .insert({
           worker_id: currentWorkerId,
           worker_email: currentUser.email,

@@ -162,7 +162,7 @@ if (!user) {
 
   const { data: worker } =
     await supabaseClient
-      .from("workers")
+      .from("worker_profiles")
       .select("*")
       .eq("auth_user_id", user.id)
       .maybeSingle();

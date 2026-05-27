@@ -10,7 +10,7 @@
       font-family: Arial, sans-serif;
       background: #f4f4f4;
       color: #111;
-      padding-bottom: 90px;<script
+      padding-bottom: 90px;
     }
 
     .container {
@@ -222,7 +222,7 @@ async function loadEarnings() {
 
   const { data: workerProfile } =
     await supabaseClient
-      .from("workers")
+      .from("worker_profiles")
       .select("id")
       .eq("email", workerUser.email)
       .maybeSingle();

@@ -851,7 +851,7 @@ async function loadCurrentWorker() {
   currentWorkerProfile = profile || null;
  
   const { data: workerRecord } = await supabaseClient
-    .from("workers")
+    .from("worker_profiles")
     .select("*")
     .eq("email", currentUser.email)
     .maybeSingle();

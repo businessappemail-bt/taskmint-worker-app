@@ -1231,6 +1231,15 @@ async function uploadProfilePhoto(event) {
         profile_photo_url: publicUrl,
         account_type: "worker"
       });
+
+  await supabaseClient
+    .from("worker_profiles")
+    .upsert({
+      id: currentUser.id,
+      auth_user_id: currentUser.id,
+      email: currentUser.email,
+      profile_photo_url: publicUrl
+    });
  
   if (updateError) {
     console.error(updateError);

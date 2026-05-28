@@ -1090,27 +1090,18 @@ async function loadDashboard() {
   if (profile) {
  
     document.getElementById("workerName").innerText =
-      profile.full_name ||
-      `${profile.first_name || ""} ${profile.last_name || ""}`.trim() ||
+      workerRecord?.full_name ||
+      `${workerRecord?.first_name || ""} ${workerRecord?.last_name || ""}`.trim() ||
+      profile?.full_name ||
+      `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
       "Worker Profile";
  
-    const workerProfilePhoto =
-      workerRecord?.profile_photo_url ||
-      workerRecord?.profile_image_url ||
-      workerRecord?.photo_url ||
-      workerRecord?.avatar_url ||
-      profile?.profile_photo_url ||
-      profile?.profile_image_url ||
-      profile?.photo_url ||
-      profile?.avatar_url ||
-      "";
-
     if (
-      workerProfilePhoto &&
-      workerProfilePhoto.trim() !== ""
+      profile.profile_photo_url &&
+      profile.profile_photo_url.trim() !== ""
     ) {
       document.getElementById("profilePic").src =
-        workerProfilePhoto;
+        profile.profile_photo_url;
     }
  
     document.getElementById("completedTasks").innerText =

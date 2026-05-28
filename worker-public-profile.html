@@ -584,7 +584,7 @@ function getDisplayName(profile) {
   ], "");
  
   const lastInitial = lastName
-    ? `${String(lastName).trim().charAt(0)}.`
+    ? `${String(lastName).trim().charAt(0).toUpperCase()}.`
     : "";
  
   return `${firstName} ${lastInitial}`.trim();

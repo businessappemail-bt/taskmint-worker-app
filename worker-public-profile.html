@@ -396,9 +396,8 @@
     }
 
     button.danger {
-      background: #fff5f5;
-      color: #b00020;
-      border: 1px solid #f1c4ca;
+      background: #b00020;
+      color: white;
     }
  
     .loading {
@@ -576,7 +575,7 @@ function getDisplayName(profile) {
   const firstName = getFirstAvailable(profile, [
     "first_name",
     "firstName"
-  ], "Worker_profiles");
+  ], "Worker");
  
   const lastName = getFirstAvailable(profile, [
     "last_name",
@@ -584,7 +583,7 @@ function getDisplayName(profile) {
   ], "");
  
   const lastInitial = lastName
-    ? `${String(lastName).trim().charAt(0).toUpperCase()}.`
+    ? `${String(lastName).trim().charAt(0)}.`
     : "";
  
   return `${firstName} ${lastInitial}`.trim();
@@ -702,37 +701,62 @@ async function loadWorkerProfile(workerId) {
   ].filter(Boolean);
 
   for (const id of possibleIds) {
-    const { data: workerRecord } = await supabaseClient
-      .from("workers")
+    const { data: workerProfileById } = await supabaseClient
+      .from("worker_profiles")
       .select("*")
       .eq("id", id)
       .maybeSingle();
 
-    if (workerRecord) {
+    if (workerProfileById) {
       let profileRecord = null;
 
-      if (workerRecord.auth_user_id) {
+      if (workerProfileById.auth_user_id) {
         const { data: profileByAuthId } = await supabaseClient
           .from("profiles")
           .select("*")
-          .eq("id", workerRecord.auth_user_id)
+          .eq("id", workerProfileById.auth_user_id)
           .maybeSingle();
 
         profileRecord = profileByAuthId || null;
       }
 
-      if (!profileRecord && workerRecord.email) {
+      if (!profileRecord && workerProfileById.email) {
         const { data: profileByEmail } = await supabaseClient
           .from("profiles")
           .select("*")
-          .eq("email", workerRecord.email)
+          .eq("email", workerProfileById.email)
           .maybeSingle();
 
         profileRecord = profileByEmail || null;
       }
 
-      return Object.assign({}, profileRecord || {}, workerRecord || {}, {
-        worker_table_id: workerRecord.id,
+      return Object.assign({}, profileRecord || {}, workerProfileById || {}, {
+        worker_table_id: workerProfileById.id,
+        worker_profile_table_id: workerProfileById.id,
+        profile_table_id: profileRecord?.id || ""
+      });
+    }
+
+    const { data: workerProfileByAuthId } = await supabaseClient
+      .from("worker_profiles")
+      .select("*")
+      .eq("auth_user_id", id)
+      .maybeSingle();
+
+    if (workerProfileByAuthId) {
+      let profileRecord = null;
+
+      const { data: profileById } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      profileRecord = profileById || null;
+
+      return Object.assign({}, profileRecord || {}, workerProfileByAuthId || {}, {
+        worker_table_id: workerProfileByAuthId.id,
+        worker_profile_table_id: workerProfileByAuthId.id,
         profile_table_id: profileRecord?.id || ""
       });
     }
@@ -744,6 +768,20 @@ async function loadWorkerProfile(workerId) {
       .maybeSingle();
 
     if (profileById) {
+      const { data: workerProfileByProfileEmail } = await supabaseClient
+        .from("worker_profiles")
+        .select("*")
+        .eq("email", profileById.email)
+        .maybeSingle();
+
+      if (workerProfileByProfileEmail) {
+        return Object.assign({}, profileById || {}, workerProfileByProfileEmail || {}, {
+          worker_table_id: workerProfileByProfileEmail.id,
+          worker_profile_table_id: workerProfileByProfileEmail.id,
+          profile_table_id: profileById.id || ""
+        });
+      }
+
       return profileById;
     }
   }
@@ -752,71 +790,18 @@ async function loadWorkerProfile(workerId) {
 }
  
 async function loadAvailability(workerId, profile) {
-  const possibleAvailabilityIds = [
-    workerId,
-    profile?.worker_table_id,
-    profile?.id,
-    profile?.auth_user_id,
-    profile?.profile_table_id,
-    profile?.user_id
-  ]
-    .filter(Boolean)
-    .map(id => String(id));
 
-  const uniqueAvailabilityIds = [...new Set(possibleAvailabilityIds)];
+  const { data, error } = await supabaseClient
+    .from("worker_availability")
+    .select("*")
+    .eq("worker_id", workerId)
+    .eq("is_available", true);
 
-  for (const id of uniqueAvailabilityIds) {
-    const { data, error } = await supabaseClient
-      .from("worker_availability")
-      .select("*")
-      .eq("worker_id", id)
-      .eq("is_available", true);
-
-    if (!error && data && data.length > 0) {
-      return data;
-    }
+  if (error || !data) {
+    return [];
   }
 
-  for (const id of uniqueAvailabilityIds) {
-    const { data, error } = await supabaseClient
-      .from("worker_availability")
-      .select("*")
-      .eq("worker_user_id", id)
-      .eq("is_available", true);
-
-    if (!error && data && data.length > 0) {
-      return data;
-    }
-  }
-
-  for (const id of uniqueAvailabilityIds) {
-    const { data, error } = await supabaseClient
-      .from("worker_availability")
-      .select("*")
-      .eq("user_id", id)
-      .eq("is_available", true);
-
-    if (!error && data && data.length > 0) {
-      return data;
-    }
-  }
-
-  const profileAvailability = splitList(getFirstAvailable(profile, [
-    "availability",
-    "available_days",
-    "work_availability"
-  ], ""));
-
-  if (profileAvailability.length > 0) {
-    return profileAvailability.map(item => ({
-      day_of_week: item,
-      start_time: "",
-      end_time: "",
-      is_available: true
-    }));
-  }
-
-  return [];
+  return data;
 }
  
 async function loadReviews(workerId) {
@@ -931,11 +916,7 @@ function renderAvailability(availability) {
           <div>
             <div class="info-main">${escapeHTML(row.day_of_week || "Available Day")}</div>
             <div class="info-sub">
-              ${
-                row.start_time || row.end_time
-                  ? `${escapeHTML(formatTime(row.start_time))} - ${escapeHTML(formatTime(row.end_time))}`
-                  : "Time not listed"
-              }
+              ${escapeHTML(formatTime(row.start_time))} - ${escapeHTML(formatTime(row.end_time))}
             </div>
           </div>
           <div class="status-pill">Available</div>
@@ -1202,8 +1183,6 @@ function renderProfile(profile, availability, reviews, completedJobs, portfolio,
         </div>
       </div>
  
-      ${renderWorkPhotoUpload(profile)}
-      ${renderPendingPortfolio(pendingPortfolio, profile)}
       ${renderPortfolio(portfolio)}
     </div>
  
@@ -1218,18 +1197,12 @@ function renderProfile(profile, availability, reviews, completedJobs, portfolio,
       ${renderReviews(reviews)}
     </div>
  
-    ${
-      isOwnWorkerProfile(profile)
-        ? ""
-        : `
-          <div class="button-grid">
-            <button class="secondary" onclick="messageWorker()">Message</button>
-            <button onclick="requestQuote()">Request Quote</button>
-            <button class="secondary danger" onclick="blockWorker()">Block Worker</button>
-            <button class="secondary danger" onclick="reportWorker()">Report Worker</button>
-          </div>
-        `
-    }
+    <div class="button-grid">
+      <button class="secondary" onclick="messageWorker()">Message</button>
+      <button onclick="requestQuote()">Request Quote</button>
+      <button class="secondary" onclick="saveWorker()">Save Worker</button>
+      <button class="danger" onclick="reportWorker()">Report Worker</button>
+    </div>
   `;
 }
  
@@ -1357,113 +1330,88 @@ async function uploadWorkPhoto(event) {
   await loadPublicProfile();
 }
 
-async function blockWorker() {
-  if (!currentUser) {
-    alert("Please log in to block this worker.");
-    return;
-  }
-
-  if (!selectedWorkerId || isOwnWorkerProfile(selectedWorkerProfile)) {
-    return;
-  }
-
-  const confirmed = confirm("Block this worker? They will not be able to message you or send you quotes.");
-  if (!confirmed) {
-    return;
-  }
-
-  const blockRecord = {
-    customer_id: currentUser.id,
-    blocked_worker_id: selectedWorkerId,
-    worker_id: selectedWorkerId,
-    blocked_user_id:
-      selectedWorkerProfile?.auth_user_id ||
-      selectedWorkerProfile?.profile_table_id ||
-      selectedWorkerProfile?.user_id ||
-      selectedWorkerId,
-    status: "blocked",
-    created_at: new Date().toISOString()
-  };
-
-  const attempts = [
-    supabaseClient.from("blocked_users").insert(blockRecord),
-    supabaseClient.from("customer_blocked_workers").insert(blockRecord),
-    supabaseClient.from("blocked_workers").insert(blockRecord)
-  ];
-
-  for (const attempt of attempts) {
-    const { error } = await attempt;
-    if (!error) {
-      alert("Worker blocked.");
-      return;
-    }
-  }
-
-  alert("Block could not be saved. Please check your blocked users table setup.");
-}
-
-async function reportWorker() {
-  if (!currentUser) {
-    alert("Please log in to report this worker.");
-    return;
-  }
-
-  if (!selectedWorkerId || isOwnWorkerProfile(selectedWorkerProfile)) {
-    return;
-  }
-
-  const reason = prompt("Briefly explain why you are reporting this worker.");
-  if (!reason || !reason.trim()) {
-    return;
-  }
-
-  const reportRecord = {
-    reporter_id: currentUser.id,
-    customer_id: currentUser.id,
-    reported_worker_id: selectedWorkerId,
-    worker_id: selectedWorkerId,
-    reported_user_id:
-      selectedWorkerProfile?.auth_user_id ||
-      selectedWorkerProfile?.profile_table_id ||
-      selectedWorkerProfile?.user_id ||
-      selectedWorkerId,
-    reason: reason.trim(),
-    status: "open",
-    created_at: new Date().toISOString()
-  };
-
-  const attempts = [
-    supabaseClient.from("worker_reports").insert(reportRecord),
-    supabaseClient.from("reports").insert(reportRecord),
-    supabaseClient.from("user_reports").insert(reportRecord)
-  ];
-
-  for (const attempt of attempts) {
-    const { error } = await attempt;
-    if (!error) {
-      alert("Report submitted.");
-      return;
-    }
-  }
-
-  alert("Report could not be saved. Please check your report table setup.");
-}
-
 function messageWorker() {
+  if (!selectedWorkerId) {
+    alert("Worker profile is not available.");
+    return;
+  }
+
   localStorage.setItem("selectedWorkerId", selectedWorkerId || "");
   localStorage.setItem("selectedWorkerProfileId", selectedWorkerId || "");
   localStorage.setItem("messageContext", "worker-profile");
- 
-  window.location.href = "customer-worker-message.html";
+
+  window.location.href =
+    `customer-message-worker.html?worker_id=${encodeURIComponent(selectedWorkerId || "")}`;
 }
  
 function requestQuote() {
   localStorage.setItem("selectedWorkerId", selectedWorkerId || "");
   localStorage.setItem("selectedWorkerProfileId", selectedWorkerId || "");
  
-  window.location.href = "request-worker-quote.html";
+  window.location.href = "customer-message-worker.html";
+}
+
+async function saveWorker() {
+  if (!currentUser) {
+    alert("Please log in to save this worker.");
+    return;
+  }
+
+  if (!selectedWorkerId) {
+    alert("Worker profile is not available.");
+    return;
+  }
+
+  const { data: existingSave, error: existingError } =
+    await supabaseClient
+      .from("saved_workers")
+      .select("id")
+      .eq("customer_id", currentUser.id)
+      .eq("worker_id", selectedWorkerId)
+      .maybeSingle();
+
+  if (existingError) {
+    alert(existingError.message);
+    return;
+  }
+
+  if (existingSave) {
+    alert("This worker is already saved.");
+    return;
+  }
+
+  const { error } =
+    await supabaseClient
+      .from("saved_workers")
+      .insert([
+        {
+          customer_id: currentUser.id,
+          worker_id: selectedWorkerId,
+          created_at: new Date().toISOString()
+        }
+      ]);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Worker saved.");
 }
  
+function reportWorker() {
+  if (!selectedWorkerId) {
+    alert("Worker profile is not available.");
+    return;
+  }
+
+  localStorage.setItem("selectedWorkerId", selectedWorkerId || "");
+  localStorage.setItem("selectedWorkerProfileId", selectedWorkerId || "");
+
+  window.location.href =
+    `report-worker.html?worker_id=${encodeURIComponent(selectedWorkerId || "")}`;
+}
+
 function openPhotoModal(url) {
   document.getElementById("modalImage").src = url;
   document.getElementById("photoModal").style.display = "flex";

@@ -1,143 +1,329 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Completed Tasks - TaskMint</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Completed Tasks - TaskMint</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
+<style>
+* {
+  box-sizing: border-box;
+}
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      color: #111;
-      padding-bottom: 90px;
-    }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(25,182,76,0.16), transparent 32%),
+    linear-gradient(180deg, #eef8f1 0%, #f5f5f5 100%);
+  color: #111;
+  padding-bottom: 90px;
+}
 
-    .container {
-      max-width: 420px;
-      margin: 0 auto;
-      background: white;
-      min-height: 100vh;
-      padding: 20px;
-      box-sizing: border-box;
-    }
+.container {
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 18px;
+}
 
-    .back {
-      color: #0b7a28;
-      font-weight: bold;
-      margin-bottom: 18px;
-      display: inline-block;
-      text-decoration: none;
-    }
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
 
-    h1 {
-      margin-top: 0;
-      color: #0b7a28;
-      margin-bottom: 18px;
-    }
+.back,
+.refresh {
+  color: #0b7a28;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+}
 
-    .summary-card {
-      background: #0b7a28;
-      color: white;
-      padding: 22px;
-      border-radius: 18px;
-      margin-bottom: 20px;
-    }
+.hero {
+  background: linear-gradient(135deg, #0b7a28, #19b64c);
+  color: white;
+  border-radius: 28px;
+  padding: 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 14px 30px rgba(11,122,40,0.22);
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp 0.45s ease;
+}
 
-    .summary-number {
-      font-size: 34px;
-      font-weight: bold;
-      margin-top: 8px;
-    }
+.hero::before {
+  content: "";
+  position: absolute;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  top: -70px;
+  right: -60px;
+  animation: pulseGlow 5s ease-in-out infinite;
+}
 
-    .summary-label {
-      font-size: 14px;
-      opacity: 0.9;
-    }
+.hero h1 {
+  margin: 0 0 8px;
+  font-size: 30px;
+  line-height: 1.1;
+  position: relative;
+  z-index: 2;
+}
 
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      border: 1px solid #eee;
-    }
+.hero p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.96;
+  position: relative;
+  z-index: 2;
+}
 
-    .task-title {
-      font-size: 17px;
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
+.summary-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
 
-    .small-text {
-      color: #666;
-      font-size: 13px;
-      margin-top: 5px;
-      line-height: 1.4;
-    }
+.summary-box {
+  background: white;
+  border: 1px solid #edf1ee;
+  border-radius: 18px;
+  padding: 13px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
 
-    .status {
-      display: inline-block;
-      background: #e6f4ea;
-      color: #0b7a28;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: bold;
-      margin-top: 12px;
-    }
+.summary-label {
+  color: #0b7a28;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
 
-    .amount {
-      color: #0b7a28;
-      font-size: 22px;
-      font-weight: bold;
-      margin-top: 14px;
-    }
+.summary-value {
+  font-size: 18px;
+  font-weight: 900;
+  margin-top: 4px;
+}
 
-    .empty-state {
-      text-align: center;
-      color: #777;
-      margin-top: 60px;
-      font-size: 15px;
-    }
+.task-card {
+  background: white;
+  border-radius: 24px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  border: 1px solid #edf1ee;
+  animation: fadeUp 0.45s ease;
+}
 
-  </style>
+.task-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.task-title {
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.task-sub {
+  color: #666;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.status-pill {
+  background: #e7f7ec;
+  color: #0b7a28;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.payout-box {
+  background: #111;
+  color: white;
+  border-radius: 20px;
+  padding: 16px;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.payout-label {
+  font-size: 11px;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 900;
+}
+
+.payout-amount {
+  font-size: 30px;
+  font-weight: 900;
+  margin-top: 5px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.info-box {
+  background: #f7faf8;
+  border: 1px solid #e3eee6;
+  border-radius: 16px;
+  padding: 10px;
+  min-height: 68px;
+}
+
+.info-label {
+  color: #0b7a28;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 5px;
+}
+
+.info-value {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.detail-section {
+  margin-top: 12px;
+  background: #f7faf8;
+  border: 1px solid #e3eee6;
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.detail-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.detail-line {
+  background: white;
+  border: 1px solid #e3eee6;
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.empty-state {
+  background: white;
+  padding: 22px;
+  border-radius: 22px;
+  text-align: center;
+  color: #666;
+  border: 1px solid #edf1ee;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  line-height: 1.5;
+}
+
+#status {
+  text-align: center;
+  color: #b00020;
+  font-size: 13px;
+  font-weight: 900;
+  margin: 10px 0;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+</style>
 </head>
 
 <body>
 
 <div class="container">
 
-  <a class="back"
-  href="worker-dashboard.html">
-    ← Back to Dashboard
-  </a>
+  <div class="top-bar">
+    <a class="back" href="worker-dashboard.html">
+      ← Back to Dashboard
+    </a>
 
-  <h1>Completed Tasks</h1>
-
-  <div class="summary-card">
-
-    <div class="summary-label">
-      Total Completed Tasks
+    <div class="refresh" onclick="loadCompletedTasks()">
+      Refresh
     </div>
-
-    <div class="summary-number"
-    id="completedCount">
-      0
-    </div>
-
   </div>
 
-  <div id="completedTasksList"></div>
+  <div class="hero">
+    <h1>Completed Tasks</h1>
+    <p>Review completed jobs, payout amounts, customer details, task dates, and payment status.</p>
+  </div>
+
+  <div class="summary-row">
+    <div class="summary-box">
+      <div class="summary-label">
+        Completed Tasks
+      </div>
+
+      <div class="summary-value" id="completedCount">
+        0
+      </div>
+    </div>
+
+    <div class="summary-box">
+      <div class="summary-label">
+        Total Payout
+      </div>
+
+      <div class="summary-value" id="completedTotal">
+        $0.00
+      </div>
+    </div>
+  </div>
+
+  <p id="status"></p>
+
+  <div id="completedTasksList">
+    <div class="empty-state">
+      Loading completed tasks...
+    </div>
+  </div>
 
 </div>
 
 <script>
-
 const supabaseClient = window.supabase.createClient(
   "https://dbcthtjmtlumidpbucrc.supabase.co",
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
@@ -145,20 +331,199 @@ const supabaseClient = window.supabase.createClient(
 
 loadCompletedTasks();
 
+function escapeHTML(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function formatMoney(value) {
+  const numberValue =
+    Number(value || 0);
+
+  if (Number.isNaN(numberValue)) {
+    return "$0.00";
+  }
+
+  return "$" + numberValue.toFixed(2);
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "Not listed";
+  }
+
+  const date =
+    new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+
+function getFirstAvailable(record, keys, fallback = "") {
+  if (!record) {
+    return fallback;
+  }
+
+  for (const key of keys) {
+    if (
+      record[key] !== null &&
+      record[key] !== undefined &&
+      String(record[key]).trim() !== ""
+    ) {
+      return record[key];
+    }
+  }
+
+  return fallback;
+}
+
+function getTaskTitle(task) {
+  return getFirstAvailable(task, [
+    "title",
+    "task_title",
+    "category",
+    "service_type"
+  ], "Task");
+}
+
+function getTaskDate(task) {
+  return getFirstAvailable(task, [
+    "task_date",
+    "scheduled_for",
+    "scheduled_date",
+    "date_needed",
+    "created_at"
+  ], "");
+}
+
+function getCompletedDate(task) {
+  return getFirstAvailable(task, [
+    "customer_completed_at",
+    "completed_at",
+    "worker_completed_at",
+    "paid_at",
+    "updated_at",
+    "created_at"
+  ], "");
+}
+
+function getWorkerPayoutAmount(task) {
+  return (
+    task.worker_payout_amount ??
+    task.worker_payout ??
+    task.payout_amount ??
+    task.paid_amount ??
+    task.amount_paid ??
+    task.task_amount ??
+    0
+  );
+}
+
+function getCustomerPaidAmount(task) {
+  return (
+    task.amount_paid ??
+    task.paid_amount ??
+    task.task_amount ??
+    task.quote_amount ??
+    0
+  );
+}
+
+function getPaymentStatus(task) {
+  return getFirstAvailable(task, [
+    "payment_status",
+    "escrow_status",
+    "status"
+  ], "Not listed");
+}
+
+function getCustomerName(task) {
+  return getFirstAvailable(task, [
+    "customer_name",
+    "customer_full_name",
+    "customer_display_name"
+  ], "Customer not listed");
+}
+
+function getOrderNumber(task) {
+  return (
+    task.order_number ||
+    `TM-${String(task.id || "").slice(0, 8).toUpperCase()}`
+  );
+}
+
+function getLocation(task) {
+  const city =
+    getFirstAvailable(task, ["city"], "");
+
+  const state =
+    getFirstAvailable(task, ["state"], "");
+
+  return [city, state].filter(Boolean).join(", ") || "Location not listed";
+}
+
+function getTaskDetails(task) {
+  if (task.task_details && typeof task.task_details === "object") {
+    return Object.keys(task.task_details)
+      .map(key => {
+        const label =
+          key.replaceAll("_", " ").replace(/\b\w/g, char => char.toUpperCase());
+
+        const value =
+          Array.isArray(task.task_details[key])
+            ? task.task_details[key].join(", ")
+            : task.task_details[key];
+
+        return `${label}: ${value || "Not answered"}`;
+      });
+  }
+
+  if (task.description) {
+    return [task.description];
+  }
+
+  return ["No task details listed."];
+}
+
 async function loadCompletedTasks() {
+  const completedTasksList =
+    document.getElementById("completedTasksList");
+
+  const status =
+    document.getElementById("status");
+
+  status.innerText = "";
+
+  completedTasksList.innerHTML =
+    `<div class="empty-state">Loading completed tasks...</div>`;
 
   const {
     data: { user }
   } = await supabaseClient.auth.getUser();
 
-if (!user) {
-  document.getElementById("completedTasksList").innerHTML = `
-    <div class="empty-state">
-      No active worker session found. Please log in again.
-    </div>
-  `;
-  return;
-}
+  if (!user) {
+    completedTasksList.innerHTML = `
+      <div class="empty-state">
+        No active worker session found. Please log in again.
+      </div>
+    `;
+    return;
+  }
 
   const { data: worker } =
     await supabaseClient
@@ -178,6 +543,11 @@ if (!user) {
     [...new Set(workerIds)];
 
   if (uniqueWorkerIds.length === 0) {
+    completedTasksList.innerHTML = `
+      <div class="empty-state">
+        No worker profile was found for this account.
+      </div>
+    `;
     return;
   }
 
@@ -195,78 +565,154 @@ if (!user) {
       .from("tasks")
       .select("*")
       .or(workerFilters.join(","))
-      .eq("status", "completed")
+      .in("status", ["completed", "paid"])
       .eq("customer_completed", true)
       .order("created_at", {
         ascending: false
       });
 
   if (error) {
-    console.log(error);
+    status.innerText =
+      error.message;
+
+    completedTasksList.innerHTML = `
+      <div class="empty-state">
+        Unable to load completed tasks.
+      </div>
+    `;
     return;
   }
 
-  document.getElementById("completedCount")
-    .innerText =
-      completedTasks.length;
+  const tasks =
+    completedTasks || [];
 
-  const container =
-    document.getElementById("completedTasksList");
+  document.getElementById("completedCount").innerText =
+    String(tasks.length);
 
-  if (!completedTasks ||
-      completedTasks.length === 0) {
+  const totalPayout =
+    tasks.reduce((sum, task) => {
+      return sum + Number(getWorkerPayoutAmount(task) || 0);
+    }, 0);
 
-    container.innerHTML = `
+  document.getElementById("completedTotal").innerText =
+    formatMoney(totalPayout);
+
+  if (tasks.length === 0) {
+    completedTasksList.innerHTML = `
       <div class="empty-state">
         No completed tasks yet.
       </div>
     `;
-
     return;
   }
 
-  completedTasks.forEach((task) => {
+  completedTasksList.innerHTML = "";
 
-    container.innerHTML += `
+  tasks.forEach((task) => {
+    const payoutAmount =
+      getWorkerPayoutAmount(task);
 
-      <div class="card">
+    const customerPaid =
+      getCustomerPaidAmount(task);
 
-        <div class="task-title">
-          ${task.title || "Task"}
+    const platformFee =
+      Number(task.platform_fee || 0);
+
+    const details =
+      getTaskDetails(task)
+        .map(detail => `
+          <div class="detail-line">
+            ${escapeHTML(detail)}
+          </div>
+        `)
+        .join("");
+
+    completedTasksList.innerHTML += `
+      <div class="task-card">
+
+        <div class="task-top">
+          <div>
+            <div class="task-title">
+              ${escapeHTML(getTaskTitle(task))}
+            </div>
+
+            <div class="task-sub">
+              Order # ${escapeHTML(getOrderNumber(task))} •
+              Completed ${escapeHTML(formatDate(getCompletedDate(task)))}
+            </div>
+          </div>
+
+          <div class="status-pill">
+            Completed
+          </div>
         </div>
 
-        <div class="small-text">
-          ${task.description || ""}
+        <div class="payout-box">
+          <div class="payout-label">
+            Worker Payout
+          </div>
+
+          <div class="payout-amount">
+            ${escapeHTML(formatMoney(payoutAmount))}
+          </div>
         </div>
 
-        <div class="small-text">
-          Completed:
-          ${
-            task.customer_completed_at ||
-            task.completed_at
-            ? new Date(task.customer_completed_at || task.completed_at)
-                .toLocaleDateString()
-            : "Recently"
-          }
+        <div class="info-grid">
+          <div class="info-box">
+            <div class="info-label">Customer</div>
+            <div class="info-value">
+              ${escapeHTML(getCustomerName(task))}
+            </div>
+          </div>
+
+          <div class="info-box">
+            <div class="info-label">Task Date</div>
+            <div class="info-value">
+              ${escapeHTML(formatDate(getTaskDate(task)))}
+            </div>
+          </div>
+
+          <div class="info-box">
+            <div class="info-label">Customer Paid</div>
+            <div class="info-value">
+              ${escapeHTML(formatMoney(customerPaid))}
+            </div>
+          </div>
+
+          <div class="info-box">
+            <div class="info-label">Platform Fee</div>
+            <div class="info-value">
+              ${escapeHTML(formatMoney(platformFee))}
+            </div>
+          </div>
+
+          <div class="info-box">
+            <div class="info-label">Payment Status</div>
+            <div class="info-value">
+              ${escapeHTML(getPaymentStatus(task))}
+            </div>
+          </div>
+
+          <div class="info-box">
+            <div class="info-label">Location</div>
+            <div class="info-value">
+              ${escapeHTML(getLocation(task))}
+            </div>
+          </div>
         </div>
 
-        <div class="amount">
-          $${Number(task.quote_amount || 0)
-            .toFixed(2)}
-        </div>
+        <div class="detail-section">
+          <div class="detail-title">
+            Task Details
+          </div>
 
-        <div class="status">
-          Completed
+          ${details}
         </div>
 
       </div>
-
     `;
-
   });
-
 }
-
 </script>
 
 </body>

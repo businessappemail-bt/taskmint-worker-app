@@ -1378,7 +1378,7 @@ async function verifyArrivalCode(taskId, quoteId) {
     const { data: taskRecord, error: taskCodeError } =
       await supabaseClient
         .from("tasks")
-        .select("arrival_code, customer_arrival_code, task_code, access_code")
+        .select("arrival_code")
         .eq("id", taskId)
         .maybeSingle();
 
@@ -1388,13 +1388,8 @@ async function verifyArrivalCode(taskId, quoteId) {
     }
 
     const validCodes = [
-      taskRecord.arrival_code,
-      taskRecord.customer_arrival_code,
-      taskRecord.task_code,
-      taskRecord.access_code
-    ]
-      .filter(Boolean)
-      .map(item => String(item).trim());
+      String(taskRecord.arrival_code || "").trim()
+    ];
 
     if (!validCodes.includes(code)) {
       alert("Invalid arrival code.");

@@ -215,6 +215,17 @@ async function loadEarnings() {
   const { data: sessionData } =
     await supabaseClient.auth.getSession();
 
+  if (!sessionData.session || !sessionData.session.user) {
+    document.getElementById("totalPayout").innerText = "$0.00";
+    document.getElementById("totalCustomerPaid").innerText = "$0.00";
+    document.getElementById("earningsList").innerHTML = `
+      <div class="card">
+        No active worker session found. Please log in again.
+      </div>
+    `;
+    return;
+  }
+
   const workerUser =
     sessionData.session.user;
 
@@ -226,6 +237,17 @@ async function loadEarnings() {
       .select("id")
       .eq("email", workerUser.email)
       .maybeSingle();
+
+  if (!workerProfile) {
+    document.getElementById("totalPayout").innerText = "$0.00";
+    document.getElementById("totalCustomerPaid").innerText = "$0.00";
+    document.getElementById("earningsList").innerHTML = `
+      <div class="card">
+        Worker profile not found for this account.
+      </div>
+    `;
+    return;
+  }
 
   const { data: earnings, error } =
   await supabaseClient

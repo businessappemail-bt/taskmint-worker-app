@@ -98,6 +98,7 @@
       color: #666;
       font-size: 13px;
       margin-top: 4px;
+      line-height: 1.4;
     }
 
     .money-row {
@@ -132,25 +133,40 @@
       font-size: 12px;
       font-weight: bold;
       margin-top: 10px;
+      text-transform: capitalize;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 20px 0 12px;
+      color: #111;
     }
 
     .pdf-button {
-  width: 100%;
-  padding: 15px;
-  border: none;
-  border-radius: 14px;
-  background: #111;
-  color: white;
-  font-size: 15px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-bottom: 18px;
-  transition: 0.2s;
-}
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 14px;
+      background: #111;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 18px;
+      transition: 0.2s;
+    }
 
-.pdf-button:hover {
-  transform: scale(1.01);
-}
+    .pdf-button:hover {
+      transform: scale(1.01);
+    }
+
+    .empty {
+      text-align: center;
+      color: #666;
+      padding: 18px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 
@@ -166,24 +182,25 @@
 
   <div class="summary-card">
     <div class="summary-label">Total Worker Payouts</div>
-   <div class="summary-amount" id="totalPayout">
-  Loading...
-</div>
+
+    <div class="summary-amount" id="totalPayout">
+      Loading...
+    </div>
 
     <div class="summary-row">
       <span>Total Job Amounts</span>
-      <strong id="totalCustomerPaid">
-  Loading...
-</strong>
+      <strong id="totalCustomerPaid">Loading...</strong>
     </div>
 
-<div id="earningsList"></div>
-    
+    <div class="summary-row">
+      <span>Total TaskMint Fees</span>
+      <strong id="totalFees">Loading...</strong>
+    </div>
   </div>
 
   <div class="filter-card">
     <label>Filter by Date</label>
-    <select id="dateFilter">
+    <select id="dateFilter" onchange="renderEarnings()">
       <option value="all">All Earnings</option>
       <option value="this_week">This Week</option>
       <option value="this_month">This Month</option>
@@ -192,32 +209,123 @@
     </select>
   </div>
 
- <button class="pdf-button"
-  onclick="downloadEarningsPDF()">
-  Download PDF Statement
-</button>
+  <button class="pdf-button" onclick="downloadEarningsPDF()">
+    Download PDF Statement
+  </button>
+
+  <div class="section-title">Completed Earnings</div>
+
+  <div id="earningsList">
+    <div class="empty">Loading earnings...</div>
+  </div>
 
 </div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-
- const supabaseClient = window.supabase.createClient(
+const supabaseClient = window.supabase.createClient(
   "https://dbcthtjmtlumidpbucrc.supabase.co",
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
 
+let allEarnings = [];
+let currentTotals = {
+  totalPayout: 0,
+  totalCustomerPaid: 0,
+  totalFees: 0
+};
+
 loadEarnings();
 
-async function loadEarnings() {
+function formatMoney(value) {
+  const numberValue = Number(value || 0);
 
+  if (Number.isNaN(numberValue)) {
+    return "$0.00";
+  }
+
+  return "$" + numberValue.toFixed(2);
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "Not listed";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Not listed";
+  }
+
+  return date.toLocaleDateString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+
+function getEarningDate(item) {
+  return item.payout_date || item.created_at || "";
+}
+
+function isInDateFilter(item, filterValue) {
+  if (filterValue === "all") {
+    return true;
+  }
+
+  const rawDate = getEarningDate(item);
+
+  if (!rawDate) {
+    return false;
+  }
+
+  const date = new Date(rawDate);
+
+  if (Number.isNaN(date.getTime())) {
+    return false;
+  }
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const startOfWeek = new Date(startOfToday);
+  startOfWeek.setDate(startOfToday.getDate() - startOfToday.getDay());
+
+  const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const startOfThisYear = new Date(now.getFullYear(), 0, 1);
+
+  if (filterValue === "this_week") {
+    return date >= startOfWeek;
+  }
+
+  if (filterValue === "this_month") {
+    return date >= startOfThisMonth && date < startOfNextMonth;
+  }
+
+  if (filterValue === "last_month") {
+    return date >= startOfLastMonth && date < startOfThisMonth;
+  }
+
+  if (filterValue === "this_year") {
+    return date >= startOfThisYear;
+  }
+
+  return true;
+}
+
+async function loadEarnings() {
   const { data: sessionData } =
     await supabaseClient.auth.getSession();
 
   if (!sessionData.session || !sessionData.session.user) {
     document.getElementById("totalPayout").innerText = "$0.00";
     document.getElementById("totalCustomerPaid").innerText = "$0.00";
+    document.getElementById("totalFees").innerText = "$0.00";
     document.getElementById("earningsList").innerHTML = `
       <div class="card">
         No active worker session found. Please log in again.
@@ -229,8 +337,6 @@ async function loadEarnings() {
   const workerUser =
     sessionData.session.user;
 
-  console.log(workerUser.email);
-
   const { data: workerProfile } =
     await supabaseClient
       .from("worker_profiles")
@@ -241,6 +347,7 @@ async function loadEarnings() {
   if (!workerProfile) {
     document.getElementById("totalPayout").innerText = "$0.00";
     document.getElementById("totalCustomerPaid").innerText = "$0.00";
+    document.getElementById("totalFees").innerText = "$0.00";
     document.getElementById("earningsList").innerHTML = `
       <div class="card">
         Worker profile not found for this account.
@@ -250,106 +357,144 @@ async function loadEarnings() {
   }
 
   const { data: earnings, error } =
-  await supabaseClient
-    .from("worker_earnings")
-    .select("*")
-    .eq("worker_id", workerProfile.id);
+    await supabaseClient
+      .from("worker_earnings")
+      .select("*")
+      .eq("worker_id", workerProfile.id)
+      .order("created_at", { ascending: false });
 
-if (error) {
-  console.log(error);
-  return;
+  if (error) {
+    console.log(error);
+    document.getElementById("earningsList").innerHTML = `
+      <div class="card">
+        Unable to load earnings.
+      </div>
+    `;
+    return;
+  }
+
+  allEarnings = earnings || [];
+  renderEarnings();
 }
 
-const earningsList =
-  document.getElementById("earningsList");
+function renderEarnings() {
+  const filterValue =
+    document.getElementById("dateFilter").value;
 
-earningsList.innerHTML = "";
+  const earnings =
+    allEarnings.filter(item => isInDateFilter(item, filterValue));
 
-let totalPayout = 0;
-let totalCustomerPaid = 0;
-  
- earnings.forEach((item) => {
+  const earningsList =
+    document.getElementById("earningsList");
 
-  totalPayout += Number(
-    item.worker_payout || 0
-  );
+  earningsList.innerHTML = "";
 
-  totalCustomerPaid += Number(
-    item.customer_paid || 0
-  );
+  let totalPayout = 0;
+  let totalCustomerPaid = 0;
+  let totalFees = 0;
 
-  earningsList.innerHTML += `
-    <div class="card">
+  earnings.forEach((item) => {
+    totalPayout += Number(item.worker_payout || 0);
+    totalCustomerPaid += Number(item.customer_paid || 0);
+    totalFees += Number(item.platform_fee || 0);
 
-      <div class="job-title">
-        ${item.task_title || "Completed Task"}
+    earningsList.innerHTML += `
+      <div class="card">
+
+        <div class="job-title">
+          ${item.job_category || "Completed Task"}
+        </div>
+
+        <div class="small-text">
+          Completed / earned on ${formatDate(getEarningDate(item))}
+        </div>
+
+        <div class="small-text">
+          Task ID: ${item.task_id || "Not listed"}
+        </div>
+
+        <div class="money-row">
+          <span>Customer Paid</span>
+          <strong>${formatMoney(item.customer_paid)}</strong>
+        </div>
+
+        <div class="money-row">
+          <span>TaskMint Fee</span>
+          <span class="fee">-${formatMoney(item.platform_fee)}</span>
+        </div>
+
+        <div class="worker-pay">
+          Worker Payout: ${formatMoney(item.worker_payout)}
+        </div>
+
+        <div class="status">
+          ${item.payout_status || "pending"}
+        </div>
+
       </div>
+    `;
+  });
 
-      <div class="small-text">
-        Paid Job
+  if (earnings.length === 0) {
+    earningsList.innerHTML = `
+      <div class="empty">
+        No earnings match this filter.
       </div>
+    `;
+  }
 
-      <div class="money-row">
-        <span>Customer Paid</span>
-        <strong>
-          $${Number(item.customer_paid || 0).toFixed(2)}
-        </strong>
-      </div>
+  currentTotals = {
+    totalPayout,
+    totalCustomerPaid,
+    totalFees
+  };
 
-      <div class="money-row">
-        <span>TaskMint Fee</span>
-        <span class="fee">
-          -$${Number(item.platform_fee || 0).toFixed(2)}
-        </span>
-      </div>
+  document.getElementById("totalPayout").innerText =
+    formatMoney(totalPayout);
 
-      <div class="worker-pay">
-        Worker Payout:
-        $${Number(item.worker_payout || 0).toFixed(2)}
-      </div>
+  document.getElementById("totalCustomerPaid").innerText =
+    formatMoney(totalCustomerPaid);
 
-      <div class="status">
-        Paid
-      </div>
-
-    </div>
-  `;
-
-});
-
-  document.getElementById("totalPayout")
-    .innerText =
-      `$${totalPayout.toFixed(2)}`;
-
-  document.getElementById("totalCustomerPaid")
-    .innerText =
-      `$${totalCustomerPaid.toFixed(2)}`;
-
+  document.getElementById("totalFees").innerText =
+    formatMoney(totalFees);
 }
-  
+
 function downloadEarningsPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+
+  const filterValue =
+    document.getElementById("dateFilter").value;
+
+  const earnings =
+    allEarnings.filter(item => isInDateFilter(item, filterValue));
 
   doc.setFontSize(18);
   doc.text("TaskMint Earnings Statement", 20, 20);
 
   doc.setFontSize(12);
-  doc.text("Total Job Amounts: $205.00", 20, 40);
-  doc.text("TaskMint Platform Fees: $30.75", 20, 50);
-  doc.text("Total Worker Payouts: $174.25", 20, 60);
+  doc.text(`Total Job Amounts: ${formatMoney(currentTotals.totalCustomerPaid)}`, 20, 40);
+  doc.text(`TaskMint Platform Fees: ${formatMoney(currentTotals.totalFees)}`, 20, 50);
+  doc.text(`Total Worker Payouts: ${formatMoney(currentTotals.totalPayout)}`, 20, 60);
 
   doc.text("Earnings Details", 20, 80);
 
-  doc.text("Furniture Assembly", 20, 95);
-  doc.text("Customer Paid: $120.00", 20, 105);
-  doc.text("TaskMint Fee: -$18.00", 20, 115);
-  doc.text("Worker Payout: $102.00", 20, 125);
+  let y = 95;
 
-  doc.text("TV Mounting", 20, 145);
-  doc.text("Customer Paid: $85.00", 20, 155);
-  doc.text("TaskMint Fee: -$12.75", 20, 165);
-  doc.text("Worker Payout: $72.25", 20, 175);
+  earnings.forEach((item) => {
+    if (y > 260) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.text(`${item.job_category || "Completed Task"} - ${formatDate(getEarningDate(item))}`, 20, y);
+    doc.text(`Customer Paid: ${formatMoney(item.customer_paid)}`, 20, y + 10);
+    doc.text(`TaskMint Fee: -${formatMoney(item.platform_fee)}`, 20, y + 20);
+    doc.text(`Worker Payout: ${formatMoney(item.worker_payout)}`, 20, y + 30);
+    doc.text(`Status: ${item.payout_status || "pending"}`, 20, y + 40);
+
+    y += 58;
+  });
 
   doc.save("taskmint-earnings.pdf");
 }

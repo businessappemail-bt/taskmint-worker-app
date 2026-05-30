@@ -591,12 +591,13 @@ function getCityState(task) {
  
 function getFullAddress(task) {
   const street = getFirstAvailable(task, [
-    "street_address",
-    "full_address",
-    "address",
-    "task_address",
-    "service_address"
-  ], "Address not listed");
+  "location_address",
+  "street_address",
+  "full_address",
+  "address",
+  "task_address",
+  "service_address"
+], "Address not listed");
  
   const unit = getFirstAvailable(task, ["unit", "apt", "apartment", "suite"], "");
   const city = getFirstAvailable(task, ["city", "task_city", "service_city"], "");

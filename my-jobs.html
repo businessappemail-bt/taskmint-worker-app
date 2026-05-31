@@ -999,7 +999,7 @@ async function fetchAcceptedQuotes() {
     .from("worker_quotes")
     .select("*")
     .in("worker_id", currentWorkerIds)
-    .in("status", ["accepted", "in_progress", "worker_completed", "completed", "paid"])
+    .in("status", ["accepted", "in_progress", "worker_completed"])
     .order("created_at", { ascending: false });
  
   if (error) {

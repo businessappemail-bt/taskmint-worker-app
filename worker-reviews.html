@@ -63,37 +63,60 @@ const blockedWords = [
   "fuck", "shit", "bitch", "asshole", "damn", "cunt", "nigga", "nigger"
 ];
 
+function escapeHTML(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 async function loadReviewsPage() {
   const { data: userData } = await supabaseClient.auth.getUser();
 
   if (!userData || !userData.user) {
-    window.location.href = "login.html";
+    window.location.href = "worker-login.html";
     return;
   }
 
   currentUser = userData.user;
 
-  const { data: workerProfile, error: workerError } = await supabaseClient
-    .from("profiles")
-    .select("id")
+  let workerId = currentUser.id;
+
+  const { data: workerProfile } = await supabaseClient
+    .from("worker_profiles")
+    .select("id, email")
     .eq("email", currentUser.email)
     .maybeSingle();
 
-  if (workerError || !workerProfile) {
-    document.getElementById("reviewsList").innerHTML =
-      `<div class="card empty">Worker profile not found.</div>`;
-    return;
+  if (workerProfile && workerProfile.id) {
+    workerId = workerProfile.id;
+  } else {
+    const { data: profile } = await supabaseClient
+      .from("profiles")
+      .select("id")
+      .eq("email", currentUser.email)
+      .maybeSingle();
+
+    if (profile && profile.id) {
+      workerId = profile.id;
+    }
   }
 
   const { data: reviews, error } = await supabaseClient
     .from("reviews")
     .select("*")
-    .eq("worker_id", workerProfile.id)
+    .eq("worker_id", workerId)
     .order("created_at", { ascending: false });
 
   if (error) {
     document.getElementById("reviewsList").innerHTML =
-      `<div class="card empty">Error loading reviews.</div>`;
+      `<div class="card empty">${escapeHTML(error.message)}</div>`;
     return;
   }
 
@@ -115,19 +138,25 @@ function renderRatingSummary(reviews) {
   reviews.forEach(review => {
     const rating = Number(review.rating || 0);
     total += rating;
-    if (counts[rating] !== undefined) counts[rating]++;
+
+    if (counts[rating] !== undefined) {
+      counts[rating]++;
+    }
   });
 
   const average = total / reviews.length;
 
-  document.getElementById("averageRating").innerText = average.toFixed(1);
+  document.getElementById("averageRating").innerText =
+    average.toFixed(1);
+
   document.getElementById("reviewCount").innerText =
     `${reviews.length} review${reviews.length === 1 ? "" : "s"}`;
 
   let html = "";
 
   [5,4,3,2,1].forEach(star => {
-    const percent = reviews.length ? (counts[star] / reviews.length) * 100 : 0;
+    const percent =
+      reviews.length ? (counts[star] / reviews.length) * 100 : 0;
 
     html += `
       <div class="breakdown-row">
@@ -140,59 +169,97 @@ function renderRatingSummary(reviews) {
     `;
   });
 
-  document.getElementById("ratingBreakdown").innerHTML = html;
+  document.getElementById("ratingBreakdown").innerHTML =
+    html;
 }
 
 async function renderReviews(reviews) {
-  const container = document.getElementById("reviewsList");
+  const container =
+    document.getElementById("reviewsList");
 
   if (!reviews.length) {
-    container.innerHTML = `<div class="card empty">No reviews yet.</div>`;
+    container.innerHTML =
+      `<div class="card empty">No reviews yet.</div>`;
     return;
   }
 
   container.innerHTML = "";
 
   for (const review of reviews) {
-    const customer = await getCustomerProfile(review.customer_id);
-    const task = await getTaskInfo(review.task_id);
+    const customer =
+      await getCustomerProfile(review.customer_id);
 
-    const customerName = formatCustomerName(customer);
-    const customerPhoto = customer?.profile_photo_url || "Taskmintlogo.png";
-    const reviewDate = review.created_at
-      ? new Date(review.created_at).toLocaleDateString()
-      : "Date unavailable";
+    const task =
+      await getTaskInfo(review.task_id);
 
-    const jobType = task?.category || task?.title || "Task";
+    const customerName =
+      review.customer_name ||
+      formatCustomerName(customer);
 
-    const responseArea = review.worker_response
-      ? `
-        <div class="worker-response">
-          <strong>Worker Response:</strong><br>
-          ${review.worker_response}
-        </div>
-      `
-      : `
-        <textarea id="response-${review.id}" maxlength="500" placeholder="Write a public response to this review..."></textarea>
-        <button onclick="submitWorkerResponse('${review.id}')">
-          Submit Response
-        </button>
-      `;
+    const customerPhoto =
+      customer?.profile_photo_url ||
+      customer?.photo_url ||
+      customer?.avatar_url ||
+      "https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true";
+
+    const reviewDate =
+      review.created_at
+        ? new Date(review.created_at).toLocaleDateString()
+        : "Date unavailable";
+
+    const jobType =
+      review.job_category ||
+      task?.category ||
+      task?.title ||
+      "Task";
+
+    const responseArea =
+      review.worker_response
+        ? `
+          <div class="worker-response">
+            <strong>Worker Response:</strong><br>
+            ${escapeHTML(review.worker_response)}
+          </div>
+        `
+        : `
+          <textarea
+            id="response-${review.id}"
+            maxlength="500"
+            placeholder="Write a public response to this review. You can only respond once.">
+          </textarea>
+
+          <button onclick="submitWorkerResponse('${review.id}')">
+            Submit Response
+          </button>
+        `;
 
     container.innerHTML += `
       <div class="card">
         <div class="review-header">
-          <img class="customer-pic" src="${customerPhoto}">
+          <img
+            class="customer-pic"
+            src="${escapeHTML(customerPhoto)}"
+            onerror="this.src='https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true'"
+            alt="Customer photo"
+          >
+
           <div>
-            <div class="customer-name">${customerName}</div>
-            <div class="review-meta">${reviewDate} • ${jobType}</div>
+            <div class="customer-name">
+              ${escapeHTML(customerName)}
+            </div>
+
+            <div class="review-meta">
+              ${escapeHTML(reviewDate)} • ${escapeHTML(jobType)}
+            </div>
           </div>
         </div>
 
-        <div class="stars">${renderStars(review.rating)} (${review.rating}/5)</div>
+        <div class="stars">
+          ${renderStars(review.rating)} (${escapeHTML(review.rating || "0")}/5)
+        </div>
 
         <div class="review-text">
-          ${review.review_text || ""}
+          ${review.review_text ? escapeHTML(review.review_text) : "No written review left."}
         </div>
 
         ${responseArea}
@@ -202,11 +269,13 @@ async function renderReviews(reviews) {
 }
 
 async function getCustomerProfile(customerId) {
-  if (!customerId) return null;
+  if (!customerId) {
+    return null;
+  }
 
   const { data } = await supabaseClient
     .from("profiles")
-    .select("first_name, last_name, full_name, profile_photo_url")
+    .select("first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
     .eq("id", customerId)
     .maybeSingle();
 
@@ -214,7 +283,9 @@ async function getCustomerProfile(customerId) {
 }
 
 async function getTaskInfo(taskId) {
-  if (!taskId) return null;
+  if (!taskId) {
+    return null;
+  }
 
   const { data } = await supabaseClient
     .from("tasks")
@@ -226,24 +297,29 @@ async function getTaskInfo(taskId) {
 }
 
 function formatCustomerName(customer) {
-  if (!customer) return "Customer";
+  if (!customer) {
+    return "Customer";
+  }
+
+  if (customer.full_name) {
+    return customer.full_name;
+  }
 
   if (customer.first_name && customer.last_name) {
     return `${customer.first_name} ${customer.last_name.charAt(0)}.`;
   }
 
-  if (customer.full_name) {
-    const parts = customer.full_name.trim().split(" ");
-    const first = parts[0] || "Customer";
-    const lastInitial = parts[1] ? parts[1].charAt(0) + "." : "";
-    return `${first} ${lastInitial}`;
+  if (customer.first_name) {
+    return customer.first_name;
   }
 
   return "Customer";
 }
 
 function renderStars(rating) {
-  const count = Number(rating || 0);
+  const count =
+    Number(rating || 0);
+
   let stars = "";
 
   for (let i = 1; i <= 5; i++) {
@@ -254,7 +330,8 @@ function renderStars(rating) {
 }
 
 function containsBlockedWords(text) {
-  const lower = text.toLowerCase();
+  const lower =
+    String(text || "").toLowerCase();
 
   return blockedWords.some(word =>
     lower.includes(word)
@@ -262,8 +339,16 @@ function containsBlockedWords(text) {
 }
 
 async function submitWorkerResponse(reviewId) {
-  const textarea = document.getElementById(`response-${reviewId}`);
-  const response = textarea.value.trim();
+  const textarea =
+    document.getElementById(`response-${reviewId}`);
+
+  if (!textarea) {
+    alert("Response box not found.");
+    return;
+  }
+
+  const response =
+    textarea.value.trim();
 
   if (response.length < 5) {
     alert("Response must be at least 5 characters.");

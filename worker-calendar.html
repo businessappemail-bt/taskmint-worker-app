@@ -410,6 +410,39 @@ function formatDate(value) {
   });
 }
 
+function getTaskTime(task) {
+  const timeValue =
+    task.scheduled_start ||
+    task.scheduled_for ||
+    task.scheduled_date ||
+    task.task_time ||
+    task.time_needed ||
+    task.task_date ||
+    task.date_needed ||
+    "";
+
+  const date =
+    getDateObject(timeValue);
+
+  if (!date) {
+    return "Time not listed";
+  }
+
+  const hasTime =
+    date.getHours() !== 0 ||
+    date.getMinutes() !== 0;
+
+  if (!hasTime) {
+    return "Time not listed";
+  }
+
+  return date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+
 function toDateKey(value) {
   const date = value instanceof Date ? value : getDateObject(value);
   if (!date) return "";
@@ -512,7 +545,7 @@ async function fetchAcceptedQuotes() {
       .from("worker_quotes")
       .select("*")
       .in("worker_id", currentWorkerIds)
-      .in("status", ["accepted", "in_progress", "worker_completed"])
+      .in("status", ["accepted", "in_progress", "worker_completed", "completed", "paid"])
       .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -560,15 +593,6 @@ async function loadCalendarJobs() {
           const task = taskMap[quote.task_id];
 
           if (!task) return null;
-
-          const taskStatus = normalizeStatus(task.status);
-
-          if (
-            task.customer_completed === true ||
-            ["completed", "paid"].includes(taskStatus)
-          ) {
-            return null;
-          }
 
           return { quote, task };
         })
@@ -726,6 +750,11 @@ function renderSelectedJobs() {
         </div>
 
         <div class="info-box">
+          <div class="info-label">Time</div>
+          <div class="info-value">${escapeHTML(getTaskTime(task))}</div>
+        </div>
+
+        <div class="info-box">
           <div class="info-label">Quote</div>
           <div class="info-value">${escapeHTML(formatMoney(getQuoteAmount(quote)))}</div>
         </div>
@@ -773,9 +802,24 @@ function updateSummary() {
       return date && isSameDay(date, today);
     });
 
+  const activeJobs =
+    loadedJobs.filter(job => {
+      const quoteStatus =
+        normalizeStatus(job.quote.status);
+
+      const taskStatus =
+        normalizeStatus(job.task.status);
+
+      return (
+        job.task.customer_completed !== true &&
+        !["completed", "paid"].includes(taskStatus) &&
+        !["completed", "paid"].includes(quoteStatus)
+      );
+    });
+
   document.getElementById("monthCount").innerText = String(monthJobs.length);
   document.getElementById("todayCount").innerText = String(todayJobs.length);
-  document.getElementById("activeCount").innerText = String(loadedJobs.length);
+  document.getElementById("activeCount").innerText = String(activeJobs.length);
 }
 
 function openMyJobs() {

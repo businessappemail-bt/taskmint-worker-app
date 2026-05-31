@@ -1104,9 +1104,7 @@ async function loadDashboard() {
         profile.profile_photo_url;
     }
  
-    document.getElementById("completedTasks").innerText =
-      profile.total_jobs || 0;
- 
+
     const hasPhoto =
       profile.profile_photo_url &&
       profile.profile_photo_url.trim() !== "";
@@ -1133,6 +1131,7 @@ async function loadDashboard() {
   await loadPendingQuotesByEmail(user.email);
   await loadWorkerRating(currentWorkerId);
   await loadWorkerEarnings(currentWorkerId);
+  await loadCompletedTaskCount(currentWorkerId);
   await loadTodaySchedule(currentWorkerId);
   await loadUnreadDisputeDot(currentWorkerId);
   await loadWorkerNotifications();
@@ -1401,6 +1400,98 @@ function messageCustomerFromQuote(quoteId, taskId = "", customerId = "") {
 
 }
 
+
+function getWorkerIdList(workerId) {
+
+  const ids =
+    [];
+
+  if (currentUser && currentUser.id) {
+    ids.push(currentUser.id);
+  }
+
+  if (workerId) {
+    ids.push(workerId);
+  }
+
+  return [...new Set(ids.filter(Boolean).map(String))];
+
+}
+
+function getTaskScheduleDate(task) {
+
+  return (
+    task.task_date ||
+    task.scheduled_for ||
+    task.scheduled_date ||
+    task.date_needed ||
+    task.scheduled_start ||
+    ""
+  );
+
+}
+
+function getDateOnlyKey(value) {
+
+  if (!value) {
+    return "";
+  }
+
+  const date =
+    new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(date.getMonth() + 1).padStart(2, "0");
+
+  const day =
+    String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+
+}
+
+async function loadCompletedTaskCount(workerId) {
+
+  const workerIds =
+    getWorkerIdList(workerId);
+
+  if (workerIds.length === 0) {
+    document.getElementById("completedTasks").innerText =
+      "0";
+    return;
+  }
+
+  const { count, error } =
+    await supabaseClient
+      .from("tasks")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .or(
+        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
+      )
+      .eq("status", "completed")
+      .eq("customer_completed", true);
+
+  if (error || count === null || count === undefined) {
+    document.getElementById("completedTasks").innerText =
+      "0";
+    return;
+  }
+
+  document.getElementById("completedTasks").innerText =
+    count;
+
+}
+
 async function loadWorkerEarnings(workerId) {
  
   const { data, error } =
@@ -1471,101 +1562,99 @@ function getTaskLocation(task) {
 }
  
 async function loadTodaySchedule(workerId) {
- 
+
   const container =
     document.getElementById("todayScheduleList");
- 
-  const today = new Date();
-  const start = new Date(today);
-  start.setHours(0, 0, 0, 0);
- 
-  const end = new Date(today);
-  end.setHours(23, 59, 59, 999);
- 
-  const startIso = start.toISOString();
-  const endIso = end.toISOString();
- 
-  let tasks = [];
-  let lastError = null;
- 
-  const tableOptions = [
-    "tasks",
-  ];
- 
-  for (const tableName of tableOptions) {
- 
-    const { data, error } =
-      await supabaseClient
-        .from(tableName)
-        .select("*")
-        .eq("worker_id", workerId)
-        .gte("scheduled_start", startIso)
-        .lte("scheduled_start", endIso)
-        .in("status", [
-          "accepted",
-          "in_progress",
-          "scheduled"
-        ])
-        .order("scheduled_start", { ascending: true });
- 
-    if (!error && data) {
-      tasks = data;
-      lastError = null;
-      break;
-    }
- 
-    lastError = error;
- 
-  }
- 
-  if (lastError && tasks.length === 0) {
+
+  const workerIds =
+    getWorkerIdList(workerId);
+
+  if (workerIds.length === 0) {
     container.innerHTML = `
       <div class="small-text">
-        No scheduled jobs are showing here yet. Once an accepted job has today's date and time saved, it will appear here.
+        Worker record not found for today's schedule.
       </div>
     `;
     return;
   }
- 
-  if (!tasks || tasks.length === 0) {
+
+  const todayKey =
+    getDateOnlyKey(new Date());
+
+  const { data: tasks, error } =
+    await supabaseClient
+      .from("tasks")
+      .select("*")
+      .or(
+        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
+      )
+      .in("status", [
+        "accepted",
+        "in_progress",
+        "worker_completed",
+        "scheduled"
+      ])
+      .order("created_at", { ascending: false });
+
+  if (error) {
     container.innerHTML = `
       <div class="small-text">
-        No jobs scheduled for today. Accepted jobs for today will show the task name, time, location, and current status here.
+        No scheduled jobs are showing here yet. Once an accepted job has today's date saved, it will appear here.
       </div>
     `;
     return;
   }
- 
+
+  const todayTasks =
+    (tasks || []).filter((task) => {
+      return getDateOnlyKey(getTaskScheduleDate(task)) === todayKey;
+    });
+
+  if (!todayTasks || todayTasks.length === 0) {
+    container.innerHTML = `
+      <div class="small-text">
+        No jobs scheduled for today. Accepted jobs for today will show the task name, date, location, and current status here.
+      </div>
+    `;
+    return;
+  }
+
   container.innerHTML = "";
- 
-  tasks.forEach((task) => {
- 
+
+  todayTasks.forEach((task) => {
+
     const title = getTaskTitle(task);
     const location = getTaskLocation(task);
-    const time = formatScheduleTime(task.scheduled_start);
+    const time = formatScheduleTime(
+      task.scheduled_for ||
+      task.scheduled_date ||
+      task.scheduled_start ||
+      task.task_date ||
+      task.date_needed
+    );
     const status = task.status || "scheduled";
- 
+
     container.innerHTML += `
       <div class="schedule-card">
         <div class="schedule-title">
           ${title}
         </div>
- 
+
         <div class="schedule-meta">
           Time: ${time}<br>
           Location: ${location}
         </div>
- 
+
         <div class="schedule-badge">
           ${status.replaceAll("_", " ")}
         </div>
       </div>
     `;
- 
+
   });
- 
+
 }
- 
+
 async function loadUnreadDisputeDot(workerId) {
 
   const dot =

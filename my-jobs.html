@@ -625,12 +625,28 @@ function getCustomerDisplayName(profile) {
   if (!profile) {
     return "Customer";
   }
- 
-  const firstName = getFirstAvailable(profile, ["first_name", "firstName"], "Customer");
-  const lastName = getFirstAvailable(profile, ["last_name", "lastName"], "");
-  const lastInitial = lastName ? `${String(lastName).trim().charAt(0)}.` : "";
- 
-  return `${firstName} ${lastInitial}`.trim();
+
+  if (
+    profile.full_name &&
+    String(profile.full_name).trim() !== ""
+  ) {
+    return profile.full_name;
+  }
+
+  const firstName =
+    profile.first_name ||
+    profile.firstName ||
+    "";
+
+  const lastName =
+    profile.last_name ||
+    profile.lastName ||
+    "";
+
+  const fullName =
+    `${firstName} ${lastName}`.trim();
+
+  return fullName || "Customer";
 }
  
 function getCustomerPhoto(profile) {

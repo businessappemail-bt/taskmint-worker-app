@@ -672,14 +672,14 @@
         Notifications
       </div>
 
-      <div class="notification-refresh" onclick="loadWorkerNotifications()">
+      <div class="notification-refresh" onclick="refreshWorkerNotifications(event)">
         Refresh
       </div>
     </div>
 
     <div class="notification-list" id="notificationList">
 
-      <div class="notification-item" onclick="openWorkerNotification('directRequests', 'worker-direct-requests.html')">
+      <div class="notification-item" onclick="openWorkerNotification('directRequests', 'quickActionsSection')">
         <div class="notification-left">
           <div class="notification-icon">📩</div>
           <div>
@@ -690,7 +690,7 @@
         <div class="notification-count" id="directRequestNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="openWorkerNotification('accepted', 'my-jobs.html')">
+      <div class="notification-item" onclick="openWorkerNotification('accepted', 'todayScheduleSection')">
         <div class="notification-left">
           <div class="notification-icon">✅</div>
           <div>
@@ -701,7 +701,7 @@
         <div class="notification-count" id="acceptedNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="openWorkerNotification('messages', 'worker-message-center.html')">
+      <div class="notification-item" onclick="openWorkerNotification('messages', 'quickActionsSection')">
         <div class="notification-left">
           <div class="notification-icon">💬</div>
           <div>
@@ -712,7 +712,7 @@
         <div class="notification-count" id="messageNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="openWorkerNotification('disputes', 'worker-disputes.html')">
+      <div class="notification-item" onclick="openWorkerNotification('disputes', 'disputesToolRow')">
         <div class="notification-left">
           <div class="notification-icon">⚠️</div>
           <div>
@@ -723,7 +723,7 @@
         <div class="notification-count" id="disputeNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="openWorkerNotification('reviews', 'worker-reviews.html')">
+      <div class="notification-item" onclick="openWorkerNotification('reviews', 'reviewsToolRow')">
         <div class="notification-left">
           <div class="notification-icon">⭐</div>
           <div>
@@ -734,7 +734,7 @@
         <div class="notification-count" id="reviewNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="openWorkerNotification('payouts', 'worker-payout-status.html')">
+      <div class="notification-item" onclick="openWorkerNotification('payouts', 'overviewSection')">
         <div class="notification-left">
           <div class="notification-icon">💵</div>
           <div>
@@ -745,7 +745,7 @@
         <div class="notification-count" id="payoutNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="openWorkerNotification('schedule', 'worker-calendar.html')">
+      <div class="notification-item" onclick="openWorkerNotification('schedule', 'todayScheduleSection')">
         <div class="notification-left">
           <div class="notification-icon">📅</div>
           <div>
@@ -972,7 +972,7 @@
         <div class="arrow">›</div>
       </div>
  
-      <div class="tool-row"
+      <div class="tool-row" id="reviewsToolRow"
         onclick="window.location.href='worker-reviews.html'">
         <div class="tool-left">
           <div class="tool-icon">⭐</div>
@@ -984,7 +984,7 @@
         <div class="arrow">›</div>
       </div>
  
-      <div class="tool-row"
+      <div class="tool-row" id="disputesToolRow"
         onclick="window.location.href='worker-disputes.html'">
         <div class="red-dot" id="disputeDot"></div>
  
@@ -1089,11 +1089,33 @@ function markWorkerNotificationCategoryViewed(category) {
   updateWorkerNotificationDisplay();
 }
 
-function openWorkerNotification(category, url) {
+function openWorkerNotification(category, targetId) {
   markWorkerNotificationCategoryViewed(category);
 
-  window.location.href =
-    url;
+  const panel =
+    document.getElementById("notificationPanel");
+
+  if (panel) {
+    panel.classList.remove("show");
+  }
+
+  const target =
+    document.getElementById(targetId);
+
+  if (target) {
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+}
+
+async function refreshWorkerNotifications(event) {
+  if (event) {
+    event.stopPropagation();
+  }
+
+  await loadWorkerNotifications();
 }
 
 function updateWorkerNotificationDisplay() {

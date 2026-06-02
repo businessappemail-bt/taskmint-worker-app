@@ -686,10 +686,6 @@ function getFullAddress(task) {
 function getCustomerId(task) {
   return getFirstAvailable(task, [
     "customer_id",
-    "customer_user_id",
-    "customer_profile_id",
-    "request_customer_id",
-    "requester_id",
     "client_id",
     "posted_by",
     "created_by",
@@ -781,29 +777,21 @@ function getCustomerDisplayName(profile, task = null) {
   const taskCustomerName = getFirstAvailable(task, [
     "customer_name",
     "customer_full_name",
-    "customer_display_name",
     "client_name",
-    "client_full_name",
-    "posted_by_name",
-    "created_by_name",
-    "requester_name"
+    "posted_by_name"
   ], "");
 
-  if (taskCustomerName && !isValidUUIDText(taskCustomerName)) {
+  if (taskCustomerName) {
     return taskCustomerName;
   }
 
   const taskFirstName = getFirstAvailable(task, [
     "customer_first_name",
-    "client_first_name",
-    "requester_first_name",
     "first_name"
   ], "");
 
   const taskLastName = getFirstAvailable(task, [
     "customer_last_name",
-    "client_last_name",
-    "requester_last_name",
     "last_name"
   ], "");
 
@@ -818,8 +806,7 @@ function getCustomerDisplayName(profile, task = null) {
   }
 
   const fullName = getFirstAvailable(profile, [
-    "full_name",
-    "display_name"
+    "full_name"
   ], "");
 
   if (fullName) {
@@ -829,16 +816,14 @@ function getCustomerDisplayName(profile, task = null) {
   const firstName = getFirstAvailable(profile, [
     "first_name",
     "firstName"
-  ], "");
+  ], "Customer");
 
   const lastName = getFirstAvailable(profile, [
     "last_name",
     "lastName"
   ], "");
 
-  const profileNameFromParts = `${firstName} ${lastName}`.trim();
-
-  return profileNameFromParts || "Customer";
+  return `${firstName} ${lastName}`.trim();
 }
  
 function getCustomerPhoto(profile) {
@@ -977,30 +962,50 @@ async function fetchCustomerProfiles(tasks) {
       tasks
         .map(task => getCustomerId(task))
         .filter(id => id && String(id).trim() !== "")
+        .map(id => String(id))
     )
   ];
- 
+
   if (customerIds.length === 0) {
     return {};
   }
- 
+
   const { data, error } = await supabaseClient
     .from("profiles")
-    .select("id, email, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
+    .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
     .in("id", customerIds);
- 
+
   if (error || !data) {
     return {};
   }
- 
+
   const profileMap = {};
- 
+
   data.forEach(profile => {
     profileMap[String(profile.id)] = profile;
   });
- 
+
   return profileMap;
 }
+
+async function fetchSingleCustomerProfile(customerId) {
+  if (!customerId) {
+    return null;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
+    .eq("id", customerId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data;
+}
+
  
 
 async function fetchExistingWorkerQuotes(tasks) {
@@ -1166,9 +1171,13 @@ async function loadTasks() {
     </div>
   `;
 
-  combinedTasks.forEach(task => {
+  for (const task of combinedTasks) {
     const customerId = getCustomerId(task);
-    const customerProfile = customerProfiles[String(customerId)] || null;
+    let customerProfile = customerProfiles[String(customerId)] || null;
+
+    if (!customerProfile && customerId) {
+      customerProfile = await fetchSingleCustomerProfile(customerId);
+    }
     const category = getTaskCategory(task);
     const taskDate = formatDate(getTaskDate(task));
     const createdDate = formatDate(task.created_at);
@@ -1300,7 +1309,7 @@ async function loadTasks() {
     `;
 
     container.appendChild(div);
-  });
+  }
 }
 
 function viewTask(taskId) {

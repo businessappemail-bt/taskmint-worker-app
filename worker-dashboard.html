@@ -1541,8 +1541,18 @@ function getDateOnlyKey(value) {
     return "";
   }
 
+  const rawValue =
+    String(value).trim();
+
+  const dateOnlyMatch =
+    rawValue.match(/^\d{4}-\d{2}-\d{2}/);
+
+  if (dateOnlyMatch) {
+    return dateOnlyMatch[0];
+  }
+
   const date =
-    new Date(value);
+    new Date(rawValue);
 
   if (Number.isNaN(date.getTime())) {
     return "";
@@ -1696,7 +1706,9 @@ async function loadTodaySchedule(workerId) {
         "accepted",
         "in_progress",
         "worker_completed",
-        "scheduled"
+        "scheduled",
+        "paid",
+        "completed"
       ])
       .order("created_at", { ascending: false });
 
@@ -2158,13 +2170,16 @@ async function countTodayScheduledJobs() {
         count: "exact",
         head: true
       })
-      .or(`worker_id.eq.${currentWorkerId},accepted_worker_id.eq.${currentWorkerId}`)
+      .or(`worker_id.eq.${currentWorkerId},accepted_worker_id.eq.${currentWorkerId},assigned_worker_id.eq.${currentWorkerId}`)
       .gte("scheduled_start", startIso)
       .lte("scheduled_start", endIso)
       .in("status", [
         "accepted",
         "in_progress",
-        "scheduled"
+        "worker_completed",
+        "scheduled",
+        "paid",
+        "completed"
       ]);
 
   if (error || count === null || count === undefined) {

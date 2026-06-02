@@ -987,6 +987,64 @@ async function fetchCustomerProfiles(tasks) {
   return profileMap;
 }
  
+
+async function fetchExistingWorkerQuotes(tasks) {
+  const quoteMap = {};
+
+  if (!currentWorkerId) {
+    return quoteMap;
+  }
+
+  const publicTaskIds = tasks
+    .filter(task => !task.is_direct_request)
+    .map(task => task.id)
+    .filter(Boolean);
+
+  const directTaskIds = tasks
+    .filter(task => task.is_direct_request)
+    .map(task => task.id)
+    .filter(Boolean);
+
+  if (publicTaskIds.length > 0) {
+    const { data: publicQuotes, error: publicError } = await supabaseClient
+      .from("worker_quotes")
+      .select("id, task_id, status, quote_amount, created_at")
+      .eq("worker_id", currentWorkerId)
+      .in("task_id", publicTaskIds);
+
+    if (!publicError && publicQuotes) {
+      publicQuotes.forEach(quote => {
+        if (quote.task_id) {
+          quoteMap[`public_task-${quote.task_id}`] = quote;
+        }
+      });
+    }
+  }
+
+  if (directTaskIds.length > 0) {
+    const { data: directQuotes, error: directError } = await supabaseClient
+      .from("worker_quotes")
+      .select("id, direct_request_id, status, quote_amount, created_at")
+      .eq("worker_id", currentWorkerId)
+      .in("direct_request_id", directTaskIds);
+
+    if (!directError && directQuotes) {
+      directQuotes.forEach(quote => {
+        if (quote.direct_request_id) {
+          quoteMap[`direct_task_request-${quote.direct_request_id}`] = quote;
+        }
+      });
+    }
+  }
+
+  return quoteMap;
+}
+
+function getExistingQuoteForTask(task, existingQuotes) {
+  return existingQuotes[getTaskUniqueId(task)] || null;
+}
+
+
 async function loadTasks() {
   const container = document.getElementById("tasksList");
 

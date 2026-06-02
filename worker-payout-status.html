@@ -996,6 +996,34 @@ async function requestPayout(payoutSpeed) {
       return;
     }
 
+    const { error: earningsUpdateError } =
+      await supabaseClient
+        .from("worker_earnings")
+        .update({
+          payout_status: "requested",
+          payout_request_id: requestRow.id,
+          payout_requested_at: new Date().toISOString()
+        })
+        .in("worker_id", currentWorkerIds)
+        .in("payout_status", [
+          "available",
+          "released",
+          "ready",
+          "completed",
+          "unpaid"
+        ]);
+
+    if (earningsUpdateError) {
+      setActionMessage(earningsUpdateError.message, "#b00020");
+      return;
+    }
+
+    availableBalance = 0;
+    document.getElementById("availableBalance").innerText = money(0);
+    document.getElementById("balanceSubtext").innerText =
+      "Your available balance has been requested for payout.";
+    updatePayoutButtons();
+
     const { data: sessionData } =
       await supabaseClient.auth.getSession();
 

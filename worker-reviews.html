@@ -321,7 +321,7 @@ function formatCustomerName(customer) {
   }
 
   if (customer.first_name && customer.last_name) {
-    return `${customer.first_name} ${customer.last_name.charAt(0)}.`;
+    return `${customer.first_name} ${customer.last_name}`;
   }
 
   if (customer.first_name) {

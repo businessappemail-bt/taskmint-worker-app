@@ -286,31 +286,22 @@
 
   <div class="hero">
     <div class="hero-label">Account Request</div>
-    <h1>Delete or Deactivate Account</h1>
+    <h1>Deactivate Account</h1>
     <p class="hero-sub">
-      Submit a worker account request for TaskMint review. Your access may be closed, but TaskMint may retain records needed for safety, disputes, payments, fraud prevention, legal compliance, taxes, and business records.
+      Submit a worker account deactivation request for TaskMint review. After submitting, you will be logged out.
     </p>
   </div>
 
   <div class="card warning-card">
     <div class="warning-title">This process cannot be undone.</div>
     <p class="warning-text">
-      If you request account deletion or deactivation, you will not be able to reverse the request through the app. After submitting, you will be logged out.
-    </p>
-    <p class="warning-text">
-      TaskMint may keep worker information, job history, quotes, messages, payment records, ratings, dispute records, safety reports, and other records when needed for future issues, legal reasons, taxes, fraud prevention, chargebacks, or platform safety.
+      If you submit an account deactivation request, you will not be able to reverse the request through the app. After submitting, you will be logged out.
     </p>
   </div>
 
   <div class="card">
-    <label class="field-label" for="requestType">Request Type</label>
-    <select id="requestType">
-      <option value="deactivate">Deactivate my worker account</option>
-      <option value="delete">Delete my worker account access</option>
-    </select>
-
     <label class="field-label" for="reasonText">Reason for Request</label>
-    <textarea id="reasonText" placeholder="Tell TaskMint why you want to delete or deactivate your account."></textarea>
+    <textarea id="reasonText" placeholder="Tell TaskMint why you want to deactivate your account."></textarea>
 
     <label class="field-label" for="contactEmail">Contact Email</label>
     <input id="contactEmail" type="email" placeholder="Email address for follow-up">
@@ -318,7 +309,7 @@
     <div class="check-row">
       <input type="checkbox" id="confirmFinal">
       <div class="check-text">
-        I understand this request cannot be undone through the app, I will be logged out after submitting, and TaskMint may retain records needed for future disputes, safety, payment, legal, tax, fraud prevention, or business reasons.
+        I understand this request cannot be undone through the app, and I will be logged out after submitting.
       </div>
     </div>
 
@@ -342,17 +333,6 @@ const supabaseClient = window.supabase.createClient(
 
 let currentUser = null;
 
-function getRequestTypeFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const action = params.get("action") || localStorage.getItem("selectedAccountRequestType") || "deactivate";
-
-  if (action === "delete") {
-    return "delete";
-  }
-
-  return "deactivate";
-}
-
 async function loadAccountRequestPage() {
   const overlay = document.getElementById("loadingOverlay");
 
@@ -365,7 +345,6 @@ async function loadAccountRequestPage() {
 
   currentUser = data.user;
 
-  document.getElementById("requestType").value = getRequestTypeFromUrl();
   document.getElementById("contactEmail").value = currentUser.email || "";
 
   overlay.classList.add("hidden");
@@ -374,7 +353,7 @@ async function loadAccountRequestPage() {
 async function submitAccountRequest() {
   const status = document.getElementById("statusMessage");
   const submitButton = document.getElementById("submitButton");
-  const requestType = document.getElementById("requestType").value;
+  const requestType = "deactivate";
   const reasonText = document.getElementById("reasonText").value.trim();
   const contactEmail = document.getElementById("contactEmail").value.trim();
   const confirmFinal = document.getElementById("confirmFinal").checked;
@@ -404,7 +383,7 @@ async function submitAccountRequest() {
   }
 
   const confirmed = confirm(
-    "Submit this account request? You will be logged out and this request cannot be undone through the app."
+    "Submit this deactivation request? You will be logged out and this request cannot be undone through the app."
   );
 
   if (!confirmed) {
@@ -453,4 +432,3 @@ loadAccountRequestPage();
 
 </body>
 </html>
-

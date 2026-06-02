@@ -715,7 +715,15 @@ function getMilesAway(task) {
   return `${miles.toFixed(1)} miles away`;
 }
  
-function getCustomerDisplayName(profile) {
+function getCustomerDisplayName(profile, task = null) {
+  const taskCustomerName = getFirstAvailable(task, [
+    "customer_name"
+  ], "");
+
+  if (taskCustomerName) {
+    return taskCustomerName;
+  }
+
   if (!profile) {
     return "Customer";
   }
@@ -1042,7 +1050,7 @@ async function loadTasks() {
 
         <div>
           <div class="customer-name">
-            ${escapeHTML(getCustomerDisplayName(customerProfile))}
+            ${escapeHTML(getCustomerDisplayName(customerProfile, task))}
           </div>
 
           <div class="customer-sub">

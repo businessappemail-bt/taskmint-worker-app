@@ -609,10 +609,19 @@ function getFullAddress(task) {
 }
  
 function getCustomerId(task, quote, assignment) {
-  return getFirstAvailable(assignment, ["customer_id", "client_id"], "") ||
-    getFirstAvailable(quote, ["customer_id", "client_id"], "") ||
+  return getFirstAvailable(assignment, [
+    "customer_id",
+    "customer_user_id",
+    "client_id"
+  ], "") ||
+    getFirstAvailable(quote, [
+      "customer_id",
+      "customer_user_id",
+      "client_id"
+    ], "") ||
     getFirstAvailable(task, [
       "customer_id",
+      "customer_user_id",
       "client_id",
       "posted_by",
       "created_by",
@@ -620,7 +629,6 @@ function getCustomerId(task, quote, assignment) {
       "profile_id"
     ], "");
 }
- 
 function getCustomerDisplayName(profile) {
   if (!profile) {
     return "Customer";
@@ -1099,31 +1107,31 @@ async function fetchCustomerProfiles(jobs) {
       jobs
         .map(job => getCustomerId(job.task, job.quote, job.assignment))
         .filter(Boolean)
+        .map(String)
     )
   ];
- 
+
   if (customerIds.length === 0) {
     return {};
   }
- 
+
   const { data, error } = await supabaseClient
     .from("profiles")
     .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
     .in("id", customerIds);
- 
+
   if (error || !data) {
     return {};
   }
- 
+
   const profileMap = {};
- 
+
   data.forEach(profile => {
-    profileMap[profile.id] = profile;
+    profileMap[String(profile.id)] = profile;
   });
- 
+
   return profileMap;
 }
- 
 async function loadMyJobs() {
   setLoading();
  
@@ -1167,8 +1175,12 @@ async function loadMyJobs() {
     const customerProfiles = await fetchCustomerProfiles(loadedJobs);
  
     loadedJobs = loadedJobs.map(job => {
-      const customerId = getCustomerId(job.task, job.quote, job.assignment);
-      job.customerProfile = customerProfiles[customerId] || null;
+      const customerId =
+        String(getCustomerId(job.task, job.quote, job.assignment) || "");
+
+      job.customerProfile =
+        customerProfiles[customerId] || null;
+
       return job;
     });
  

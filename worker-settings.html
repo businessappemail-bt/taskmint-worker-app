@@ -864,24 +864,36 @@
     </div>
   </div>
 
-  <div class="card danger-card settings-section" data-search="danger zone deactivate worker profile log out logout account pause profile visible">
+  <div class="card danger-card settings-section" data-search="danger zone deactivate delete worker account request log out logout account profile visible permanent not reversible">
     <button class="section-header" type="button" onclick="toggleSection(this)">
       <div class="section-left">
         <div class="section-icon">⚠️</div>
         <div>
           <div class="section-title">Danger Zone</div>
-          <div class="section-sub">Deactivate your worker profile or log out.</div>
+          <div class="section-sub">Request account deactivation, request account deletion, or log out.</div>
         </div>
       </div>
       <div class="chevron">⌄</div>
     </button>
 
     <div class="section-body">
-      <div class="button-grid">
-        <button class="secondary" type="button" onclick="deactivateWorkerProfile()">
-          Deactivate Worker Profile
-        </button>
+      <div class="row" onclick="requestDeactivateAccount()">
+        <div>
+          <div class="row-text">Request Account Deactivation</div>
+          <div class="row-sub">Submit a request for TaskMint to deactivate your worker account. This process cannot be undone.</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
 
+      <div class="row" onclick="requestDeleteAccount()">
+        <div>
+          <div class="row-text">Request Account Deletion</div>
+          <div class="row-sub">Submit a request for TaskMint to close access while retaining records needed for safety, disputes, payments, legal, and tax purposes.</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="button-grid">
         <button class="danger" type="button" onclick="logout()">
           Log Out
         </button>
@@ -1060,6 +1072,16 @@ function showToast(message) {
 
 function goTo(page) {
   window.location.href = page;
+}
+
+function requestDeactivateAccount() {
+  localStorage.setItem("selectedAccountRequestType", "deactivate");
+  window.location.href = "worker-account-request.html?action=deactivate";
+}
+
+function requestDeleteAccount() {
+  localStorage.setItem("selectedAccountRequestType", "delete");
+  window.location.href = "worker-account-request.html?action=delete";
 }
 
 async function deactivateWorkerProfile() {

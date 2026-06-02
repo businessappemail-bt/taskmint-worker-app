@@ -1159,31 +1159,67 @@ async function logout() {
 }
  
 async function loadWorkerRating(workerId) {
- 
+
+  const workerIds =
+    getWorkerIdList(workerId);
+
+  if (workerIds.length === 0) {
+    document.getElementById("ratingScore").innerText =
+      "0.0";
+    return;
+  }
+
+  const { data: completedTasks, error: taskError } =
+    await supabaseClient
+      .from("tasks")
+      .select("id")
+      .or(
+        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
+      )
+      .eq("status", "completed")
+      .eq("customer_completed", true);
+
+  if (taskError || !completedTasks || completedTasks.length === 0) {
+    document.getElementById("ratingScore").innerText =
+      "0.0";
+    return;
+  }
+
+  const taskIds =
+    completedTasks
+      .map((task) => task.id)
+      .filter(Boolean);
+
+  if (taskIds.length === 0) {
+    document.getElementById("ratingScore").innerText =
+      "0.0";
+    return;
+  }
+
   const { data: reviews, error } =
     await supabaseClient
       .from("reviews")
       .select("rating")
-      .eq("worker_id", workerId);
- 
+      .in("task_id", taskIds);
+
   if (error || !reviews || reviews.length === 0) {
     document.getElementById("ratingScore").innerText =
       "0.0";
     return;
   }
- 
+
   let total = 0;
- 
+
   reviews.forEach((review) => {
     total += Number(review.rating || 0);
   });
- 
+
   const average =
     total / reviews.length;
- 
+
   document.getElementById("ratingScore").innerText =
     average.toFixed(1);
- 
+
 }
  
 async function loadPendingQuotesByEmail(email) {
@@ -1947,12 +1983,38 @@ async function countAcceptedTasksAndQuotes() {
 
 async function countNewReviews() {
 
-  if (!currentWorkerId) {
+  const workerIds =
+    getWorkerNotificationIds();
+
+  if (workerIds.length === 0) {
     return 0;
   }
 
   const since = new Date();
   since.setDate(since.getDate() - 14);
+
+  const { data: completedTasks, error: taskError } =
+    await supabaseClient
+      .from("tasks")
+      .select("id")
+      .or(
+        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
+      )
+      .eq("status", "completed")
+      .eq("customer_completed", true);
+
+  if (taskError || !completedTasks || completedTasks.length === 0) {
+    return 0;
+  }
+
+  const taskIds =
+    completedTasks
+      .map((task) => task.id)
+      .filter(Boolean);
+
+  if (taskIds.length === 0) {
+    return 0;
+  }
 
   const { count, error } =
     await supabaseClient
@@ -1961,7 +2023,7 @@ async function countNewReviews() {
         count: "exact",
         head: true
       })
-      .eq("worker_id", currentWorkerId)
+      .in("task_id", taskIds)
       .gte("created_at", since.toISOString());
 
   if (error || count === null || count === undefined) {

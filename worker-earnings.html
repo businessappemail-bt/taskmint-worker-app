@@ -1,504 +1,1028 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Worker Earnings - TaskMint</title>
+  <title>Payout Status - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+ 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+ 
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background: linear-gradient(180deg, #e9f7ee 0%, #f5f5f5 100%);
       color: #111;
       padding-bottom: 90px;
+      overflow-x: hidden;
     }
-
+ 
     .container {
       max-width: 420px;
       margin: 0 auto;
-      background: white;
-      min-height: 100vh;
-      padding: 20px;
-      box-sizing: border-box;
+      padding: 18px;
     }
-
-    .back {
-      color: #0b7a28;
-      font-weight: bold;
-      margin-bottom: 18px;
-      display: inline-block;
-      text-decoration: none;
-    }
-
-    h1 {
-      margin-top: 0;
-      color: #0b7a28;
-    }
-
-    .summary-card {
-      background: #0b7a28;
-      color: white;
-      padding: 22px;
-      border-radius: 18px;
-      margin-bottom: 20px;
-    }
-
-    .summary-label {
-      font-size: 14px;
-      opacity: 0.9;
-    }
-
-    .summary-amount {
-      font-size: 34px;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-
-    .summary-row {
+ 
+    .top-bar {
       display: flex;
       justify-content: space-between;
-      margin-top: 10px;
-      font-size: 14px;
+      align-items: center;
+      margin-bottom: 14px;
     }
-
-    .filter-card,
+ 
+    .back,
+    .refresh-link {
+      color: #0b7a28;
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+ 
+    .hero {
+      background: linear-gradient(135deg, #0b7a28, #19a447);
+      color: white;
+      border-radius: 26px;
+      padding: 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 28px rgba(11,122,40,0.22);
+    }
+ 
+    .hero-title {
+      font-size: 25px;
+      font-weight: 900;
+      margin-bottom: 6px;
+      letter-spacing: -0.4px;
+    }
+ 
+    .hero-sub {
+      font-size: 14px;
+      line-height: 1.5;
+      opacity: 0.95;
+    }
+ 
     .card {
       background: white;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      border: 1px solid #eee;
+      border-radius: 22px;
+      padding: 17px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      border: 1px solid #edf1ee;
     }
-
-    label {
-      display: block;
-      font-weight: bold;
-      font-size: 14px;
-      margin-bottom: 6px;
-    }
-
-    select {
-      width: 100%;
-      padding: 13px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      font-size: 15px;
-      background: white;
-      box-sizing: border-box;
-    }
-
-    .job-title {
-      font-size: 17px;
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
-
-    .small-text {
-      color: #666;
-      font-size: 13px;
-      margin-top: 4px;
-      line-height: 1.4;
-    }
-
-    .money-row {
+ 
+    .section-header {
       display: flex;
       justify-content: space-between;
-      font-size: 14px;
-      margin-top: 8px;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
     }
-
-    .money-row strong {
+ 
+    .section-title {
+      font-size: 18px;
+      font-weight: 900;
       color: #111;
     }
-
-    .worker-pay {
-      color: #0b7a28;
-      font-size: 22px;
-      font-weight: bold;
-      margin-top: 12px;
+ 
+    .section-note {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.45;
+      margin-bottom: 12px;
     }
-
-    .fee {
-      color: #b00020;
-      font-weight: bold;
+ 
+    .balance-box {
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 18px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 12px;
     }
-
-    .status {
-      display: inline-block;
-      background: #e6f4ea;
+ 
+    .balance-label {
+      font-size: 12px;
+      color: #666;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.35px;
+      margin-bottom: 6px;
+    }
+ 
+    .balance-amount {
+      font-size: 34px;
+      font-weight: 900;
       color: #0b7a28;
+      letter-spacing: -0.7px;
+    }
+ 
+    .balance-sub {
+      color: #666;
+      font-size: 12px;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+ 
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+ 
+    .stat-box {
+      background: #fbfbfb;
+      border: 1px solid #eeeeee;
+      border-radius: 16px;
+      padding: 12px;
+      min-height: 78px;
+    }
+ 
+    .stat-label {
+      color: #666;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.25px;
+      margin-bottom: 6px;
+    }
+ 
+    .stat-value {
+      color: #111;
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.3;
+    }
+ 
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: #0b7a28;
+      color: white;
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 10px;
+    }
+ 
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.10);
+    }
+ 
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+ 
+    button.secondary {
+      background: white;
+      color: #111;
+      border: 1px solid #dfe5e0;
+    }
+ 
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       padding: 6px 10px;
       border-radius: 999px;
       font-size: 12px;
-      font-weight: bold;
-      margin-top: 10px;
+      font-weight: 900;
       text-transform: capitalize;
+      white-space: nowrap;
     }
-
-    .section-title {
+ 
+    .pill-pending {
+      background: #fff7e6;
+      color: #8a5300;
+      border: 1px solid #ffd27a;
+    }
+ 
+    .pill-approved,
+    .pill-paid {
+      background: #e7f7ec;
+      color: #0b7a28;
+      border: 1px solid #bfe6c9;
+    }
+ 
+    .pill-denied,
+    .pill-failed {
+      background: #ffe5e5;
+      color: #b00020;
+      border: 1px solid #ffbcbc;
+    }
+ 
+    .pill-requested,
+    .pill-processing {
+      background: #eef4ff;
+      color: #234a91;
+      border: 1px solid #cddcff;
+    }
+ 
+    .request-card {
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 18px;
+      padding: 13px;
+      margin-top: 10px;
+    }
+ 
+    .request-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+ 
+    .request-amount {
       font-size: 18px;
-      font-weight: bold;
-      margin: 20px 0 12px;
+      font-weight: 900;
       color: #111;
     }
-
-    .pdf-button {
-      width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: 14px;
-      background: #111;
-      color: white;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-bottom: 18px;
-      transition: 0.2s;
+ 
+    .request-meta {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.45;
     }
-
-    .pdf-button:hover {
-      transform: scale(1.01);
+ 
+    .request-note {
+      margin-top: 8px;
+      padding: 9px;
+      border-radius: 12px;
+      background: white;
+      border: 1px solid #e5e5e5;
+      font-size: 12px;
+      color: #555;
+      line-height: 1.4;
     }
-
+ 
     .empty {
       text-align: center;
       color: #666;
-      padding: 18px;
-      line-height: 1.5;
+      font-size: 14px;
+      line-height: 1.45;
+      padding: 18px 10px;
+    }
+ 
+    .loading-spinner {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 3px solid #dfe5e0;
+      border-top-color: #0b7a28;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+ 
+    .message {
+      min-height: 18px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 800;
+      margin-top: 10px;
+      line-height: 1.35;
+    }
+ 
+    .warning-box {
+      background: #fff7e6;
+      border: 1px solid #ffd27a;
+      color: #7a4b00;
+      border-radius: 14px;
+      padding: 11px;
+      font-size: 12px;
+      line-height: 1.45;
+      margin-top: 10px;
+    }
+
+
+    .payout-options {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .payout-option {
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 18px;
+      padding: 13px;
+    }
+
+    .payout-option-title {
+      font-size: 14px;
+      font-weight: 900;
+      color: #111;
+      margin-bottom: 4px;
+    }
+
+    .payout-option-text {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+
+    .fee-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #444;
+      margin-top: 5px;
+    }
+
+    .fee-row strong {
+      color: #111;
+    }
+ 
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
-
+ 
 <body>
-
+ 
 <div class="container">
-
-  <a class="back" href="worker-dashboard.html">
-    ← Back to Dashboard
-  </a>
-
-  <h1>Earnings</h1>
-
-  <div class="summary-card">
-    <div class="summary-label">Total Worker Payouts</div>
-
-    <div class="summary-amount" id="totalPayout">
-      Loading...
-    </div>
-
-    <div class="summary-row">
-      <span>Total Job Amounts</span>
-      <strong id="totalCustomerPaid">Loading...</strong>
-    </div>
-
-    <div class="summary-row">
-      <span>Total TaskMint Fees</span>
-      <strong id="totalFees">Loading...</strong>
+ 
+  <div class="top-bar">
+    <a class="back" href="worker-dashboard.html">&larr; Back</a>
+    <div class="refresh-link" onclick="loadPayoutPage()">Refresh</div>
+  </div>
+ 
+  <div class="hero">
+    <div class="hero-title">Payout Status</div>
+    <div class="hero-sub">
+      Track available earnings, payout requests, approvals, denials, and Stripe transfer status.
     </div>
   </div>
+ 
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">Available for Payout</div>
+    </div>
+ 
+    <div class="balance-box">
+      <div class="balance-label">Current available balance</div>
+      <div class="balance-amount" id="availableBalance">$0.00</div>
+      <div class="balance-sub" id="balanceSubtext">
+        Completed and released jobs will show here.
+      </div>
+    </div>
+<div class="payout-options">
+      <div class="payout-option">
+        <div class="payout-option-title">Free Friday Payout</div>
+        <div class="payout-option-text">
+          Request your available balance with no payout fee. Standard payouts are reviewed and processed during the Friday payout run.
+        </div>
+        <button id="standardPayoutButton" onclick="requestPayout('standard')" disabled>
+          Request Free Friday Payout
+        </button>
+      </div>
 
-  <div class="filter-card">
-    <label>Filter by Date</label>
-    <select id="dateFilter" onchange="renderEarnings()">
-      <option value="all">All Earnings</option>
-      <option value="this_week">This Week</option>
-      <option value="this_month">This Month</option>
-      <option value="last_month">Last Month</option>
-      <option value="this_year">This Year</option>
-    </select>
+      <div class="payout-option">
+        <div class="payout-option-title">Instant Payout</div>
+        <div class="payout-option-text">
+          Request faster payout processing for a small instant payout fee.
+        </div>
+        <div class="fee-row">
+          <span>Instant fee</span>
+          <strong id="instantFeeAmount">$0.00</strong>
+        </div>
+        <div class="fee-row">
+          <span>You receive</span>
+          <strong id="instantNetAmount">$0.00</strong>
+        </div>
+        <button id="instantPayoutButton" onclick="requestPayout('instant')" disabled>
+          Request Instant Payout
+        </button>
+      </div>
+    </div>
+
+    <button class="secondary" onclick="window.location.href='worker-payout-info.html'">
+      Update Payout Information
+    </button>
+ 
+    <div id="actionMessage" class="message"></div>
+ 
+    <div class="warning-box">
+      Payout processing must run through a secure backend or Supabase Edge Function connected to Stripe. Do not put Stripe secret keys inside this page.
+    </div>
   </div>
-
-  <button class="pdf-button" onclick="downloadEarningsPDF()">
-    Download PDF Statement
-  </button>
-
-  <div class="section-title">Completed Earnings</div>
-
-  <div id="earningsList">
-    <div class="empty">Loading earnings...</div>
+ 
+  <div class="card">
+    <div class="section-title">Payout Summary</div>
+ 
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">Pending</div>
+        <div class="stat-value" id="pendingAmount">$0.00</div>
+      </div>
+ 
+      <div class="stat-box">
+        <div class="stat-label">Approved</div>
+        <div class="stat-value" id="approvedAmount">$0.00</div>
+      </div>
+ 
+      <div class="stat-box">
+        <div class="stat-label">Paid</div>
+        <div class="stat-value" id="paidAmount">$0.00</div>
+      </div>
+ 
+      <div class="stat-box">
+        <div class="stat-label">Last Request</div>
+        <div class="stat-value" id="lastRequestDate">None</div>
+      </div>
+    </div>
   </div>
-
+ 
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">Payout Requests</div>
+    </div>
+ 
+    <div class="section-note">
+      Each request shows when it was submitted and whether it is pending, approved, denied, processing, or paid.
+    </div>
+ 
+    <div id="payoutRequestsList">
+      <div class="empty">
+        <div class="loading-spinner"></div>
+        Loading payout requests...
+      </div>
+    </div>
+  </div>
+ 
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+ 
 <script>
-const supabaseClient = window.supabase.createClient(
-  "https://dbcthtjmtlumidpbucrc.supabase.co",
-  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
-);
+const SUPABASE_URL =
+  "https://dbcthtjmtlumidpbucrc.supabase.co";
+ 
+const SUPABASE_ANON_KEY =
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
+ 
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+ 
+let currentUser = null;
+let currentWorkerId = null;
+let currentWorkerIds = [];
+let availableBalance = 0;
+let payoutRequests = [];
 
-let allEarnings = [];
-let currentTotals = {
-  totalPayout: 0,
-  totalCustomerPaid: 0,
-  totalFees: 0
-};
-
-loadEarnings();
-
-function formatMoney(value) {
-  const numberValue = Number(value || 0);
-
-  if (Number.isNaN(numberValue)) {
-    return "$0.00";
-  }
-
-  return "$" + numberValue.toFixed(2);
+const INSTANT_PAYOUT_FEE_RATE = 0.015;
+const INSTANT_PAYOUT_MIN_FEE = 1.00;
+ 
+function money(value) {
+  const amount = Number(value || 0);
+ 
+  return amount.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD"
+  });
 }
-
+ 
+function cleanText(value, fallback = "Not listed") {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+ 
+  const text = String(value).trim();
+ 
+  return text === "" ? fallback : text;
+}
+ 
 function formatDate(value) {
   if (!value) {
     return "Not listed";
   }
-
+ 
   const date = new Date(value);
-
+ 
   if (Number.isNaN(date.getTime())) {
-    return "Not listed";
+    return value;
   }
-
+ 
   return date.toLocaleDateString([], {
     year: "numeric",
     month: "short",
     day: "numeric"
   });
 }
-
-function getEarningDate(item) {
-  return item.payout_date || item.created_at || "";
-}
-
-function isInDateFilter(item, filterValue) {
-  if (filterValue === "all") {
-    return true;
+ 
+function formatDateTime(value) {
+  if (!value) {
+    return "Not listed";
   }
-
-  const rawDate = getEarningDate(item);
-
-  if (!rawDate) {
-    return false;
-  }
-
-  const date = new Date(rawDate);
-
+ 
+  const date = new Date(value);
+ 
   if (Number.isNaN(date.getTime())) {
-    return false;
+    return value;
   }
-
-  const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  const startOfWeek = new Date(startOfToday);
-  startOfWeek.setDate(startOfToday.getDate() - startOfToday.getDay());
-
-  const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  const startOfThisYear = new Date(now.getFullYear(), 0, 1);
-
-  if (filterValue === "this_week") {
-    return date >= startOfWeek;
-  }
-
-  if (filterValue === "this_month") {
-    return date >= startOfThisMonth && date < startOfNextMonth;
-  }
-
-  if (filterValue === "last_month") {
-    return date >= startOfLastMonth && date < startOfThisMonth;
-  }
-
-  if (filterValue === "this_year") {
-    return date >= startOfThisYear;
-  }
-
-  return true;
+ 
+  return date.toLocaleString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
 }
-
-async function loadEarnings() {
-  const { data: sessionData } =
+ 
+function setActionMessage(message, color = "#666") {
+  const box = document.getElementById("actionMessage");
+  box.style.color = color;
+  box.innerText = message;
+}
+ 
+function getFirstAvailable(record, keys, fallback = "") {
+  if (!record) {
+    return fallback;
+  }
+ 
+  for (const key of keys) {
+    if (
+      record[key] !== null &&
+      record[key] !== undefined &&
+      String(record[key]).trim() !== ""
+    ) {
+      return record[key];
+    }
+  }
+ 
+  return fallback;
+}
+ 
+async function getCurrentWorker() {
+  const { data: sessionData, error: sessionError } =
     await supabaseClient.auth.getSession();
 
-  if (!sessionData.session || !sessionData.session.user) {
-    document.getElementById("totalPayout").innerText = "$0.00";
-    document.getElementById("totalCustomerPaid").innerText = "$0.00";
-    document.getElementById("totalFees").innerText = "$0.00";
-    document.getElementById("earningsList").innerHTML = `
-      <div class="card">
-        No active worker session found. Please log in again.
-      </div>
-    `;
-    return;
+  if (
+    sessionError ||
+    !sessionData ||
+    !sessionData.session ||
+    !sessionData.session.user
+  ) {
+    window.location.href = "worker-login.html";
+    return false;
   }
 
-  const workerUser =
-    sessionData.session.user;
+  currentUser = sessionData.session.user;
+
+  const ids = [currentUser.id];
+
+  const { data: profile } =
+    await supabaseClient
+      .from("profiles")
+      .select("id, email")
+      .eq("email", currentUser.email)
+      .maybeSingle();
+
+  if (profile && profile.id) {
+    ids.push(profile.id);
+  }
 
   const { data: workerProfile } =
     await supabaseClient
       .from("worker_profiles")
-      .select("id")
-      .eq("email", workerUser.email)
+      .select("id, email, stripe_account_id, payout_status")
+      .eq("email", currentUser.email)
       .maybeSingle();
 
-  if (!workerProfile) {
-    document.getElementById("totalPayout").innerText = "$0.00";
-    document.getElementById("totalCustomerPaid").innerText = "$0.00";
-    document.getElementById("totalFees").innerText = "$0.00";
-    document.getElementById("earningsList").innerHTML = `
-      <div class="card">
-        Worker profile not found for this account.
-      </div>
-    `;
-    return;
+  if (workerProfile && workerProfile.id) {
+    ids.push(workerProfile.id);
   }
 
-  const { data: earnings, error } =
+  currentWorkerIds =
+    [...new Set(ids.filter(Boolean).map(String))];
+
+  currentWorkerId =
+    workerProfile && workerProfile.id
+      ? workerProfile.id
+      : currentWorkerIds[0];
+
+  return currentWorkerIds.length > 0;
+}
+
+ 
+function getEarningAmount(row) {
+  return Number(
+    getFirstAvailable(row, [
+      "worker_payout",
+      "net_payout",
+      "amount",
+      "payout_amount"
+    ], 0)
+  );
+}
+ 
+function isAvailableEarning(row) {
+  const status = String(
+    getFirstAvailable(row, [
+      "payout_status",
+      "status",
+      "payment_status"
+    ], "available")
+  ).toLowerCase();
+ 
+  return [
+    "available",
+    "released",
+    "ready",
+    "completed",
+    "unpaid"
+  ].includes(status);
+}
+ 
+async function loadAvailableBalance() {
+  const { data, error } =
     await supabaseClient
       .from("worker_earnings")
       .select("*")
-      .eq("worker_id", workerProfile.id)
+      .in("worker_id", currentWorkerIds);
+ 
+  if (error || !data) {
+    availableBalance = 0;
+    document.getElementById("availableBalance").innerText = money(0);
+    document.getElementById("balanceSubtext").innerText =
+      "No available earnings found yet.";
+    updatePayoutButtons();
+    return;
+  }
+ 
+  availableBalance = data
+    .filter(row => isAvailableEarning(row))
+    .reduce((total, row) => total + getEarningAmount(row), 0);
+ 
+  document.getElementById("availableBalance").innerText =
+    money(availableBalance);
+ 
+  document.getElementById("balanceSubtext").innerText =
+    availableBalance > 0
+      ? "You can request this available amount for payout."
+      : "Completed and released jobs will show here.";
+ 
+  updatePayoutButtons();
+}
+ 
+function requestAmount(row) {
+  return Number(
+    getFirstAvailable(row, [
+      "amount",
+      "payout_amount",
+      "requested_amount"
+    ], 0)
+  );
+}
+ 
+function requestStatus(row) {
+  return String(
+    getFirstAvailable(row, [
+      "status",
+      "payout_status",
+      "request_status"
+    ], "pending")
+  ).toLowerCase();
+}
+ 
+function requestCreatedAt(row) {
+  return getFirstAvailable(row, [
+    "requested_at",
+    "created_at",
+    "submitted_at"
+  ], "");
+}
+ 
+async function loadPayoutRequests() {
+  const list = document.getElementById("payoutRequestsList");
+ 
+  const { data, error } =
+    await supabaseClient
+      .from("worker_payouts")
+      .select("*")
+      .in("worker_id", currentWorkerIds)
       .order("created_at", { ascending: false });
-
+ 
   if (error) {
-    console.log(error);
-    document.getElementById("earningsList").innerHTML = `
-      <div class="card">
-        Unable to load earnings.
+    list.innerHTML = `
+      <div class="empty">
+        Payout requests could not load. Check the worker_payout_requests table and RLS policies.
       </div>
     `;
     return;
   }
-
-  allEarnings = earnings || [];
-  renderEarnings();
+ 
+  payoutRequests = data || [];
+  renderPayoutRequests();
+  updateSummary();
 }
+ 
+function updateSummary() {
+  let pending = 0;
+  let approved = 0;
+  let paid = 0;
+ 
+  payoutRequests.forEach(row => {
+    const status = requestStatus(row);
+    const amount = requestAmount(row);
+ 
+    if (["requested", "pending", "processing"].includes(status)) {
+      pending += amount;
+    }
+ 
+    if (status === "approved") {
+      approved += amount;
+    }
+ 
+    if (["paid", "completed"].includes(status)) {
+      paid += amount;
+    }
+  });
+ 
+  document.getElementById("pendingAmount").innerText = money(pending);
+  document.getElementById("approvedAmount").innerText = money(approved);
+  document.getElementById("paidAmount").innerText = money(paid);
+ 
+  document.getElementById("lastRequestDate").innerText =
+    payoutRequests.length > 0
+      ? formatDate(requestCreatedAt(payoutRequests[0]))
+      : "None";
+}
+ 
+function getPillClass(status) {
+  if (["approved"].includes(status)) {
+    return "pill-approved";
+  }
+ 
+  if (["paid", "completed"].includes(status)) {
+    return "pill-paid";
+  }
+ 
+  if (["denied", "failed", "rejected"].includes(status)) {
+    return "pill-denied";
+  }
+ 
+  if (["requested", "processing"].includes(status)) {
+    return "pill-processing";
+  }
+ 
+  return "pill-pending";
+}
+ 
+function renderPayoutRequests() {
+  const list = document.getElementById("payoutRequestsList");
+ 
+  if (!payoutRequests || payoutRequests.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        No payout requests yet. Once you request a payout, it will show here with its status.
+      </div>
+    `;
+    return;
+  }
+ 
+  list.innerHTML = "";
+ 
+  payoutRequests.forEach(row => {
+    const status = requestStatus(row);
+    const submitted = requestCreatedAt(row);
+    const processedAt = getFirstAvailable(row, [
+      "processed_at",
+      "approved_at",
+      "paid_at",
+      "updated_at"
+    ], "");
+ 
+    const denialReason = getFirstAvailable(row, [
+      "denial_reason",
+      "rejection_reason",
+      "failure_reason"
+    ], "");
+ 
+    const stripeReference = getFirstAvailable(row, [
+      "stripe_transfer_id",
+      "stripe_payout_id",
+      "stripe_payment_intent_id",
+      "stripe_reference"
+    ], "");
+ 
+    const payoutSpeed = getFirstAvailable(row, [
+      "payout_speed",
+      "payout_type",
+      "speed"
+    ], "standard");
 
-function renderEarnings() {
-  const filterValue =
-    document.getElementById("dateFilter").value;
+    const feeAmount = Number(getFirstAvailable(row, [
+      "fee_amount",
+      "instant_fee",
+      "processing_fee"
+    ], 0));
 
-  const earnings =
-    allEarnings.filter(item => isInDateFilter(item, filterValue));
+    const netAmount = Number(getFirstAvailable(row, [
+      "net_amount",
+      "net_payout_amount",
+      "amount_after_fee"
+    ], requestAmount(row)));
 
-  const earningsList =
-    document.getElementById("earningsList");
-
-  earningsList.innerHTML = "";
-
-  let totalPayout = 0;
-  let totalCustomerPaid = 0;
-  let totalFees = 0;
-
-  earnings.forEach((item) => {
-    totalPayout += Number(item.worker_payout || 0);
-    totalCustomerPaid += Number(item.customer_paid || 0);
-    totalFees += Number(item.platform_fee || 0);
-
-    earningsList.innerHTML += `
-      <div class="card">
-
-        <div class="job-title">
-          ${item.job_category || "Completed Task"}
+    const note = status === "denied" || status === "failed" || status === "rejected"
+      ? `Reason: ${cleanText(denialReason, "No reason listed")}`
+      : stripeReference
+        ? `Stripe reference: ${stripeReference}`
+        : payoutSpeed === "instant"
+          ? `Instant payout fee: ${money(feeAmount)}. Estimated payout after fee: ${money(netAmount)}.`
+          : "Free Friday payout. Stripe status will update after processing.";
+ 
+    list.innerHTML += `
+      <div class="request-card">
+        <div class="request-top">
+          <div>
+            <div class="request-amount">${money(requestAmount(row))}</div>
+            <div class="request-meta">
+              Type: ${cleanText(payoutSpeed).replaceAll("_", " ")}<br>
+              Submitted: ${formatDateTime(submitted)}<br>
+              Last Update: ${formatDateTime(processedAt)}
+            </div>
+          </div>
+ 
+          <div class="status-pill ${getPillClass(status)}">
+            ${status.replaceAll("_", " ")}
+          </div>
         </div>
-
-        <div class="small-text">
-          Completed / earned on ${formatDate(getEarningDate(item))}
+ 
+        <div class="request-note">
+          ${note}
         </div>
-
-        <div class="small-text">
-          Task ID: ${item.task_id || "Not listed"}
-        </div>
-
-        <div class="money-row">
-          <span>Customer Paid</span>
-          <strong>${formatMoney(item.customer_paid)}</strong>
-        </div>
-
-        <div class="money-row">
-          <span>TaskMint Fee</span>
-          <span class="fee">-${formatMoney(item.platform_fee)}</span>
-        </div>
-
-        <div class="worker-pay">
-          Worker Payout: ${formatMoney(item.worker_payout)}
-        </div>
-
-        <div class="status">
-          ${item.payout_status || "pending"}
-        </div>
-
       </div>
     `;
   });
+}
+ 
+async function requestPayout(payoutSpeed) {
+  const standardButton = document.getElementById("standardPayoutButton");
+  const instantButton = document.getElementById("instantPayoutButton");
+  const selectedSpeed = payoutSpeed === "instant" ? "instant" : "standard";
+  const button = selectedSpeed === "instant" ? instantButton : standardButton;
+  const originalText = button ? button.innerText : "";
+  const feeAmount = selectedSpeed === "instant"
+    ? calculateInstantFee(availableBalance)
+    : 0;
+  const netAmount = Math.max(availableBalance - feeAmount, 0);
 
-  if (earnings.length === 0) {
-    earningsList.innerHTML = `
-      <div class="empty">
-        No earnings match this filter.
-      </div>
-    `;
+  if (availableBalance <= 0) {
+    setActionMessage("No available balance to request.", "#b00020");
+    return;
   }
 
-  currentTotals = {
-    totalPayout,
-    totalCustomerPaid,
-    totalFees
-  };
+  if (selectedSpeed === "instant" && netAmount <= 0) {
+    setActionMessage("Instant payout amount is too low after the fee.", "#b00020");
+    return;
+  }
 
-  document.getElementById("totalPayout").innerText =
-    formatMoney(totalPayout);
+  const confirmMessage =
+    selectedSpeed === "instant"
+      ? `Request instant payout for ${money(availableBalance)}? Instant fee: ${money(feeAmount)}. You receive: ${money(netAmount)}.`
+      : `Request free Friday payout for ${money(availableBalance)}?`;
 
-  document.getElementById("totalCustomerPaid").innerText =
-    formatMoney(totalCustomerPaid);
+  const confirmed = confirm(confirmMessage);
 
-  document.getElementById("totalFees").innerText =
-    formatMoney(totalFees);
-}
+  if (!confirmed) {
+    return;
+  }
 
-function downloadEarningsPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+  if (standardButton) {
+    standardButton.disabled = true;
+  }
 
-  const filterValue =
-    document.getElementById("dateFilter").value;
+  if (instantButton) {
+    instantButton.disabled = true;
+  }
 
-  const earnings =
-    allEarnings.filter(item => isInDateFilter(item, filterValue));
+  if (button) {
+    button.innerText = "Submitting...";
+  }
 
-  doc.setFontSize(18);
-  doc.text("TaskMint Earnings Statement", 20, 20);
+  setActionMessage("Submitting payout request...", "#666");
 
-  doc.setFontSize(12);
-  doc.text(`Total Job Amounts: ${formatMoney(currentTotals.totalCustomerPaid)}`, 20, 40);
-  doc.text(`TaskMint Platform Fees: ${formatMoney(currentTotals.totalFees)}`, 20, 50);
-  doc.text(`Total Worker Payouts: ${formatMoney(currentTotals.totalPayout)}`, 20, 60);
+  try {
+    const { data: requestRow, error: insertError } =
+      await supabaseClient
+        .from("worker_payouts")
+        .insert({
+          worker_id: currentWorkerId,
+          worker_email: currentUser.email,
+          amount: availableBalance,
+          payout_speed: selectedSpeed,
+          fee_amount: feeAmount,
+          net_amount: netAmount,
+          status: "requested",
+          requested_at: new Date().toISOString(),
+          scheduled_payout_day: selectedSpeed === "standard" ? "Friday" : null
+        })
+        .select("*")
+        .single();
 
-  doc.text("Earnings Details", 20, 80);
-
-  let y = 95;
-
-  earnings.forEach((item) => {
-    if (y > 260) {
-      doc.addPage();
-      y = 20;
+    if (insertError) {
+      setActionMessage(insertError.message, "#b00020");
+      return;
     }
 
-    doc.text(`${item.job_category || "Completed Task"} - ${formatDate(getEarningDate(item))}`, 20, y);
-    doc.text(`Customer Paid: ${formatMoney(item.customer_paid)}`, 20, y + 10);
-    doc.text(`TaskMint Fee: -${formatMoney(item.platform_fee)}`, 20, y + 20);
-    doc.text(`Worker Payout: ${formatMoney(item.worker_payout)}`, 20, y + 30);
-    doc.text(`Status: ${item.payout_status || "pending"}`, 20, y + 40);
+    const { data: sessionData } =
+      await supabaseClient.auth.getSession();
 
-    y += 58;
-  });
+    const accessToken =
+      sessionData && sessionData.session
+        ? sessionData.session.access_token
+        : "";
 
-  doc.save("taskmint-earnings.pdf");
+    const stripeResponse = await fetch(
+      `${SUPABASE_URL}/functions/v1/request-worker-payout`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          worker_id: currentWorkerId,
+          payout_request_id: requestRow.id,
+          amount: availableBalance,
+          payout_speed: selectedSpeed,
+          fee_amount: feeAmount,
+          net_amount: netAmount
+        })
+      }
+    );
+
+    if (!stripeResponse.ok) {
+      setActionMessage(
+        "Payout request saved. Stripe processing backend still needs to be connected.",
+        "#8a5300"
+      );
+      await loadPayoutPage();
+      return;
+    }
+
+    setActionMessage(
+      selectedSpeed === "instant"
+        ? "Instant payout request submitted for processing."
+        : "Free Friday payout request submitted for processing.",
+      "#0b7a28"
+    );
+
+    await loadPayoutPage();
+
+  } catch (error) {
+    setActionMessage(
+      error.message || "Something went wrong requesting payout.",
+      "#b00020"
+    );
+  } finally {
+    if (button) {
+      button.innerText = originalText;
+    }
+
+    updatePayoutButtons();
+  }
 }
-</script>
 
+ 
+async function loadPayoutPage() {
+  setActionMessage("", "#666");
+ 
+  const ready = await getCurrentWorker();
+ 
+  if (!ready) {
+    document.getElementById("payoutRequestsList").innerHTML = `
+      <div class="empty">
+        Worker profile not found. Complete your worker profile before requesting payouts.
+      </div>
+    `;
+    return;
+  }
+ 
+  await loadAvailableBalance();
+  await loadPayoutRequests();
+}
+ 
+loadPayoutPage();
+</script>
+ 
 </body>
 </html>

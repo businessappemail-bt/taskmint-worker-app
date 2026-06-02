@@ -108,10 +108,25 @@ async function loadReviewsPage() {
     }
   }
 
+  const { data: completedTasks, error: taskError } = await supabaseClient
+    .from("tasks")
+    .select("id")
+    .or(`worker_id.eq.${workerId},accepted_worker_id.eq.${workerId},assigned_worker_id.eq.${workerId}`)
+    .eq("status", "completed")
+    .eq("customer_completed", true);
+
+  if (taskError || !completedTasks || completedTasks.length === 0) {
+    renderRatingSummary([]);
+    await renderReviews([]);
+    return;
+  }
+
+  const taskIds = completedTasks.map(task => task.id).filter(Boolean);
+
   const { data: reviews, error } = await supabaseClient
     .from("reviews")
     .select("*")
-    .eq("worker_id", workerId)
+    .in("task_id", taskIds)
     .order("created_at", { ascending: false });
 
   if (error) {

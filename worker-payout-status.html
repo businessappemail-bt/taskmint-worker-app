@@ -569,6 +569,59 @@ function getFirstAvailable(record, keys, fallback = "") {
  
   return fallback;
 }
+
+function calculateInstantFee(amount) {
+  const payoutAmount = Number(amount || 0);
+
+  if (payoutAmount <= 0) {
+    return 0;
+  }
+
+  return Math.min(
+    payoutAmount,
+    Math.max(
+      INSTANT_PAYOUT_MIN_FEE,
+      Math.round((payoutAmount * INSTANT_PAYOUT_FEE_RATE) * 100) / 100
+    )
+  );
+}
+
+function getNextFridayDate() {
+  const date = new Date();
+  const day = date.getDay();
+  const daysUntilFriday = (5 - day + 7) % 7;
+
+  date.setDate(date.getDate() + daysUntilFriday);
+  date.setHours(0, 0, 0, 0);
+
+  return date.toISOString().split("T")[0];
+}
+
+function updatePayoutButtons() {
+  const standardButton = document.getElementById("standardPayoutButton");
+  const instantButton = document.getElementById("instantPayoutButton");
+  const instantFeeBox = document.getElementById("instantFeeAmount");
+  const instantNetBox = document.getElementById("instantNetAmount");
+  const instantFee = calculateInstantFee(availableBalance);
+  const instantNet = Math.max(Number(availableBalance || 0) - instantFee, 0);
+  const hasAvailableBalance = Number(availableBalance || 0) > 0;
+
+  if (instantFeeBox) {
+    instantFeeBox.innerText = money(instantFee);
+  }
+
+  if (instantNetBox) {
+    instantNetBox.innerText = money(instantNet);
+  }
+
+  if (standardButton) {
+    standardButton.disabled = !hasAvailableBalance;
+  }
+
+  if (instantButton) {
+    instantButton.disabled = !hasAvailableBalance || instantNet <= 0;
+  }
+}
  
 async function getCurrentWorker() {
   const { data: sessionData, error: sessionError } =
@@ -928,12 +981,12 @@ async function requestPayout(payoutSpeed) {
           worker_id: currentWorkerId,
           worker_email: currentUser.email,
           amount: availableBalance,
-          payout_speed: selectedSpeed,
+          payout_type: selectedSpeed,
           fee_amount: feeAmount,
           net_amount: netAmount,
           status: "requested",
           requested_at: new Date().toISOString(),
-          scheduled_payout_day: selectedSpeed === "standard" ? "Friday" : null
+          scheduled_payout_date: selectedSpeed === "standard" ? getNextFridayDate() : null
         })
         .select("*")
         .single();
@@ -1006,19 +1059,33 @@ async function requestPayout(payoutSpeed) {
 async function loadPayoutPage() {
   setActionMessage("", "#666");
  
-  const ready = await getCurrentWorker();
+  try {
+    const ready = await getCurrentWorker();
  
-  if (!ready) {
+    if (!ready) {
+      document.getElementById("payoutRequestsList").innerHTML = `
+        <div class="empty">
+          Worker profile not found. Complete your worker profile before requesting payouts.
+        </div>
+      `;
+      return;
+    }
+ 
+    await loadAvailableBalance();
+    await loadPayoutRequests();
+  } catch (error) {
+    console.error(error);
+    availableBalance = 0;
+    document.getElementById("availableBalance").innerText = money(0);
+    document.getElementById("balanceSubtext").innerText =
+      "Payout details could not load. Check worker_earnings, worker_payouts, and RLS policies.";
     document.getElementById("payoutRequestsList").innerHTML = `
       <div class="empty">
-        Worker profile not found. Complete your worker profile before requesting payouts.
+        Payout requests could not load. ${cleanText(error.message, "Check the payout tables and RLS policies.")}
       </div>
     `;
-    return;
+    updatePayoutButtons();
   }
- 
-  await loadAvailableBalance();
-  await loadPayoutRequests();
 }
  
 loadPayoutPage();

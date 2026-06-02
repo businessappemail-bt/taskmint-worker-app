@@ -279,6 +279,18 @@
       padding: 10px;
       margin-bottom: 12px;
     }
+
+    .quote-sent-note {
+      font-size: 12px;
+      color: #0b7a28;
+      line-height: 1.4;
+      background: #e7f7ec;
+      border: 1px solid #bfe6c9;
+      border-radius: 14px;
+      padding: 10px;
+      margin-bottom: 12px;
+      font-weight: 900;
+    }
  
     .button-grid {
       display: grid;
@@ -1072,6 +1084,7 @@ async function loadTasks() {
   }
 
   const customerProfiles = await fetchCustomerProfiles(combinedTasks);
+  const existingQuotes = await fetchExistingWorkerQuotes(combinedTasks);
 
   container.className = "";
   container.innerHTML = `
@@ -1090,6 +1103,8 @@ async function loadTasks() {
     const milesAway = getMilesAway(task);
     const fullAddressVisible = canShowFullAddress(task);
     const detailsId = `details-${getTaskUniqueId(task)}`;
+    const existingQuote = getExistingQuoteForTask(task, existingQuotes);
+    const alreadyQuoted = !!existingQuote;
 
     const div = document.createElement("div");
     div.className = "task-card";
@@ -1176,14 +1191,34 @@ async function loadTasks() {
         }
       </div>
 
+      ${
+        alreadyQuoted
+          ? `
+            <div class="quote-sent-note">
+              You already sent a quote for this task.
+            </div>
+          `
+          : ""
+      }
+
       <div class="button-grid">
         <button class="secondary" onclick="messageCustomer('${task.id}', '${customerId}', '${task.source_type}')">
           Message Customer
         </button>
 
-        <button onclick="sendQuote('${task.id}', '${task.source_type}')">
-          Send Quote
-        </button>
+        ${
+          alreadyQuoted
+            ? `
+              <button disabled>
+                Quote Already Sent
+              </button>
+            `
+            : `
+              <button onclick="sendQuote('${task.id}', '${task.source_type}')">
+                Send Quote
+              </button>
+            `
+        }
 
         <button class="secondary full" onclick="toggleTaskCardDetails('${detailsId}')">
           Expand Task Information

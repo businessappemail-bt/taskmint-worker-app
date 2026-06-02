@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Privacy Policy - TaskMint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(25,182,76,0.16), transparent 32%),
+        linear-gradient(180deg, #eef8f1 0%, #f5f5f5 100%);
+      color: #111;
+      padding-bottom: 90px;
+    }
+
+    .container {
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .back {
+      color: #0b7a28;
+      font-weight: 900;
+      cursor: pointer;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0b7a28, #19b64c);
+      color: white;
+      border-radius: 28px;
+      padding: 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 14px 30px rgba(11,122,40,0.22);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      top: -70px;
+      right: -60px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      line-height: 1.1;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      opacity: 0.96;
+      position: relative;
+      z-index: 2;
+    }
+
+    .effective {
+      font-size: 12px;
+      font-weight: 900;
+      color: white;
+      margin-top: 8px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .notice-card {
+      background: #fff7e6;
+      border: 1px solid #ffd27a;
+      color: #7a4b00;
+      border-radius: 18px;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .policy-card {
+      background: white;
+      border: 1px solid #edf1ee;
+      border-radius: 22px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      margin-bottom: 14px;
+    }
+
+    .policy-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .policy-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: #111;
+      line-height: 1.3;
+    }
+
+    .policy-icon {
+      color: #0b7a28;
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .policy-content {
+      display: none;
+      margin-top: 12px;
+      color: #333;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .policy-card.open .policy-content {
+      display: block;
+    }
+
+    .policy-card.open .policy-icon {
+      transform: rotate(45deg);
+    }
+
+    ul {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+
+    li {
+      margin-bottom: 7px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .pill {
+      background: #e7f7ec;
+      color: #0b7a28;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .contact-box {
+      background: #0b7a28;
+      color: white;
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(11,122,40,0.18);
+      margin-bottom: 20px;
+    }
+
+    .contact-box h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+
+    .contact-box p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.55;
+      opacity: 0.96;
+    }
+
+    .small-note {
+      color: #666;
+      font-size: 12px;
+      line-height: 1.45;
+      text-align: center;
+      margin: 18px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="top-bar">
+    <a class="back" href="worker-dashboard.html">← Back</a>
+  </div>
+
+  <div class="hero">
+    <h1>Privacy Policy</h1>
+    <p>This Privacy Policy explains how TaskMint collects, uses, stores, shares, and protects information from customers, workers, applicants, and visitors.</p>
+    <div class="effective">Effective Date: June 1, 2026</div>
+  </div>
+
+  <div class="notice-card">
+    TaskMint is a marketplace platform connecting customers and independent workers. This Privacy Policy explains data practices only. Separate Terms of Service, Worker Agreements, cancellation policies, dispute rules, and payment rules may also apply.
+  </div>
+
+  <div class="pill-row">
+    <div class="pill">Customers</div>
+    <div class="pill">Workers</div>
+    <div class="pill">Payments</div>
+    <div class="pill">Messages</div>
+    <div class="pill">Location</div>
+    <div class="pill">Reviews</div>
+  </div>
+
+  <div class="policy-card open">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">1. Who This Policy Covers</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      This Privacy Policy applies to anyone who accesses or uses TaskMint, including customers, workers, worker applicants, visitors, support users, and anyone who communicates with TaskMint. By using TaskMint, creating an account, submitting a task, applying as a worker, sending a quote, messaging another user, uploading information, or receiving services through the platform, you acknowledge this Privacy Policy.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">2. Information We Collect</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      We may collect information you provide directly, information created when you use TaskMint, and information from service providers.
+      <ul>
+        <li><strong>Account information:</strong> name, email address, phone number, password-related credentials, profile photo, address, account type, preferences, and account status.</li>
+        <li><strong>Customer task information:</strong> task title, description, category, photos, dates, location, pickup/drop-off information, special instructions, quotes, accepted workers, arrival codes, completion status, cancellations, disputes, and reviews.</li>
+        <li><strong>Worker information:</strong> worker profile, photo, experience, services offered, availability, quotes, accepted jobs, completed jobs, payout information, tax-related details, documents, ratings, reviews, worker responses, and approval status.</li>
+        <li><strong>Payment information:</strong> payment status, transaction amounts, platform fees, worker payout amounts, refund records, payout status, payment identifiers, and payment provider records.</li>
+        <li><strong>Communications:</strong> messages, support requests, dispute messages, reports, blocked-user records, reviews, ratings, and customer-worker communications sent through TaskMint.</li>
+        <li><strong>Device and usage information:</strong> IP address, browser type, device type, app activity, pages viewed, error logs, timestamps, security events, and basic analytics.</li>
+        <li><strong>Location information:</strong> city, state, task location, pickup/drop-off address, and other location details needed to match, schedule, complete, and verify tasks.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">3. Worker-Specific Privacy Terms</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      Workers and worker applicants may be asked to provide additional information so TaskMint can evaluate eligibility, support trust and safety, manage payouts, verify task activity, and display worker profiles to customers. Worker profile information may be visible to customers, including name or display name, profile photo, service categories, experience, ratings, reviews, completed-task count, response information, and other profile details you choose to provide or that are generated by platform activity.
+      <br><br>
+      Worker payout, tax, identity, approval, and compliance information may be shared with payment processors, background check providers, fraud prevention services, tax vendors, legal advisors, or other service providers when needed to operate the platform.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">4. Background Checks, Safety Reviews, and Verification</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      TaskMint may use background check providers, identity verification providers, fraud prevention tools, or other screening services for worker approval, safety review, trust and safety, dispute handling, or account protection. If background checks are used, the provider may collect information such as identity details, date of birth, address history, identification documents, criminal record information, driving information, or other legally permitted screening information.
+      <br><br>
+      TaskMint may use screening results to approve, deny, restrict, suspend, or review worker access. TaskMint does not guarantee that any customer or worker is risk-free, mistake-free, fully verified, insured, qualified, or suitable for any specific task.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">5. How We Use Information</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      TaskMint may use information to:
+      <ul>
+        <li>Create, manage, secure, and support accounts.</li>
+        <li>Post tasks, send quotes, accept workers, schedule jobs, verify arrival, and complete tasks.</li>
+        <li>Process payments, platform fees, refunds, cancellations, worker payouts, tax records, and payment disputes.</li>
+        <li>Display worker profiles, customer task information, reviews, ratings, and task status updates.</li>
+        <li>Send notifications, account alerts, messages, support responses, and transaction updates.</li>
+        <li>Prevent fraud, abuse, harassment, unsafe conduct, off-platform payment requests, account misuse, unauthorized access, and policy violations.</li>
+        <li>Investigate reports, disputes, property damage claims, safety issues, cancellations, payment concerns, and platform violations.</li>
+        <li>Improve TaskMint features, app performance, customer support, security, analytics, and user experience.</li>
+        <li>Comply with legal, tax, regulatory, court, law enforcement, or contractual obligations.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">6. Location, Address, and Task Information</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      TaskMint may collect and use task locations, pickup locations, drop-off locations, city, state, zip code, and address details to match customers and workers, calculate availability, display location information, support scheduling, verify arrival, and assist with disputes or safety issues.
+      <br><br>
+      TaskMint may limit when full address information is visible. For example, the app may show only city and state until payment is recorded or until the scheduled task is within a certain time period. TaskMint may still store full address information as needed to operate the platform, protect users, resolve disputes, and maintain records.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">7. Messages, Reviews, Photos, and Uploaded Content</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      Messages, images, documents, reviews, ratings, task photos, dispute evidence, profile photos, and other uploaded content may be stored, reviewed, monitored, removed, restricted, or disclosed when needed to operate TaskMint, enforce policies, protect users, investigate complaints, respond to legal requests, or prevent fraud and abuse.
+      <br><br>
+      Customers and workers should not upload sensitive information that is not needed for the task. Users are responsible for the content they submit and must not upload unlawful, threatening, discriminatory, explicit, misleading, stolen, or privacy-invading content.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">8. Payments, Payouts, Refunds, and Financial Records</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      TaskMint may collect and store payment-related records such as payment status, amount paid, quote amount, platform fee, worker payout, refund amount, cancellation fee, payout status, timestamps, transaction identifiers, payment processor references, and dispute records.
+      <br><br>
+      Third-party payment processors may collect and process card, bank, identity, tax, and payout information. Their privacy policies and security practices may apply separately. TaskMint may retain payment records for business, tax, fraud prevention, legal, accounting, dispute resolution, and compliance purposes.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">9. How We Share Information</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      TaskMint may share information:
+      <ul>
+        <li>Between customers and workers when necessary to complete a task.</li>
+        <li>With payment processors, payout providers, banks, tax vendors, and fraud prevention services.</li>
+        <li>With background check, identity verification, and safety vendors.</li>
+        <li>With hosting, database, analytics, email, SMS, customer support, security, and technical service providers.</li>
+        <li>With legal advisors, insurers, accountants, auditors, dispute-resolution providers, or business advisors.</li>
+        <li>With law enforcement, courts, regulators, government agencies, or third parties when required or permitted by law.</li>
+        <li>In connection with a merger, sale, financing, acquisition, bankruptcy, restructuring, or transfer of business assets.</li>
+      </ul>
+      TaskMint does not sell personal information for money. If TaskMint later engages in activity legally considered a “sale” or “sharing” under applicable privacy laws, TaskMint will provide required notices and choices.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">10. Safety, Fraud Prevention, and Platform Protection</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      TaskMint may use information to detect, prevent, investigate, or respond to fraud, unsafe conduct, harassment, threats, discrimination, property damage, payment disputes, refund abuse, fake accounts, worker impersonation, off-platform payment requests, chargebacks, account takeovers, prohibited tasks, policy violations, and legal claims.
+      <br><br>
+      TaskMint may restrict, suspend, deactivate, remove, or review accounts when we believe platform safety, trust, legal compliance, or policy enforcement requires it.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">11. Data Retention</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      TaskMint may retain information for as long as needed to provide services, maintain accounts, process payments, support payouts, comply with tax and legal obligations, resolve disputes, enforce agreements, prevent fraud, improve the platform, and keep business records.
+      <br><br>
+      Some information may remain after account deletion or deactivation when retention is necessary for legal compliance, safety, dispute handling, accounting, fraud prevention, chargebacks, audits, or legitimate business purposes.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">12. Account Deletion and Deactivation</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      Users may request account deletion or deactivation where available. Deactivation may limit account access while allowing TaskMint to preserve records needed for payments, disputes, reviews, fraud prevention, tax obligations, safety investigations, legal compliance, and platform integrity.
+      <br><br>
+      If an account is deleted or deactivated, TaskMint may still retain transaction records, messages, support history, dispute records, payout records, reviews, ratings, and other information where legally permitted or required.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">13. Your Privacy Choices and Rights</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      Depending on your location and applicable law, you may have rights to request access to personal information, correction of inaccurate information, deletion of certain information, portability, limitation of certain uses, opt-out of certain data sharing, and non-discrimination for exercising privacy rights.
+      <br><br>
+      TaskMint may need to verify your identity before responding to a request. Some requests may be denied or limited where information must be retained for legal, tax, payment, fraud prevention, safety, dispute, security, or business record purposes.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">14. Children’s Privacy</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      TaskMint is not intended for children under 13. Users under the age required by applicable law may not create accounts, post tasks, apply as workers, communicate with workers or customers, or use TaskMint without legally required consent. If TaskMint learns that personal information from a child has been collected in violation of applicable law, TaskMint may delete or restrict that information.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">15. Security</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      TaskMint uses reasonable administrative, technical, and organizational safeguards designed to protect information. However, no app, website, database, payment system, communication system, or storage method is completely secure. TaskMint cannot guarantee that unauthorized access, data loss, cyberattack, misuse, service interruption, or security failure will never occur.
+      <br><br>
+      Users are responsible for protecting their login credentials, using secure devices, logging out of shared devices, and promptly reporting suspicious account activity.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">16. Third-Party Services and Links</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      TaskMint may use third-party services for hosting, database storage, payments, analytics, email, text messaging, maps, background checks, identity verification, customer support, fraud prevention, and other operations. These third parties may process information under their own privacy policies and terms.
+      <br><br>
+      TaskMint is not responsible for third-party websites, apps, services, links, policies, or security practices that are not controlled by TaskMint.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">17. Public Profiles, Ratings, and Reviews</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      Worker profiles, ratings, reviews, completed-task counts, service categories, profile photos, worker responses, and customer feedback may be visible to customers or other users. Customer review information may show the customer’s name or display name, rating, optional review text, date, job category, and worker response.
+      <br><br>
+      Reviews may be moderated, restricted, removed, or preserved when needed for safety, trust, fraud prevention, policy enforcement, legal compliance, or dispute resolution.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">18. Disputes, Property Damage, Injury, and Claims</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      If a customer, worker, or third party reports a dispute, property damage, injury, late arrival, cancellation, no-show, unsafe conduct, off-platform payment request, fraud, harassment, or policy violation, TaskMint may collect, review, retain, and share relevant information to investigate and respond. This may include task details, photos, messages, location information, payment records, user profiles, timestamps, arrival codes, completion records, reviews, reports, and support communications.
+      <br><br>
+      This Privacy Policy does not decide legal responsibility for disputes, damage, injuries, refunds, cancellations, or worker conduct. Those matters may be governed by TaskMint’s Terms, Worker Agreement, cancellation policy, dispute policy, payment policy, and applicable law.
+    </div>
+  </div>
+
+  <div class="policy-card">
+    <div class="policy-header" onclick="toggleSection(this)">
+      <div class="policy-title">19. Changes to This Policy</div>
+      <div class="policy-icon">+</div>
+    </div>
+    <div class="policy-content">
+      TaskMint may update this Privacy Policy from time to time. Updates may be posted in the app or on the website. Continued use of TaskMint after an updated policy is posted means you acknowledge the updated policy. If changes are material, TaskMint may provide additional notice where required.
+    </div>
+  </div>
+
+  <div class="contact-box">
+    <h2>Contact TaskMint</h2>
+    <p>
+      For privacy requests, account questions, deletion requests, data correction requests, or safety concerns, contact TaskMint Support at:
+      <br><br>
+      <strong>support@trytaskmint.com</strong>
+    </p>
+  </div>
+
+  <div class="small-note">
+    This template is provided for app setup and should be reviewed by a qualified attorney before launch, especially before handling payments, worker screening, background checks, disputes, refunds, tax data, or users in multiple states.
+  </div>
+
+</div>
+
+<script>
+function toggleSection(header) {
+  const card =
+    header.closest(".policy-card");
+
+  if (!card) {
+    return;
+  }
+
+  card.classList.toggle("open");
+}
+</script>
+
+</body>
+</html>

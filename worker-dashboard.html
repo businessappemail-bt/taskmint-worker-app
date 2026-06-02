@@ -1064,6 +1064,10 @@ function getNotificationDismissedCount(category) {
 }
 
 function getAdjustedNotificationCount(category, count) {
+  if (category === "messages") {
+    return Number(count || 0);
+  }
+
   const adjusted =
     Number(count || 0) - getNotificationDismissedCount(category);
 
@@ -1090,6 +1094,12 @@ function markWorkerNotificationCategoryViewed(category) {
 }
 
 function openWorkerNotification(category, targetId) {
+  if (category === "messages") {
+    window.location.href =
+      "worker-message-center.html";
+    return;
+  }
+
   markWorkerNotificationCategoryViewed(category);
 
   const panel =
@@ -1939,13 +1949,6 @@ async function countUnreadMessages() {
   }
 
   let total = 0;
-
-  total += await countByColumn(
-    "task_messages",
-    "receiver_id",
-    ids,
-    (query) => query.eq("is_read", false)
-  );
 
   total += await countByColumn(
     "task_messages",

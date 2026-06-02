@@ -540,7 +540,7 @@ img {
 }
 
 .inbox-tab-count {
-  display: inline-flex;
+  display: none;
   align-items: center;
   justify-content: center;
   min-width: 20px;
@@ -552,6 +552,10 @@ img {
   color: #0b7a28;
   font-size: 11px;
   font-weight: 900;
+}
+
+.inbox-tab.has-new .inbox-tab-count {
+  display: inline-flex;
 }
 
 .inbox-tab.active .inbox-tab-count {
@@ -1811,7 +1815,7 @@ function updateInboxTabs(directItems, messageItems, quoteItems) {
 
     if (countElement) {
       countElement.innerText =
-        String(unreadCount > 0 ? unreadCount : tabData[tab].length);
+        unreadCount > 0 ? String(unreadCount) : "";
     }
 
     if (tabButton) {

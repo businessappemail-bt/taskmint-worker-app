@@ -972,7 +972,7 @@ async function fetchCustomerProfiles(tasks) {
   const { data, error } = await supabaseClient
     .from("profiles")
     .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
-    .in("id", customerIds);
+    .in("id", customerIds.map(id => String(id)));
  
   if (error || !data) {
     return {};
@@ -986,37 +986,6 @@ async function fetchCustomerProfiles(tasks) {
  
   return profileMap;
 }
-
-async function getCustomerDisplayData(customerId, task = null) {
-  const fallbackName =
-    getCustomerDisplayName(null, task);
-
-  if (!customerId) {
-    return {
-      name: fallbackName,
-      photo: DEFAULT_PROFILE_PHOTO
-    };
-  }
-
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
-    .eq("id", customerId)
-    .maybeSingle();
-
-  if (!profile) {
-    return {
-      name: fallbackName,
-      photo: DEFAULT_PROFILE_PHOTO
-    };
-  }
-
-  return {
-    name: getCustomerDisplayName(profile, task),
-    photo: getCustomerPhoto(profile)
-  };
-}
-
  
 
 async function fetchExistingWorkerQuotes(tasks) {
@@ -1182,9 +1151,9 @@ async function loadTasks() {
     </div>
   `;
 
-  for (const task of combinedTasks) {
+  combinedTasks.forEach(task => {
     const customerId = getCustomerId(task);
-    const customerDisplay = await getCustomerDisplayData(customerId, task);
+    const customerProfile = customerProfiles[String(customerId)] || null;
     const category = getTaskCategory(task);
     const taskDate = formatDate(getTaskDate(task));
     const createdDate = formatDate(task.created_at);
@@ -1225,7 +1194,7 @@ async function loadTasks() {
 
         <div>
           <div class="customer-name">
-            ${escapeHTML(customerDisplay.name)}
+            ${escapeHTML(getCustomerDisplayName(customerProfile, task))}
           </div>
 
           <div class="customer-sub">
@@ -1316,7 +1285,7 @@ async function loadTasks() {
     `;
 
     container.appendChild(div);
-  }
+  });
 }
 
 function viewTask(taskId) {

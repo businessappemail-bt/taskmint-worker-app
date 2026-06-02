@@ -833,6 +833,38 @@ function getCustomerPhoto(profile) {
     "avatar_url"
   ], DEFAULT_PROFILE_PHOTO);
 }
+
+async function updateCustomerNameFromProfile(customerId, elementId) {
+  if (!customerId || !elementId) {
+    return;
+  }
+
+  const nameElement =
+    document.getElementById(elementId);
+
+  if (!nameElement) {
+    return;
+  }
+
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("first_name, last_name, full_name")
+    .eq("id", customerId)
+    .maybeSingle();
+
+  if (!profile) {
+    return;
+  }
+
+  const fullName =
+    profile.full_name ||
+    `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
+
+  if (fullName) {
+    nameElement.innerText =
+      fullName;
+  }
+}
  
 function isQuotePaidForWorker(task) {
   const paidStatus = String(getFirstAvailable(task, [
@@ -1142,41 +1174,6 @@ async function loadTasks() {
   }
 
   const customerProfiles = await fetchCustomerProfiles(combinedTasks);
-
-  for (const task of combinedTasks) {
-    const customerId = getCustomerId(task);
-
-    if (customerId && !customerProfiles[String(customerId)]) {
-      const { data: singleCustomerProfile } = await supabaseClient
-        .from("profiles")
-        .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
-        .eq("id", customerId)
-        .maybeSingle();
-
-      if (singleCustomerProfile) {
-        customerProfiles[String(customerId)] = singleCustomerProfile;
-      }
-    }
-  }
-
-  combinedTasks = combinedTasks.map(task => {
-    const customerId = getCustomerId(task);
-    const customerProfile = customerProfiles[String(customerId)] || null;
-
-    if (!customerProfile) {
-      return task;
-    }
-
-    const customerFullName =
-      customerProfile.full_name ||
-      `${customerProfile.first_name || ""} ${customerProfile.last_name || ""}`.trim();
-
-    return {
-      ...task,
-      customer_name: customerFullName || task.customer_name || ""
-    };
-  });
-
   const existingQuotes = await fetchExistingWorkerQuotes(combinedTasks);
 
   container.className = "";
@@ -1196,6 +1193,7 @@ async function loadTasks() {
     const milesAway = getMilesAway(task);
     const fullAddressVisible = canShowFullAddress(task);
     const detailsId = `details-${getTaskUniqueId(task)}`;
+    const customerNameId = `customer-name-${getTaskUniqueId(task)}`;
     const existingQuote = getExistingQuoteForTask(task, existingQuotes);
     const alreadyQuoted = !!existingQuote;
 
@@ -1228,7 +1226,7 @@ async function loadTasks() {
         >
 
         <div>
-          <div class="customer-name">
+          <div class="customer-name" id="${customerNameId}">
             ${escapeHTML(getCustomerDisplayName(customerProfile, task))}
           </div>
 
@@ -1320,6 +1318,7 @@ async function loadTasks() {
     `;
 
     container.appendChild(div);
+    updateCustomerNameFromProfile(customerId, customerNameId);
   });
 }
 

@@ -629,16 +629,47 @@ function getCustomerId(task, quote, assignment) {
       "profile_id"
     ], "");
 }
-function getCustomerDisplayName(profile) {
+function getCustomerNameFromRecords(task, quote, assignment) {
+  return getFirstAvailable(assignment, [
+    "customer_name",
+    "customer_full_name",
+    "client_name",
+    "client_full_name"
+  ], "") ||
+    getFirstAvailable(quote, [
+      "customer_name",
+      "customer_full_name",
+      "client_name",
+      "client_full_name"
+    ], "") ||
+    getFirstAvailable(task, [
+      "customer_name",
+      "customer_full_name",
+      "client_name",
+      "client_full_name",
+      "posted_by_name",
+      "created_by_name"
+    ], "");
+}
+
+function getCustomerDisplayName(profile, fallbackName = "Customer") {
+  const fallback =
+    cleanText(fallbackName, "Customer");
+
   if (!profile) {
-    return "Customer";
+    return fallback;
   }
 
-  if (
-    profile.full_name &&
-    String(profile.full_name).trim() !== ""
-  ) {
-    return profile.full_name;
+  const directName = getFirstAvailable(profile, [
+    "full_name",
+    "name",
+    "display_name",
+    "customer_name",
+    "customer_full_name"
+  ], "");
+
+  if (directName) {
+    return directName;
   }
 
   const firstName =
@@ -654,7 +685,7 @@ function getCustomerDisplayName(profile) {
   const fullName =
     `${firstName} ${lastName}`.trim();
 
-  return fullName || "Customer";
+  return fullName || fallback;
 }
  
 function getCustomerPhoto(profile) {
@@ -1115,20 +1146,42 @@ async function fetchCustomerProfiles(jobs) {
     return {};
   }
 
-  const { data, error } = await supabaseClient
-    .from("profiles")
-    .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
-    .in("id", customerIds);
-
-  if (error || !data) {
-    return {};
-  }
-
   const profileMap = {};
 
-  data.forEach(profile => {
-    profileMap[String(profile.id)] = profile;
-  });
+  const addProfilesToMap = profiles => {
+    (profiles || []).forEach(profile => {
+      const possibleIds = [
+        profile.id,
+        profile.user_id,
+        profile.customer_id,
+        profile.profile_id
+      ]
+        .filter(Boolean)
+        .map(String);
+
+      possibleIds.forEach(id => {
+        profileMap[id] = profile;
+      });
+    });
+  };
+
+  const idAttempt = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .in("id", customerIds);
+
+  if (!idAttempt.error) {
+    addProfilesToMap(idAttempt.data);
+  }
+
+  const userIdAttempt = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .in("user_id", customerIds);
+
+  if (!userIdAttempt.error) {
+    addProfilesToMap(userIdAttempt.data);
+  }
 
   return profileMap;
 }
@@ -1247,7 +1300,8 @@ function renderJobs() {
     const quote = job.quote;
     const assignment = job.assignment;
     const customerId = getCustomerId(task, quote, assignment);
-    const customerName = getCustomerDisplayName(job.customerProfile);
+    const customerFallbackName = getCustomerNameFromRecords(task, quote, assignment);
+    const customerName = getCustomerDisplayName(job.customerProfile, customerFallbackName);
     const customerPhoto = getCustomerPhoto(job.customerProfile);
     const status = assignment && assignment.arrival_verified === true ? "in_progress" : quote.status;
     const taskDate = formatDate(getTaskDate(task));

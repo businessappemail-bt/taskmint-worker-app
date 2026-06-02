@@ -51,6 +51,64 @@ const supabaseClient = window.supabase.createClient(
 let currentUser = null;
 let currentWorkerIds = [];
 
+function getHiddenWorkerConversationIds() {
+  try {
+    return JSON.parse(localStorage.getItem("taskmintWorkerHiddenConversations") || "[]");
+  } catch (error) {
+    return [];
+  }
+}
+
+async function migrateLocalHiddenBlocksToBlockedUsers() {
+  const hiddenConversationIds =
+    getHiddenWorkerConversationIds();
+
+  if (!hiddenConversationIds || hiddenConversationIds.length === 0) {
+    return;
+  }
+
+  for (const conversationId of hiddenConversationIds) {
+    const { data: conversation } =
+      await supabaseClient
+        .from("task_conversations")
+        .select("id, worker_id, customer_id")
+        .eq("id", conversationId)
+        .maybeSingle();
+
+    if (!conversation || !conversation.worker_id || !conversation.customer_id) {
+      continue;
+    }
+
+    const workerId =
+      conversation.worker_id;
+
+    const customerId =
+      conversation.customer_id;
+
+    const { data: existingBlock } =
+      await supabaseClient
+        .from("blocked_users")
+        .select("id")
+        .eq("worker_id", workerId)
+        .eq("customer_id", customerId)
+        .maybeSingle();
+
+    if (!existingBlock) {
+      await supabaseClient
+        .from("blocked_users")
+        .insert([
+          {
+            worker_id: workerId,
+            customer_id: customerId
+          }
+        ]);
+    }
+  }
+
+  localStorage.removeItem("taskmintWorkerHiddenConversations");
+}
+
+
 function escapeHTML(value) {
   if (value === null || value === undefined) {
     return "";
@@ -89,6 +147,8 @@ async function loadBlockedCustomers() {
   }
 
   currentWorkerIds = [...new Set(currentWorkerIds.filter(Boolean).map(String))];
+
+  await migrateLocalHiddenBlocksToBlockedUsers();
 
   const { data: blocks, error } = await supabaseClient
     .from("blocked_users")

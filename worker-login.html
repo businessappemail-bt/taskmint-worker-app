@@ -688,6 +688,60 @@ async function workerLogin(){
 
   }
 
+  const {
+    data: deactivationRequest,
+    error: deactivationError
+  } =
+  await supabaseClient
+    .from("account_deactivation_requests")
+    .select("id, status")
+    .eq("worker_id", data.user.id)
+    .in("status", ["pending", "approved", "completed", "processed"])
+    .limit(1)
+    .maybeSingle();
+
+  if(deactivationError){
+
+    await supabaseClient.auth
+      .signOut();
+
+    loginButton.disabled = false;
+
+    loginButton.innerText =
+      "Log In";
+
+    status.innerHTML = `
+      <div class="error">
+        Unable to verify account status. Contact TaskMint support.
+      </div>
+    `;
+
+    return;
+
+  }
+
+  if(deactivationRequest){
+
+    await supabaseClient.auth
+      .signOut();
+
+    localStorage.clear();
+
+    loginButton.disabled = false;
+
+    loginButton.innerText =
+      "Log In";
+
+    status.innerHTML = `
+      <div class="error">
+        This worker account has a deactivation request and can no longer be accessed.
+      </div>
+    `;
+
+    return;
+
+  }
+
   if(rememberLogin){
 
     localStorage.setItem(

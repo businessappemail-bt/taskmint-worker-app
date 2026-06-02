@@ -972,7 +972,7 @@ async function fetchCustomerProfiles(tasks) {
   const { data, error } = await supabaseClient
     .from("profiles")
     .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
-    .in("id", customerIds.map(id => String(id)));
+    .in("id", customerIds);
  
   if (error || !data) {
     return {};
@@ -1142,6 +1142,41 @@ async function loadTasks() {
   }
 
   const customerProfiles = await fetchCustomerProfiles(combinedTasks);
+
+  for (const task of combinedTasks) {
+    const customerId = getCustomerId(task);
+
+    if (customerId && !customerProfiles[String(customerId)]) {
+      const { data: singleCustomerProfile } = await supabaseClient
+        .from("profiles")
+        .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
+        .eq("id", customerId)
+        .maybeSingle();
+
+      if (singleCustomerProfile) {
+        customerProfiles[String(customerId)] = singleCustomerProfile;
+      }
+    }
+  }
+
+  combinedTasks = combinedTasks.map(task => {
+    const customerId = getCustomerId(task);
+    const customerProfile = customerProfiles[String(customerId)] || null;
+
+    if (!customerProfile) {
+      return task;
+    }
+
+    const customerFullName =
+      customerProfile.full_name ||
+      `${customerProfile.first_name || ""} ${customerProfile.last_name || ""}`.trim();
+
+    return {
+      ...task,
+      customer_name: customerFullName || task.customer_name || ""
+    };
+  });
+
   const existingQuotes = await fetchExistingWorkerQuotes(combinedTasks);
 
   container.className = "";

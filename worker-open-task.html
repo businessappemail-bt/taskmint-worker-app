@@ -686,6 +686,10 @@ function getFullAddress(task) {
 function getCustomerId(task) {
   return getFirstAvailable(task, [
     "customer_id",
+    "customer_user_id",
+    "customer_profile_id",
+    "request_customer_id",
+    "requester_id",
     "client_id",
     "posted_by",
     "created_by",
@@ -777,21 +781,29 @@ function getCustomerDisplayName(profile, task = null) {
   const taskCustomerName = getFirstAvailable(task, [
     "customer_name",
     "customer_full_name",
+    "customer_display_name",
     "client_name",
-    "posted_by_name"
+    "client_full_name",
+    "posted_by_name",
+    "created_by_name",
+    "requester_name"
   ], "");
 
-  if (taskCustomerName) {
+  if (taskCustomerName && !isValidUUIDText(taskCustomerName)) {
     return taskCustomerName;
   }
 
   const taskFirstName = getFirstAvailable(task, [
     "customer_first_name",
+    "client_first_name",
+    "requester_first_name",
     "first_name"
   ], "");
 
   const taskLastName = getFirstAvailable(task, [
     "customer_last_name",
+    "client_last_name",
+    "requester_last_name",
     "last_name"
   ], "");
 
@@ -806,7 +818,8 @@ function getCustomerDisplayName(profile, task = null) {
   }
 
   const fullName = getFirstAvailable(profile, [
-    "full_name"
+    "full_name",
+    "display_name"
   ], "");
 
   if (fullName) {
@@ -816,14 +829,16 @@ function getCustomerDisplayName(profile, task = null) {
   const firstName = getFirstAvailable(profile, [
     "first_name",
     "firstName"
-  ], "Customer");
+  ], "");
 
   const lastName = getFirstAvailable(profile, [
     "last_name",
     "lastName"
   ], "");
 
-  return `${firstName} ${lastName}`.trim();
+  const profileNameFromParts = `${firstName} ${lastName}`.trim();
+
+  return profileNameFromParts || "Customer";
 }
  
 function getCustomerPhoto(profile) {
@@ -971,7 +986,7 @@ async function fetchCustomerProfiles(tasks) {
  
   const { data, error } = await supabaseClient
     .from("profiles")
-    .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
+    .select("id, email, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
     .in("id", customerIds);
  
   if (error || !data) {

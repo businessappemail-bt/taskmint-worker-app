@@ -679,7 +679,7 @@
 
     <div class="notification-list" id="notificationList">
 
-      <div class="notification-item" onclick="window.location.href='worker-direct-requests.html'">
+      <div class="notification-item" onclick="openNotificationTarget('directRequests', 'worker-direct-requests.html')">
         <div class="notification-left">
           <div class="notification-icon">📩</div>
           <div>
@@ -690,7 +690,7 @@
         <div class="notification-count" id="directRequestNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='my-jobs.html'">
+      <div class="notification-item" onclick="openNotificationTarget('accepted', 'my-jobs.html')">
         <div class="notification-left">
           <div class="notification-icon">✅</div>
           <div>
@@ -701,7 +701,7 @@
         <div class="notification-count" id="acceptedNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='worker-message-center.html'">
+      <div class="notification-item" onclick="openNotificationTarget('messages', 'worker-message-center.html')">
         <div class="notification-left">
           <div class="notification-icon">💬</div>
           <div>
@@ -712,7 +712,7 @@
         <div class="notification-count" id="messageNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='worker-disputes.html'">
+      <div class="notification-item" onclick="openNotificationTarget('disputes', 'worker-disputes.html')">
         <div class="notification-left">
           <div class="notification-icon">⚠️</div>
           <div>
@@ -723,7 +723,7 @@
         <div class="notification-count" id="disputeNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='worker-reviews.html'">
+      <div class="notification-item" onclick="openNotificationTarget('reviews', 'worker-reviews.html')">
         <div class="notification-left">
           <div class="notification-icon">⭐</div>
           <div>
@@ -734,7 +734,7 @@
         <div class="notification-count" id="reviewNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='worker-payout-status.html'">
+      <div class="notification-item" onclick="openNotificationTarget('payouts', 'worker-payout-status.html')">
         <div class="notification-left">
           <div class="notification-icon">💵</div>
           <div>
@@ -745,7 +745,7 @@
         <div class="notification-count" id="payoutNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='worker-calendar.html'">
+      <div class="notification-item" onclick="openNotificationTarget('schedule', 'worker-calendar.html')">
         <div class="notification-left">
           <div class="notification-icon">📅</div>
           <div>
@@ -803,7 +803,7 @@
       </div>
  
       <div class="section-link"
-        onclick="window.location.href='worker-payout-status.html'">
+        onclick="openNotificationTarget('payouts', 'worker-payout-status.html')">
         Payout Status
       </div>
     </div>
@@ -825,7 +825,7 @@
       </div>
  
       <div class="stat-box"
-        onclick="window.location.href='worker-reviews.html'">
+        onclick="openNotificationTarget('reviews', 'worker-reviews.html')">
         <div class="stat-icon">★</div>
         <div class="stat-number" id="ratingScore">0.0</div>
         <div class="stat-label">Rating</div>
@@ -860,7 +860,7 @@
       </div>
  
       <div class="quick-card"
-        onclick="window.location.href='my-jobs.html'">
+        onclick="openNotificationTarget('accepted', 'my-jobs.html')">
         <div>
           <div class="quick-icon">🧰</div>
           <div class="quick-title">My Jobs</div>
@@ -869,7 +869,7 @@
       </div>
  
       <div class="quick-card"
-        onclick="window.location.href='worker-payout-status.html'">
+        onclick="openNotificationTarget('payouts', 'worker-payout-status.html')">
         <div>
           <div class="quick-icon">💵</div>
           <div class="quick-title">Payout Status</div>
@@ -878,7 +878,7 @@
       </div>
  
       <div class="quick-card"
-        onclick="window.location.href='worker-message-center.html'">
+        onclick="openNotificationTarget('messages', 'worker-message-center.html')">
         <div>
           <div class="quick-icon">💬</div>
           <div class="quick-title">Messages</div>
@@ -898,7 +898,7 @@
       </div>
  
       <div class="section-link"
-        onclick="window.location.href='worker-calendar.html'">
+        onclick="openNotificationTarget('schedule', 'worker-calendar.html')">
         Full Schedule
       </div>
     </div>
@@ -973,7 +973,7 @@
       </div>
  
       <div class="tool-row"
-        onclick="window.location.href='worker-reviews.html'">
+        onclick="openNotificationTarget('reviews', 'worker-reviews.html')">
         <div class="tool-left">
           <div class="tool-icon">⭐</div>
           <div>
@@ -985,7 +985,7 @@
       </div>
  
       <div class="tool-row"
-        onclick="window.location.href='worker-disputes.html'">
+        onclick="openNotificationTarget('disputes', 'worker-disputes.html')">
         <div class="red-dot" id="disputeDot"></div>
  
         <div class="tool-left">
@@ -1048,6 +1048,84 @@ const supabaseClient =
  
 let currentUser = null;
 let currentWorkerId = null;
+
+let rawNotificationCounts = {
+  directRequests: 0,
+  accepted: 0,
+  messages: 0,
+  disputes: 0,
+  reviews: 0,
+  payouts: 0,
+  schedule: 0
+};
+
+function getNotificationDismissedCount(category) {
+  const value =
+    localStorage.getItem(`taskmintWorkerNotificationDismissed_${category}`);
+
+  return Number(value || 0);
+}
+
+function getAdjustedNotificationCount(category, count) {
+  const dismissedCount =
+    getNotificationDismissedCount(category);
+
+  const adjusted =
+    Number(count || 0) - dismissedCount;
+
+  return adjusted > 0 ? adjusted : 0;
+}
+
+function openNotificationTarget(category, url) {
+  const rawCount =
+    Number(rawNotificationCounts[category] || 0);
+
+  localStorage.setItem(
+    `taskmintWorkerNotificationDismissed_${category}`,
+    String(rawCount)
+  );
+
+  updateWorkerNotificationDisplay();
+
+  window.location.href =
+    url;
+}
+
+function updateWorkerNotificationDisplay() {
+  const directRequestCount =
+    getAdjustedNotificationCount("directRequests", rawNotificationCounts.directRequests);
+
+  const acceptedCount =
+    getAdjustedNotificationCount("accepted", rawNotificationCounts.accepted);
+
+  const messageCount =
+    getAdjustedNotificationCount("messages", rawNotificationCounts.messages);
+
+  const disputeCount =
+    getAdjustedNotificationCount("disputes", rawNotificationCounts.disputes);
+
+  const reviewCount =
+    getAdjustedNotificationCount("reviews", rawNotificationCounts.reviews);
+
+  const payoutCount =
+    getAdjustedNotificationCount("payouts", rawNotificationCounts.payouts);
+
+  const todayScheduleCount =
+    getAdjustedNotificationCount("schedule", rawNotificationCounts.schedule);
+
+  rawNotificationCounts = {
+    directRequests: directRequestCount,
+    accepted: acceptedCount,
+    messages: messageCount,
+    disputes: disputeCount,
+    reviews: reviewCount,
+    payouts: payoutCount,
+    schedule: todayScheduleCount
+  };
+
+  updateWorkerNotificationDisplay();
+}
+
  
 async function loadDashboard() {
  

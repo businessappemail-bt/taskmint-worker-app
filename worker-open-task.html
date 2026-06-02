@@ -962,48 +962,59 @@ async function fetchCustomerProfiles(tasks) {
       tasks
         .map(task => getCustomerId(task))
         .filter(id => id && String(id).trim() !== "")
-        .map(id => String(id))
     )
   ];
-
+ 
   if (customerIds.length === 0) {
     return {};
   }
-
+ 
   const { data, error } = await supabaseClient
     .from("profiles")
     .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
     .in("id", customerIds);
-
+ 
   if (error || !data) {
     return {};
   }
-
+ 
   const profileMap = {};
-
+ 
   data.forEach(profile => {
     profileMap[String(profile.id)] = profile;
   });
-
+ 
   return profileMap;
 }
 
-async function fetchSingleCustomerProfile(customerId) {
+async function getCustomerDisplayData(customerId, task = null) {
+  const fallbackName =
+    getCustomerDisplayName(null, task);
+
   if (!customerId) {
-    return null;
+    return {
+      name: fallbackName,
+      photo: DEFAULT_PROFILE_PHOTO
+    };
   }
 
-  const { data, error } = await supabaseClient
+  const { data: profile } = await supabaseClient
     .from("profiles")
     .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
     .eq("id", customerId)
     .maybeSingle();
 
-  if (error || !data) {
-    return null;
+  if (!profile) {
+    return {
+      name: fallbackName,
+      photo: DEFAULT_PROFILE_PHOTO
+    };
   }
 
-  return data;
+  return {
+    name: getCustomerDisplayName(profile, task),
+    photo: getCustomerPhoto(profile)
+  };
 }
 
  
@@ -1173,11 +1184,7 @@ async function loadTasks() {
 
   for (const task of combinedTasks) {
     const customerId = getCustomerId(task);
-    let customerProfile = customerProfiles[String(customerId)] || null;
-
-    if (!customerProfile && customerId) {
-      customerProfile = await fetchSingleCustomerProfile(customerId);
-    }
+    const customerDisplay = await getCustomerDisplayData(customerId, task);
     const category = getTaskCategory(task);
     const taskDate = formatDate(getTaskDate(task));
     const createdDate = formatDate(task.created_at);
@@ -1218,7 +1225,7 @@ async function loadTasks() {
 
         <div>
           <div class="customer-name">
-            ${escapeHTML(getCustomerDisplayName(customerProfile, task))}
+            ${escapeHTML(customerDisplay.name)}
           </div>
 
           <div class="customer-sub">

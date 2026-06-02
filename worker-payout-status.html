@@ -304,6 +304,48 @@
       line-height: 1.45;
       margin-top: 10px;
     }
+
+
+    .payout-options {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .payout-option {
+      background: #f7faf8;
+      border: 1px solid #e3eee6;
+      border-radius: 18px;
+      padding: 13px;
+    }
+
+    .payout-option-title {
+      font-size: 14px;
+      font-weight: 900;
+      color: #111;
+      margin-bottom: 4px;
+    }
+
+    .payout-option-text {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+
+    .fee-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #444;
+      margin-top: 5px;
+    }
+
+    .fee-row strong {
+      color: #111;
+    }
  
     @keyframes spin {
       to { transform: rotate(360deg); }
@@ -339,11 +381,36 @@
         Completed and released jobs will show here.
       </div>
     </div>
- 
-    <button id="requestPayoutButton" onclick="requestPayout()" disabled>
-      Request Payout
-    </button>
- 
+<div class="payout-options">
+      <div class="payout-option">
+        <div class="payout-option-title">Free Friday Payout</div>
+        <div class="payout-option-text">
+          Request your available balance with no payout fee. Standard payouts are reviewed and processed during the Friday payout run.
+        </div>
+        <button id="standardPayoutButton" onclick="requestPayout('standard')" disabled>
+          Request Free Friday Payout
+        </button>
+      </div>
+
+      <div class="payout-option">
+        <div class="payout-option-title">Instant Payout</div>
+        <div class="payout-option-text">
+          Request faster payout processing for a small instant payout fee.
+        </div>
+        <div class="fee-row">
+          <span>Instant fee</span>
+          <strong id="instantFeeAmount">$0.00</strong>
+        </div>
+        <div class="fee-row">
+          <span>You receive</span>
+          <strong id="instantNetAmount">$0.00</strong>
+        </div>
+        <button id="instantPayoutButton" onclick="requestPayout('instant')" disabled>
+          Request Instant Payout
+        </button>
+      </div>
+    </div>
+
     <button class="secondary" onclick="window.location.href='worker-payout-info.html'">
       Update Payout Information
     </button>
@@ -415,8 +482,12 @@ const supabaseClient =
  
 let currentUser = null;
 let currentWorkerId = null;
+let currentWorkerIds = [];
 let availableBalance = 0;
 let payoutRequests = [];
+
+const INSTANT_PAYOUT_FEE_RATE = 0.015;
+const INSTANT_PAYOUT_MIN_FEE = 1.00;
  
 function money(value) {
   const amount = Number(value || 0);
@@ -502,7 +573,7 @@ function getFirstAvailable(record, keys, fallback = "") {
 async function getCurrentWorker() {
   const { data: sessionData, error: sessionError } =
     await supabaseClient.auth.getSession();
- 
+
   if (
     sessionError ||
     !sessionData ||
@@ -512,47 +583,44 @@ async function getCurrentWorker() {
     window.location.href = "worker-login.html";
     return false;
   }
- 
+
   currentUser = sessionData.session.user;
- 
-  const { data: workerProfile } =
-    await supabaseClient
-      .from("worker_profiles")
-      .select("id, email, stripe_account_id, payout_status")
-      .eq("email", currentUser.email)
-      .maybeSingle();
- 
-  if (workerProfile && workerProfile.id) {
-    currentWorkerId = workerProfile.id;
-    return true;
-  }
- 
-  const { data: workerRecord } =
-    await supabaseClient
-      .from("worker_profiles")
-      .select("id, email, stripe_account_id, payout_status")
-      .eq("email", currentUser.email)
-      .maybeSingle();
- 
-  if (workerRecord && workerRecord.id) {
-    currentWorkerId = workerRecord.id;
-    return true;
-  }
- 
+
+  const ids = [currentUser.id];
+
   const { data: profile } =
     await supabaseClient
       .from("profiles")
       .select("id, email")
       .eq("email", currentUser.email)
       .maybeSingle();
- 
+
   if (profile && profile.id) {
-    currentWorkerId = profile.id;
-    return true;
+    ids.push(profile.id);
   }
- 
-  return false;
+
+  const { data: workerProfile } =
+    await supabaseClient
+      .from("worker_profiles")
+      .select("id, email, stripe_account_id, payout_status")
+      .eq("email", currentUser.email)
+      .maybeSingle();
+
+  if (workerProfile && workerProfile.id) {
+    ids.push(workerProfile.id);
+  }
+
+  currentWorkerIds =
+    [...new Set(ids.filter(Boolean).map(String))];
+
+  currentWorkerId =
+    workerProfile && workerProfile.id
+      ? workerProfile.id
+      : currentWorkerIds[0];
+
+  return currentWorkerIds.length > 0;
 }
+
  
 function getEarningAmount(row) {
   return Number(
@@ -588,14 +656,14 @@ async function loadAvailableBalance() {
     await supabaseClient
       .from("worker_earnings")
       .select("*")
-      .eq("worker_id", currentWorkerId);
+      .in("worker_id", currentWorkerIds);
  
   if (error || !data) {
     availableBalance = 0;
     document.getElementById("availableBalance").innerText = money(0);
     document.getElementById("balanceSubtext").innerText =
       "No available earnings found yet.";
-    document.getElementById("requestPayoutButton").disabled = true;
+    updatePayoutButtons();
     return;
   }
  
@@ -611,8 +679,7 @@ async function loadAvailableBalance() {
       ? "You can request this available amount for payout."
       : "Completed and released jobs will show here.";
  
-  document.getElementById("requestPayoutButton").disabled =
-    availableBalance <= 0;
+  updatePayoutButtons();
 }
  
 function requestAmount(row) {
@@ -650,7 +717,7 @@ async function loadPayoutRequests() {
     await supabaseClient
       .from("worker_payouts")
       .select("*")
-      .eq("worker_id", currentWorkerId)
+      .in("worker_id", currentWorkerIds)
       .order("created_at", { ascending: false });
  
   if (error) {
@@ -756,11 +823,31 @@ function renderPayoutRequests() {
       "stripe_reference"
     ], "");
  
+    const payoutSpeed = getFirstAvailable(row, [
+      "payout_speed",
+      "payout_type",
+      "speed"
+    ], "standard");
+
+    const feeAmount = Number(getFirstAvailable(row, [
+      "fee_amount",
+      "instant_fee",
+      "processing_fee"
+    ], 0));
+
+    const netAmount = Number(getFirstAvailable(row, [
+      "net_amount",
+      "net_payout_amount",
+      "amount_after_fee"
+    ], requestAmount(row)));
+
     const note = status === "denied" || status === "failed" || status === "rejected"
       ? `Reason: ${cleanText(denialReason, "No reason listed")}`
       : stripeReference
         ? `Stripe reference: ${stripeReference}`
-        : "Stripe status will update after processing.";
+        : payoutSpeed === "instant"
+          ? `Instant payout fee: ${money(feeAmount)}. Estimated payout after fee: ${money(netAmount)}.`
+          : "Free Friday payout. Stripe status will update after processing.";
  
     list.innerHTML += `
       <div class="request-card">
@@ -768,6 +855,7 @@ function renderPayoutRequests() {
           <div>
             <div class="request-amount">${money(requestAmount(row))}</div>
             <div class="request-meta">
+              Type: ${cleanText(payoutSpeed).replaceAll("_", " ")}<br>
               Submitted: ${formatDateTime(submitted)}<br>
               Last Update: ${formatDateTime(processedAt)}
             </div>
@@ -786,27 +874,52 @@ function renderPayoutRequests() {
   });
 }
  
-async function requestPayout() {
-  const button = document.getElementById("requestPayoutButton");
-  const originalText = button.innerText;
- 
+async function requestPayout(payoutSpeed) {
+  const standardButton = document.getElementById("standardPayoutButton");
+  const instantButton = document.getElementById("instantPayoutButton");
+  const selectedSpeed = payoutSpeed === "instant" ? "instant" : "standard";
+  const button = selectedSpeed === "instant" ? instantButton : standardButton;
+  const originalText = button ? button.innerText : "";
+  const feeAmount = selectedSpeed === "instant"
+    ? calculateInstantFee(availableBalance)
+    : 0;
+  const netAmount = Math.max(availableBalance - feeAmount, 0);
+
   if (availableBalance <= 0) {
     setActionMessage("No available balance to request.", "#b00020");
     return;
   }
- 
-  const confirmed = confirm(
-    `Request payout for ${money(availableBalance)}?`
-  );
- 
+
+  if (selectedSpeed === "instant" && netAmount <= 0) {
+    setActionMessage("Instant payout amount is too low after the fee.", "#b00020");
+    return;
+  }
+
+  const confirmMessage =
+    selectedSpeed === "instant"
+      ? `Request instant payout for ${money(availableBalance)}? Instant fee: ${money(feeAmount)}. You receive: ${money(netAmount)}.`
+      : `Request free Friday payout for ${money(availableBalance)}?`;
+
+  const confirmed = confirm(confirmMessage);
+
   if (!confirmed) {
     return;
   }
- 
-  button.disabled = true;
-  button.innerText = "Submitting...";
+
+  if (standardButton) {
+    standardButton.disabled = true;
+  }
+
+  if (instantButton) {
+    instantButton.disabled = true;
+  }
+
+  if (button) {
+    button.innerText = "Submitting...";
+  }
+
   setActionMessage("Submitting payout request...", "#666");
- 
+
   try {
     const { data: requestRow, error: insertError } =
       await supabaseClient
@@ -815,25 +928,29 @@ async function requestPayout() {
           worker_id: currentWorkerId,
           worker_email: currentUser.email,
           amount: availableBalance,
+          payout_speed: selectedSpeed,
+          fee_amount: feeAmount,
+          net_amount: netAmount,
           status: "requested",
-          requested_at: new Date().toISOString()
+          requested_at: new Date().toISOString(),
+          scheduled_payout_day: selectedSpeed === "standard" ? "Friday" : null
         })
         .select("*")
         .single();
- 
+
     if (insertError) {
       setActionMessage(insertError.message, "#b00020");
       return;
     }
- 
+
     const { data: sessionData } =
       await supabaseClient.auth.getSession();
- 
+
     const accessToken =
       sessionData && sessionData.session
         ? sessionData.session.access_token
         : "";
- 
+
     const stripeResponse = await fetch(
       `${SUPABASE_URL}/functions/v1/request-worker-payout`,
       {
@@ -845,11 +962,14 @@ async function requestPayout() {
         body: JSON.stringify({
           worker_id: currentWorkerId,
           payout_request_id: requestRow.id,
-          amount: availableBalance
+          amount: availableBalance,
+          payout_speed: selectedSpeed,
+          fee_amount: feeAmount,
+          net_amount: netAmount
         })
       }
     );
- 
+
     if (!stripeResponse.ok) {
       setActionMessage(
         "Payout request saved. Stripe processing backend still needs to be connected.",
@@ -858,24 +978,30 @@ async function requestPayout() {
       await loadPayoutPage();
       return;
     }
- 
+
     setActionMessage(
-      "Payout request submitted for Stripe processing.",
+      selectedSpeed === "instant"
+        ? "Instant payout request submitted for processing."
+        : "Free Friday payout request submitted for processing.",
       "#0b7a28"
     );
- 
+
     await loadPayoutPage();
- 
+
   } catch (error) {
     setActionMessage(
       error.message || "Something went wrong requesting payout.",
       "#b00020"
     );
   } finally {
-    button.innerText = originalText;
-    button.disabled = availableBalance <= 0;
+    if (button) {
+      button.innerText = originalText;
+    }
+
+    updatePayoutButtons();
   }
 }
+
  
 async function loadPayoutPage() {
   setActionMessage("", "#666");

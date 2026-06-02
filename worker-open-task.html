@@ -525,6 +525,52 @@ function getTaskDetails(task) {
   return rawDetails || "No additional task details were provided.";
 }
 
+
+function removeHiddenAddressDetails(textValue) {
+  const text = cleanText(textValue, "");
+
+  if (!text) {
+    return "";
+  }
+
+  return text
+    .split("\n")
+    .filter(line => {
+      const lowered = String(line || "").toLowerCase().trim();
+
+      return !(
+        lowered.startsWith("drop-off address:") ||
+        lowered.startsWith("dropoff address:") ||
+        lowered.startsWith("drop off address:") ||
+        lowered.startsWith("drop-off unit:") ||
+        lowered.startsWith("dropoff unit:") ||
+        lowered.startsWith("drop off unit:") ||
+        lowered.startsWith("drop-off city:") ||
+        lowered.startsWith("dropoff city:") ||
+        lowered.startsWith("drop off city:") ||
+        lowered.startsWith("drop-off state:") ||
+        lowered.startsWith("dropoff state:") ||
+        lowered.startsWith("drop off state:") ||
+        lowered.startsWith("drop-off zip:") ||
+        lowered.startsWith("dropoff zip:") ||
+        lowered.startsWith("drop off zip:")
+      );
+    })
+    .join("\n")
+    .trim();
+}
+
+function getSafeTaskDetails(task) {
+  const details = getTaskDetails(task);
+
+  if (canShowFullAddress(task)) {
+    return details;
+  }
+
+  return removeHiddenAddressDetails(details) ||
+    "Task details are available. Full address information will unlock after the customer accepts and pays your quote and the task is within 7 days.";
+}
+
 function getDirectTaskDetails(task) {
   const answers =
     task.task_details && typeof task.task_details === "object"
@@ -717,30 +763,55 @@ function getMilesAway(task) {
  
 function getCustomerDisplayName(profile, task = null) {
   const taskCustomerName = getFirstAvailable(task, [
-    "customer_name"
+    "customer_name",
+    "customer_full_name",
+    "client_name",
+    "posted_by_name"
   ], "");
 
   if (taskCustomerName) {
     return taskCustomerName;
   }
 
+  const taskFirstName = getFirstAvailable(task, [
+    "customer_first_name",
+    "first_name"
+  ], "");
+
+  const taskLastName = getFirstAvailable(task, [
+    "customer_last_name",
+    "last_name"
+  ], "");
+
+  const taskNameFromParts = `${taskFirstName} ${taskLastName}`.trim();
+
+  if (taskNameFromParts) {
+    return taskNameFromParts;
+  }
+
   if (!profile) {
     return "Customer";
   }
- 
+
+  const fullName = getFirstAvailable(profile, [
+    "full_name"
+  ], "");
+
+  if (fullName) {
+    return fullName;
+  }
+
   const firstName = getFirstAvailable(profile, [
     "first_name",
     "firstName"
   ], "Customer");
- 
+
   const lastName = getFirstAvailable(profile, [
     "last_name",
     "lastName"
   ], "");
- 
-  const lastInitial = lastName ? `${String(lastName).trim().charAt(0)}.` : "";
- 
-  return `${firstName} ${lastInitial}`.trim();
+
+  return `${firstName} ${lastName}`.trim();
 }
  
 function getCustomerPhoto(profile) {
@@ -898,7 +969,7 @@ async function fetchCustomerProfiles(tasks) {
   const profileMap = {};
  
   data.forEach(profile => {
-    profileMap[profile.id] = profile;
+    profileMap[String(profile.id)] = profile;
   });
  
   return profileMap;
@@ -1011,7 +1082,7 @@ async function loadTasks() {
 
   combinedTasks.forEach(task => {
     const customerId = getCustomerId(task);
-    const customerProfile = customerProfiles[customerId] || null;
+    const customerProfile = customerProfiles[String(customerId)] || null;
     const category = getTaskCategory(task);
     const taskDate = formatDate(getTaskDate(task));
     const createdDate = formatDate(task.created_at);
@@ -1093,7 +1164,7 @@ async function loadTasks() {
 
       <div class="details-box" id="${detailsId}">
         <div class="details-label">Full Task Information</div>
-        <div class="details-text">${escapeHTML(getTaskDetails(task))}</div>
+        <div class="details-text">${escapeHTML(getSafeTaskDetails(task))}</div>
       </div>
 
       <div class="privacy-note">

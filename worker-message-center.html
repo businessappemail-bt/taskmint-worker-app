@@ -512,6 +512,105 @@ img {
   color: #333;
 }
 
+
+.inbox-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.inbox-tab {
+  background: white;
+  color: #111;
+  border: 1px solid #dfe5e0;
+  border-radius: 16px;
+  padding: 11px 8px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.25;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.inbox-tab.active {
+  background: #0b7a28;
+  color: white;
+  border-color: #0b7a28;
+}
+
+.inbox-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: #e7f7ec;
+  color: #0b7a28;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.inbox-tab.active .inbox-tab-count {
+  background: white;
+  color: #0b7a28;
+}
+
+.inbox-tab.has-new .inbox-tab-count {
+  background: #b00020;
+  color: white;
+}
+
+.inbox-tab.active.has-new .inbox-tab-count {
+  background: white;
+  color: #b00020;
+}
+
+.inbox-list-card {
+  background: white;
+  border-radius: 20px;
+  padding: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  border: 1px solid #edf1ee;
+}
+
+.inbox-list-title {
+  font-size: 16px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.inbox-list-sub {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+
+.conversation-card.unread {
+  box-shadow: 0 8px 18px rgba(25,164,71,0.13);
+}
+
+.conversation-title-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.new-pill {
+  background: #b00020;
+  color: white;
+  border-radius: 999px;
+  padding: 4px 7px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+
 .hidden {
   display: none;
 }
@@ -572,33 +671,37 @@ img {
       </div>
     </div>
 
-    <div class="inbox-section">
-      <div class="section-head">
-        <div class="section-title">Direct Quote Requests</div>
-        <div class="section-count" id="directCount">0</div>
-      </div>
-      <div id="directQuoteList">
-        <div class="empty">Loading direct quote requests...</div>
-      </div>
+    <div class="inbox-tabs">
+      <button
+        class="inbox-tab active"
+        id="tab-direct"
+        onclick="setInboxTab('direct')">
+        Direct Requests<br>
+        <span class="inbox-tab-count" id="directCount">0</span>
+      </button>
+
+      <button
+        class="inbox-tab"
+        id="tab-message"
+        onclick="setInboxTab('message')">
+        Customer Messages<br>
+        <span class="inbox-tab-count" id="messageCount">0</span>
+      </button>
+
+      <button
+        class="inbox-tab"
+        id="tab-quote"
+        onclick="setInboxTab('quote')">
+        Quote Messages<br>
+        <span class="inbox-tab-count" id="quoteCount">0</span>
+      </button>
     </div>
 
-    <div class="inbox-section">
-      <div class="section-head">
-        <div class="section-title">Customer Messages</div>
-        <div class="section-count" id="messageCount">0</div>
-      </div>
-      <div id="directMessageList">
-        <div class="empty">Loading customer messages...</div>
-      </div>
-    </div>
-
-    <div class="inbox-section">
-      <div class="section-head">
-        <div class="section-title">Quote Messages</div>
-        <div class="section-count" id="quoteCount">0</div>
-      </div>
-      <div id="quoteMessageList">
-        <div class="empty">Loading quote messages...</div>
+    <div class="inbox-list-card">
+      <div class="inbox-list-title" id="activeInboxTitle">Direct Quote Requests</div>
+      <div class="inbox-list-sub" id="activeInboxSub">New direct requests show first. Older requests show below.</div>
+      <div id="activeInboxList">
+        <div class="empty">Loading messages...</div>
       </div>
     </div>
   </div>
@@ -658,6 +761,8 @@ let selectedConversationIds = [];
 let directRequestCache = {};
 let taskCache = {};
 let quoteCache = {};
+let customerNameCache = {};
+let activeInboxTab = "direct";
 
 let currentConversationId =
   params.get("conversation_id") ||
@@ -1231,6 +1336,32 @@ async function fetchTaskInfo(taskIdValue) {
   return taskCache[taskIdValue];
 }
 
+async function fetchCustomerName(customerIdValue) {
+  if (!customerIdValue) {
+    return "Customer";
+  }
+
+  if (customerNameCache[customerIdValue]) {
+    return customerNameCache[customerIdValue];
+  }
+
+  const { data: profile } =
+    await supabaseClient
+      .from("profiles")
+      .select("first_name, last_name, full_name")
+      .eq("id", customerIdValue)
+      .maybeSingle();
+
+  const customerName =
+    profile?.full_name ||
+    `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
+    "Customer";
+
+  customerNameCache[customerIdValue] = customerName;
+
+  return customerName;
+}
+
 async function fetchDirectRequestInfo(requestIdValue, conversation = null) {
   try {
     let requestId =
@@ -1378,6 +1509,8 @@ async function hydrateConversation(conversation, user) {
         : type === "message"
           ? "Direct customer message"
           : task.category || task.title || "",
+    hydrated_customer_name:
+      await fetchCustomerName(conversation.customer_id),
     hydrated_preview:
       latestMessage?.message ||
       directRequest.additional_notes ||
@@ -1394,15 +1527,11 @@ async function hydrateConversation(conversation, user) {
 }
 
 async function loadInbox() {
-  const directBox = document.getElementById("directQuoteList");
-  const messageBox = document.getElementById("directMessageList");
-  const quoteBox = document.getElementById("quoteMessageList");
+  const inboxBox = document.getElementById("activeInboxList");
 
   try {
 
-  directBox.innerHTML = `<div class="empty">Loading direct quote requests...</div>`;
-  messageBox.innerHTML = `<div class="empty">Loading customer messages...</div>`;
-  quoteBox.innerHTML = `<div class="empty">Loading quote messages...</div>`;
+  inboxBox.innerHTML = `<div class="empty">Loading messages...</div>`;
 
   const user = await getCurrentUser();
   if (!user) return;
@@ -1426,8 +1555,7 @@ async function loadInbox() {
       .order("updated_at", { ascending: false });
 
   if (error) {
-    directBox.innerHTML = "";
-    quoteBox.innerHTML = `<p class="error">${escapeHTML(error.message)}</p>`;
+    inboxBox.innerHTML = `<p class="error">${escapeHTML(error.message)}</p>`;
     return;
   }
 
@@ -1448,9 +1576,7 @@ async function loadInbox() {
     document.getElementById("directCount").innerText = "0";
     document.getElementById("messageCount").innerText = "0";
     document.getElementById("quoteCount").innerText = "0";
-    directBox.innerHTML = `<div class="empty">Direct quote requests could not load: ${escapeHTML(err.message || err)}</div>`;
-    messageBox.innerHTML = `<div class="empty">Customer messages could not load.</div>`;
-    quoteBox.innerHTML = `<div class="empty">Quote messages could not load.</div>`;
+    inboxBox.innerHTML = `<div class="empty">Messages could not load: ${escapeHTML(err.message || err)}</div>`;
   }
 }
 
@@ -1596,34 +1722,145 @@ async function deleteSelectedConversations() {
 }
 
 function filterInbox() {
+  const filterSelect =
+    document.getElementById("filterSelect");
+
+  const filter =
+    filterSelect ? filterSelect.value : "";
+
+  if (filter === "direct" || filter === "message" || filter === "quote") {
+    activeInboxTab = filter;
+  }
+
   const filtered =
     getCurrentVisibleItems();
 
   renderInbox(filtered);
 }
 
+
+function getInboxTabLabel(tab) {
+  if (tab === "direct") {
+    return "Direct Quote Requests";
+  }
+
+  if (tab === "message") {
+    return "Customer Messages";
+  }
+
+  return "Quote Messages";
+}
+
+function getInboxTabEmptyText(tab) {
+  if (tab === "direct") {
+    return "No direct quote requests yet.";
+  }
+
+  if (tab === "message") {
+    return "No customer messages yet.";
+  }
+
+  return "No quote messages yet.";
+}
+
+function setInboxTab(tab) {
+  activeInboxTab = tab;
+  renderInbox(getCurrentVisibleItems());
+}
+
+function sortInboxItems(items) {
+  return items.slice().sort((a, b) => {
+    const unreadA =
+      Number(a.hydrated_unread_count || 0) > 0 ? 1 : 0;
+
+    const unreadB =
+      Number(b.hydrated_unread_count || 0) > 0 ? 1 : 0;
+
+    if (unreadA !== unreadB) {
+      return unreadB - unreadA;
+    }
+
+    const dateA =
+      new Date(a.hydrated_latest_date || a.updated_at || a.created_at || 0).getTime();
+
+    const dateB =
+      new Date(b.hydrated_latest_date || b.updated_at || b.created_at || 0).getTime();
+
+    return dateB - dateA;
+  });
+}
+
+function updateInboxTabs(directItems, messageItems, quoteItems) {
+  const tabData = {
+    direct: directItems,
+    message: messageItems,
+    quote: quoteItems
+  };
+
+  Object.keys(tabData).forEach(tab => {
+    const tabButton =
+      document.getElementById(`tab-${tab}`);
+
+    const countElement =
+      document.getElementById(`${tab === "direct" ? "direct" : tab === "message" ? "message" : "quote"}Count`);
+
+    const unreadCount =
+      tabData[tab].reduce((total, item) => {
+        return total + Number(item.hydrated_unread_count || 0);
+      }, 0);
+
+    if (countElement) {
+      countElement.innerText =
+        String(unreadCount > 0 ? unreadCount : tabData[tab].length);
+    }
+
+    if (tabButton) {
+      tabButton.classList.toggle("active", tab === activeInboxTab);
+      tabButton.classList.toggle("has-new", unreadCount > 0);
+    }
+  });
+}
+
+
 function renderInbox(items) {
+  const sortedItems =
+    sortInboxItems(items);
+
   const directItems =
-    items.filter(item => item.hydrated_type === "direct");
+    sortedItems.filter(item => item.hydrated_type === "direct");
 
   const messageItems =
-    items.filter(item => item.hydrated_type === "message");
+    sortedItems.filter(item => item.hydrated_type === "message");
 
   const quoteItems =
-    items.filter(item => item.hydrated_type === "quote");
+    sortedItems.filter(item => item.hydrated_type === "quote");
 
-  document.getElementById("directCount").innerText =
-    String(directItems.length);
+  updateInboxTabs(directItems, messageItems, quoteItems);
 
-  document.getElementById("messageCount").innerText =
-    String(messageItems.length);
+  const activeItems =
+    activeInboxTab === "direct"
+      ? directItems
+      : activeInboxTab === "message"
+        ? messageItems
+        : quoteItems;
 
-  document.getElementById("quoteCount").innerText =
-    String(quoteItems.length);
+  const title =
+    document.getElementById("activeInboxTitle");
 
-  renderInboxGroup("directQuoteList", directItems, "No direct quote requests yet.");
-  renderInboxGroup("directMessageList", messageItems, "No customer messages yet.");
-  renderInboxGroup("quoteMessageList", quoteItems, "No quote messages yet.");
+  const sub =
+    document.getElementById("activeInboxSub");
+
+  if (title) {
+    title.innerText =
+      getInboxTabLabel(activeInboxTab);
+  }
+
+  if (sub) {
+    sub.innerText =
+      "New messages show first. Older messages show below.";
+  }
+
+  renderInboxGroup("activeInboxList", activeItems, getInboxTabEmptyText(activeInboxTab));
 }
 
 function renderInboxGroup(elementId, items, emptyText) {
@@ -1657,7 +1894,7 @@ function renderInboxGroup(elementId, items, emptyText) {
             const sender =
               String(msg.sender_id) === String(currentUser.id)
                 ? "You"
-                : "Customer";
+                : item.hydrated_customer_name || "Customer";
 
             return `
               <div class="mini-message">
@@ -1691,10 +1928,14 @@ function renderInboxGroup(elementId, items, emptyText) {
           <div class="conversation-top" onclick="toggleConversation('${detailsId}', '${item.id}')">
             <div>
           <div class="conversation-title">
-            ${escapeHTML(item.hydrated_title)}
+            <span class="conversation-title-row">
+              ${escapeHTML(item.hydrated_customer_name || "Customer")}
+              ${unread ? `<span class="new-pill">NEW</span>` : ""}
+            </span>
           </div>
 
           <div class="conversation-sub">
+            ${escapeHTML(item.hydrated_title)}<br>
             ${item.hydrated_task_title ? escapeHTML(item.hydrated_task_title) + "<br>" : ""}
             ${item.hydrated_latest_date ? escapeHTML(formatDate(item.hydrated_latest_date)) : ""}
           </div>
@@ -2208,6 +2449,9 @@ async function loadMessages() {
   await markInboxItemRead();
   await markMessagesRead(user);
 
+  const customerName =
+    await fetchCustomerName(currentCustomerId);
+
   const { data: messages, error } =
     await supabaseClient
       .from("task_messages")
@@ -2242,7 +2486,7 @@ async function loadMessages() {
 
     div.innerHTML = `
       <div class="message-label">
-        ${isMine ? "You" : "Customer"}
+        ${isMine ? "You" : customerName}
       </div>
 
       <div class="message-text">

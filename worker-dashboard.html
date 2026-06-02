@@ -679,7 +679,7 @@
 
     <div class="notification-list" id="notificationList">
 
-      <div class="notification-item" onclick="window.location.href='worker-direct-requests.html'">
+      <div class="notification-item" onclick="openWorkerNotification('directRequests', 'worker-direct-requests.html')">
         <div class="notification-left">
           <div class="notification-icon">📩</div>
           <div>
@@ -690,7 +690,7 @@
         <div class="notification-count" id="directRequestNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='my-jobs.html'">
+      <div class="notification-item" onclick="openWorkerNotification('accepted', 'my-jobs.html')">
         <div class="notification-left">
           <div class="notification-icon">✅</div>
           <div>
@@ -701,7 +701,7 @@
         <div class="notification-count" id="acceptedNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='worker-message-center.html'">
+      <div class="notification-item" onclick="openWorkerNotification('messages', 'worker-message-center.html')">
         <div class="notification-left">
           <div class="notification-icon">💬</div>
           <div>
@@ -712,7 +712,7 @@
         <div class="notification-count" id="messageNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='worker-disputes.html'">
+      <div class="notification-item" onclick="openWorkerNotification('disputes', 'worker-disputes.html')">
         <div class="notification-left">
           <div class="notification-icon">⚠️</div>
           <div>
@@ -723,7 +723,7 @@
         <div class="notification-count" id="disputeNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='worker-reviews.html'">
+      <div class="notification-item" onclick="openWorkerNotification('reviews', 'worker-reviews.html')">
         <div class="notification-left">
           <div class="notification-icon">⭐</div>
           <div>
@@ -734,7 +734,7 @@
         <div class="notification-count" id="reviewNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='worker-payout-status.html'">
+      <div class="notification-item" onclick="openWorkerNotification('payouts', 'worker-payout-status.html')">
         <div class="notification-left">
           <div class="notification-icon">💵</div>
           <div>
@@ -745,7 +745,7 @@
         <div class="notification-count" id="payoutNotificationCount">0</div>
       </div>
 
-      <div class="notification-item" onclick="window.location.href='worker-calendar.html'">
+      <div class="notification-item" onclick="openWorkerNotification('schedule', 'worker-calendar.html')">
         <div class="notification-left">
           <div class="notification-icon">📅</div>
           <div>
@@ -1078,6 +1078,22 @@ function markWorkerNotificationsViewed() {
   localStorage.setItem("taskmintWorkerNotificationDismissed_reviews", String(rawNotificationCounts.reviews || 0));
   localStorage.setItem("taskmintWorkerNotificationDismissed_payouts", String(rawNotificationCounts.payouts || 0));
   localStorage.setItem("taskmintWorkerNotificationDismissed_schedule", String(rawNotificationCounts.schedule || 0));
+}
+
+function markWorkerNotificationCategoryViewed(category) {
+  localStorage.setItem(
+    `taskmintWorkerNotificationDismissed_${category}`,
+    String(rawNotificationCounts[category] || 0)
+  );
+
+  updateWorkerNotificationDisplay();
+}
+
+function openWorkerNotification(category, url) {
+  markWorkerNotificationCategoryViewed(category);
+
+  window.location.href =
+    url;
 }
 
 function updateWorkerNotificationDisplay() {
@@ -1811,11 +1827,6 @@ function toggleNotificationPanel() {
   }
 
   panel.classList.toggle("show");
-
-  if (panel.classList.contains("show")) {
-    markWorkerNotificationsViewed();
-    updateWorkerNotificationDisplay();
-  }
 
 }
 

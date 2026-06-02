@@ -394,16 +394,25 @@ async function submitAccountRequest() {
   status.style.color = "#666";
   status.innerText = "Submitting request...";
 
-  const requestDetails = {
-    type: requestType,
-    reason: reasonText,
-    contact_email: contactEmail,
-    requested_at: new Date().toISOString()
-  };
+  const { error: requestError } = await supabaseClient
+    .from("account_deactivation_requests")
+    .insert({
+      worker_id: currentUser.id,
+      worker_email: currentUser.email || contactEmail,
+      request_type: requestType,
+      reason: reasonText,
+      status: "pending"
+    });
 
-  localStorage.setItem("workerAccountRequest", JSON.stringify(requestDetails));
+  if (requestError) {
+    console.error(requestError);
+    submitButton.disabled = false;
+    status.style.color = "#b00020";
+    status.innerText = "Request could not be submitted. Contact TaskMint support.";
+    return;
+  }
 
-  const { error } = await supabaseClient
+  const { error: profileError } = await supabaseClient
     .from("profiles")
     .update({
       pause_mode: true,
@@ -411,11 +420,11 @@ async function submitAccountRequest() {
     })
     .eq("id", currentUser.id);
 
-  if (error) {
-    console.error(error);
+  if (profileError) {
+    console.error(profileError);
     submitButton.disabled = false;
     status.style.color = "#b00020";
-    status.innerText = "Request could not be submitted. Contact TaskMint support.";
+    status.innerText = "Request was received, but your profile could not be updated. Contact TaskMint support.";
     return;
   }
 

@@ -90,32 +90,11 @@ async function loadBlockedCustomers() {
 
   currentWorkerIds = [...new Set(currentWorkerIds.filter(Boolean).map(String))];
 
-  let blocks = [];
-  let error = null;
-
-  const result1 = await supabaseClient
-    .from("blocked_customers")
+  const { data: blocks, error } = await supabaseClient
+    .from("blocked_users")
     .select("*")
     .in("worker_id", currentWorkerIds)
     .order("created_at", { ascending:false });
-
-  if (!result1.error && result1.data) {
-    blocks = result1.data;
-  }
-
-  if (blocks.length === 0) {
-    const result2 = await supabaseClient
-      .from("blocked_customers")
-      .select("*")
-      .in("blocked_by_worker_id", currentWorkerIds)
-      .order("created_at", { ascending:false });
-
-    if (!result2.error && result2.data) {
-      blocks = result2.data;
-    }
-  }
-
-  error = result1.error;
 
   if (error) {
     list.innerHTML = `<div class="card empty">Error loading blocked customers.</div>`;
@@ -192,7 +171,7 @@ async function removeBlockedCustomer(blockId) {
   if (!confirmRemove) return;
 
   let query = supabaseClient
-    .from("blocked_customers")
+    .from("blocked_users")
     .delete()
     .eq("id", blockId);
 

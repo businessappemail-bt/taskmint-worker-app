@@ -49,6 +49,20 @@ const supabaseClient = window.supabase.createClient(
 );
 
 let currentUser = null;
+let currentWorkerIds = [];
+
+function escapeHTML(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
 async function loadBlockedCustomers() {
   const list = document.getElementById("blockedCustomersList");
@@ -56,16 +70,30 @@ async function loadBlockedCustomers() {
   const { data: userData } = await supabaseClient.auth.getUser();
 
   if (!userData || !userData.user) {
-    window.location.href = "login.html";
+    window.location.href = "worker-login.html";
     return;
   }
 
   currentUser = userData.user;
 
+  currentWorkerIds = [currentUser.id];
+
+  const { data: workerProfile } = await supabaseClient
+    .from("worker_profiles")
+    .select("id")
+    .eq("email", currentUser.email)
+    .maybeSingle();
+
+  if (workerProfile && workerProfile.id) {
+    currentWorkerIds.push(workerProfile.id);
+  }
+
+  currentWorkerIds = [...new Set(currentWorkerIds.filter(Boolean).map(String))];
+
   const { data: blocks, error } = await supabaseClient
     .from("blocked_customers")
     .select("*")
-    .eq("worker_id", currentUser.id)
+    .in("worker_id", currentWorkerIds)
     .order("created_at", { ascending:false });
 
   if (error) {
@@ -88,16 +116,16 @@ async function loadBlockedCustomers() {
     list.innerHTML += `
       <div class="card">
         <div class="customer-row">
-          <img class="customer-pic" src="${photo}">
+          <img class="customer-pic" src="${escapeHTML(photo)}">
           <div>
-            <div class="customer-name">${name}</div>
+            <div class="customer-name">${escapeHTML(name)}</div>
             <div class="small-text">
   This customer cannot contact you for future jobs.
 </div>
           </div>
         </div>
 
-        <button class="danger" onclick="removeBlockedCustomer('${block.id}')">
+        <button class="danger" onclick="removeBlockedCustomer('${escapeHTML(block.id)}')">
           Remove from Blocked List
         </button>
       </div>
@@ -142,10 +170,16 @@ async function removeBlockedCustomer(blockId) {
 
   if (!confirmRemove) return;
 
-  const { error } = await supabaseClient
+  let query = supabaseClient
     .from("blocked_customers")
     .delete()
     .eq("id", blockId);
+
+  if (currentWorkerIds.length > 0) {
+    query = query.in("worker_id", currentWorkerIds);
+  }
+
+  const { error } = await query;
 
   if (error) {
     alert("Unable to remove blocked customer.");

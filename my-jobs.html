@@ -742,6 +742,35 @@ function getCountdownText(task) {
 function normalizeStatus(value) {
   return cleanText(value, "accepted").toLowerCase().replaceAll(" ", "_");
 }
+
+function isCustomerCancelledTask(task, quote) {
+  const taskStatus =
+    normalizeStatus(task.status);
+
+  const taskStatusValue =
+    normalizeStatus(task.task_status);
+
+  const quoteStatus =
+    normalizeStatus(quote.status);
+
+  return [
+    "cancelled",
+    "canceled",
+    "customer_cancelled",
+    "customer_canceled"
+  ].includes(taskStatus) ||
+    [
+      "cancelled",
+      "canceled",
+      "customer_cancelled",
+      "customer_canceled"
+    ].includes(taskStatusValue) ||
+    [
+      "customer_cancelled",
+      "customer_canceled"
+    ].includes(quoteStatus);
+}
+
  
 function prettyStatus(value) {
   return normalizeStatus(value).replaceAll("_", " ");
@@ -1232,7 +1261,8 @@ async function loadMyJobs() {
           customerProfile: null
         };
       })
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter(job => !isCustomerCancelledTask(job.task, job.quote));
  
     const customerProfiles = await fetchCustomerProfiles(loadedJobs);
  

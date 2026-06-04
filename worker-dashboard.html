@@ -35,7 +35,6 @@
       align-items: center;
     }
 
-    /* ── CENTER COLUMN ── */
     .top-bar, .page {
       width: 100%;
       max-width: 470px;
@@ -104,7 +103,7 @@
       padding: 20px 16px 30px;
     }
 
-    /* ── HERO GREETING ── */
+    /* ── HERO ── */
     .hero {
       margin-bottom: 20px;
     }
@@ -198,6 +197,7 @@
       border: none;
       transition: opacity 0.18s;
       text-align: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
     .profile-btn:hover { opacity: 0.88; }
     .profile-btn.outline {
@@ -246,7 +246,6 @@
       font-weight: 700;
       color: var(--accent);
       cursor: pointer;
-      text-decoration: none;
     }
 
     /* ── STATS ROW ── */
@@ -458,6 +457,12 @@
       margin-top: 8px;
     }
 
+    .small-text {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
     .quote-amount {
       font-size: 22px;
       font-weight: 800;
@@ -467,13 +472,13 @@
 
     .quote-actions {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       margin-top: 12px;
     }
 
     /* ── BUTTONS ── */
-    .btn {
+    button {
       width: 100%;
       padding: 12px;
       border: none;
@@ -487,28 +492,30 @@
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    button:hover { opacity: 0.88; transform: translateY(-1px); }
 
-    .btn.secondary {
+    button.secondary {
       background: var(--surface);
       color: var(--text);
       border: 1px solid var(--border);
     }
 
-    .btn.danger {
+    button.danger {
       background: var(--danger);
       color: #fff;
     }
 
-    .btn.danger:hover { opacity: 0.88; }
-
     /* ── LOGOUT SECTION ── */
-    .logout-section {
+    .logout-row {
       background: #fff5f5;
       border: 1px solid #ffd8d8;
       border-radius: 16px;
       padding: 16px;
       margin-top: 20px;
+    }
+
+    .logout {
+      background: var(--danger);
     }
 
     /* ── NOTIFICATION PANEL ── */
@@ -525,33 +532,33 @@
 
     .notification-panel.show { display: block; }
 
-    .notif-header {
+    .notification-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
     }
 
-    .notif-title {
+    .notification-title {
       font-size: 15px;
       font-weight: 800;
       color: var(--text);
     }
 
-    .notif-refresh {
+    .notification-refresh {
       font-size: 12px;
       font-weight: 700;
       color: var(--accent);
       cursor: pointer;
     }
 
-    .notif-list {
+    .notification-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
 
-    .notif-item {
+    .notification-item {
       display: flex;
       align-items: center;
       gap: 12px;
@@ -563,12 +570,19 @@
       transition: border-color 0.18s, transform 0.18s;
     }
 
-    .notif-item:hover {
+    .notification-item:hover {
       border-color: #a3cfb0;
       transform: translateY(-1px);
     }
 
-    .notif-icon {
+    .notification-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .notification-icon {
       width: 36px; height: 36px;
       border-radius: 11px;
       background: var(--surface2);
@@ -577,22 +591,20 @@
       flex-shrink: 0;
     }
 
-    .notif-text { flex: 1; }
-
-    .notif-main {
+    .notification-main {
       font-size: 13px;
       font-weight: 700;
       color: var(--text);
     }
 
-    .notif-sub {
+    .notification-sub {
       font-size: 11px;
       color: var(--muted);
       margin-top: 2px;
       line-height: 1.35;
     }
 
-    .notif-count {
+    .notification-count {
       min-width: 24px; height: 24px;
       border-radius: 999px;
       background: var(--accent);
@@ -604,7 +616,15 @@
       flex-shrink: 0;
     }
 
-    /* ── FADE ANIMATIONS ── */
+    /* ── PROFILE ACTIONS (kept for JS compat) ── */
+    .profile-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    /* ── ANIMATIONS ── */
     .fade-in {
       opacity: 0;
       animation: riseIn 0.35s forwards;
@@ -627,6 +647,7 @@
       .stats-row { grid-template-columns: repeat(2, 1fr); }
       .two-col { gap: 8px; }
       .tile { padding: 13px; min-height: 104px; }
+      .profile-actions { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -635,16 +656,26 @@
 <!-- TOP BAR -->
 <div class="top-bar">
   <div class="brand">
-    <img src="https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true" alt="TaskMint">
+    <img src="https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true" alt="TaskMint Logo">
   </div>
   <div class="top-actions">
-    <div class="notification-wrap" style="position:relative;">
-      <button type="button" class="icon-btn" onclick="toggleNotificationPanel()" aria-label="Notifications">
+    <div style="position:relative;">
+      <button
+        type="button"
+        class="icon-btn"
+        onclick="toggleNotificationPanel()"
+        aria-label="Worker notifications">
         🔔
         <span class="notification-badge" id="notificationBadge">0</span>
       </button>
     </div>
-    <button class="icon-btn" onclick="window.location.href='worker-settings.html'" aria-label="Settings">⚙️</button>
+    <button
+      type="button"
+      class="icon-btn"
+      onclick="window.location.href='worker-settings.html'"
+      aria-label="Settings">
+      ⚙️
+    </button>
   </div>
 </div>
 
@@ -658,83 +689,107 @@
   <div class="hero">
     <div class="hero-label">Worker Dashboard</div>
     <h1>Hello, <em id="workerFirstName">Worker</em></h1>
-    <p>Manage quotes, jobs, earnings, messages, and payouts from one place.</p>
+    <p>Manage quotes, accepted jobs, earnings, messages, disputes, and payouts from one clean workspace.</p>
   </div>
 
   <!-- NOTIFICATION PANEL -->
   <div id="notificationPanel" class="notification-panel">
-    <div class="notif-header">
-      <div class="notif-title">Notifications</div>
-      <div class="notif-refresh" onclick="refreshWorkerNotifications(event)">Refresh</div>
+    <div class="notification-header">
+      <div class="notification-title">Notifications</div>
+      <div class="notification-refresh" onclick="refreshWorkerNotifications(event)">Refresh</div>
     </div>
-    <div class="notif-list">
-      <div class="notif-item" onclick="openWorkerNotification('directRequests','quickActionsSection')">
-        <div class="notif-icon">📩</div>
-        <div class="notif-text">
-          <div class="notif-main">Direct Requests</div>
-          <div class="notif-sub">Customers requesting a quote from you directly.</div>
+    <div class="notification-list" id="notificationList">
+
+      <div class="notification-item" onclick="openWorkerNotification('directRequests','quickActionsSection')">
+        <div class="notification-left">
+          <div class="notification-icon">📩</div>
+          <div>
+            <div class="notification-main">Direct Requests</div>
+            <div class="notification-sub">Customers requesting a quote from you directly.</div>
+          </div>
         </div>
-        <div class="notif-count" id="directRequestNotificationCount">0</div>
+        <div class="notification-count" id="directRequestNotificationCount">0</div>
       </div>
-      <div class="notif-item" onclick="openWorkerNotification('accepted','todayScheduleSection')">
-        <div class="notif-icon">✅</div>
-        <div class="notif-text">
-          <div class="notif-main">Accepted Tasks / Quotes</div>
-          <div class="notif-sub">Quotes accepted by customers or active accepted tasks.</div>
+
+      <div class="notification-item" onclick="openWorkerNotification('accepted','todayScheduleSection')">
+        <div class="notification-left">
+          <div class="notification-icon">✅</div>
+          <div>
+            <div class="notification-main">Accepted Tasks / Quotes</div>
+            <div class="notification-sub">Quotes accepted by customers or active accepted tasks.</div>
+          </div>
         </div>
-        <div class="notif-count" id="acceptedNotificationCount">0</div>
+        <div class="notification-count" id="acceptedNotificationCount">0</div>
       </div>
-      <div class="notif-item" onclick="openWorkerNotification('messages','quickActionsSection')">
-        <div class="notif-icon">💬</div>
-        <div class="notif-text">
-          <div class="notif-main">Messages</div>
-          <div class="notif-sub">Unread task or customer messages.</div>
+
+      <div class="notification-item" onclick="openWorkerNotification('messages','quickActionsSection')">
+        <div class="notification-left">
+          <div class="notification-icon">💬</div>
+          <div>
+            <div class="notification-main">Messages</div>
+            <div class="notification-sub">Unread task or customer messages.</div>
+          </div>
         </div>
-        <div class="notif-count" id="messageNotificationCount">0</div>
+        <div class="notification-count" id="messageNotificationCount">0</div>
       </div>
-      <div class="notif-item" onclick="openWorkerNotification('disputes','disputesToolRow')">
-        <div class="notif-icon">⚠️</div>
-        <div class="notif-text">
-          <div class="notif-main">Disputes</div>
-          <div class="notif-sub">Open disputes or TaskMint replies.</div>
+
+      <div class="notification-item" onclick="openWorkerNotification('disputes','disputesToolRow')">
+        <div class="notification-left">
+          <div class="notification-icon">⚠️</div>
+          <div>
+            <div class="notification-main">Disputes</div>
+            <div class="notification-sub">Open disputes or TaskMint replies.</div>
+          </div>
         </div>
-        <div class="notif-count" id="disputeNotificationCount">0</div>
+        <div class="notification-count" id="disputeNotificationCount">0</div>
       </div>
-      <div class="notif-item" onclick="openWorkerNotification('reviews','reviewsToolRow')">
-        <div class="notif-icon">⭐</div>
-        <div class="notif-text">
-          <div class="notif-main">New Ratings / Reviews</div>
-          <div class="notif-sub">Recent customer ratings and written reviews.</div>
+
+      <div class="notification-item" onclick="openWorkerNotification('reviews','reviewsToolRow')">
+        <div class="notification-left">
+          <div class="notification-icon">⭐</div>
+          <div>
+            <div class="notification-main">New Ratings / Reviews</div>
+            <div class="notification-sub">Recent customer ratings and written reviews.</div>
+          </div>
         </div>
-        <div class="notif-count" id="reviewNotificationCount">0</div>
+        <div class="notification-count" id="reviewNotificationCount">0</div>
       </div>
-      <div class="notif-item" onclick="openWorkerNotification('payouts','overviewSection')">
-        <div class="notif-icon">💵</div>
-        <div class="notif-text">
-          <div class="notif-main">Payouts</div>
-          <div class="notif-sub">Pending, processing, or recently paid payouts.</div>
+
+      <div class="notification-item" onclick="openWorkerNotification('payouts','overviewSection')">
+        <div class="notification-left">
+          <div class="notification-icon">💵</div>
+          <div>
+            <div class="notification-main">Payouts</div>
+            <div class="notification-sub">Pending, processing, or recently paid payouts.</div>
+          </div>
         </div>
-        <div class="notif-count" id="payoutNotificationCount">0</div>
+        <div class="notification-count" id="payoutNotificationCount">0</div>
       </div>
-      <div class="notif-item" onclick="openWorkerNotification('schedule','todayScheduleSection')">
-        <div class="notif-icon">📅</div>
-        <div class="notif-text">
-          <div class="notif-main">Scheduled Today</div>
-          <div class="notif-sub">Jobs scheduled for today.</div>
+
+      <div class="notification-item" onclick="openWorkerNotification('schedule','todayScheduleSection')">
+        <div class="notification-left">
+          <div class="notification-icon">📅</div>
+          <div>
+            <div class="notification-main">Scheduled Today</div>
+            <div class="notification-sub">Jobs scheduled for today.</div>
+          </div>
         </div>
-        <div class="notif-count" id="todayScheduleNotificationCount">0</div>
+        <div class="notification-count" id="todayScheduleNotificationCount">0</div>
       </div>
+
     </div>
   </div>
 
   <!-- PROFILE CARD -->
-  <div class="profile-card fade-in" style="animation-delay:0.2s;">
-    <img class="profile-pic" id="profilePic"
+  <div class="profile-card">
+    <img
+      class="profile-pic"
+      id="profilePic"
       src="https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true"
       alt="Worker Profile">
     <div class="profile-info">
       <div class="profile-name" id="workerName">Worker Profile</div>
-      <div class="profile-sub">Keep your profile complete to attract customers.</div>
+      <div class="profile-sub">Keep your profile complete so customers feel confident choosing you.</div>
       <div class="profile-btns">
         <div class="profile-btn outline" onclick="window.location.href='worker-profile-edit.html'">Edit Profile</div>
         <div class="profile-btn solid" onclick="viewPublicProfile()">View Public</div>
@@ -745,19 +800,22 @@
   <!-- PROFILE NOTICE -->
   <div id="profileNotice"></div>
 
-  <!-- STATS -->
-  <div class="section-label">Overview</div>
+  <!-- OVERVIEW / STATS -->
+  <div class="section-header" id="overviewSection">
+    <div class="section-label" style="margin:0;">Overview</div>
+    <span class="section-link" onclick="window.location.href='worker-payout-status.html'">Payout Status</span>
+  </div>
 
-  <div class="stats-row" id="overviewSection">
+  <div class="stats-row">
     <div class="stat-box" onclick="window.location.href='worker-earnings.html'">
       <div class="stat-icon">$</div>
       <div class="stat-number" id="earningsAmount">...</div>
-      <div class="stat-label">Earned</div>
+      <div class="stat-label">Money Earned</div>
     </div>
     <div class="stat-box" onclick="window.location.href='worker-completed-tasks.html'">
       <div class="stat-icon">✓</div>
       <div class="stat-number" id="completedTasks">0</div>
-      <div class="stat-label">Completed</div>
+      <div class="stat-label">Completed Tasks</div>
     </div>
     <div class="stat-box" onclick="window.location.href='worker-reviews.html'">
       <div class="stat-icon">★</div>
@@ -767,18 +825,7 @@
     <div class="stat-box" onclick="scrollToPendingQuotes()">
       <div class="stat-icon">⌛</div>
       <div class="stat-number" id="pendingQuotes">0</div>
-      <div class="stat-label">Quotes</div>
-    </div>
-  </div>
-
-  <div style="margin-top:10px;">
-    <div class="row-card" onclick="window.location.href='worker-payout-status.html'" style="background:#fff;">
-      <div class="r-icon">💳</div>
-      <div class="r-text">
-        <div class="r-title">Payout Status</div>
-        <div class="r-sub">Track pending, processing, and paid payouts.</div>
-      </div>
-      <div class="r-chev">›</div>
+      <div class="stat-label">Pending Quotes</div>
     </div>
   </div>
 
@@ -804,7 +851,7 @@
       <div class="t-icon">💵</div>
       <div>
         <div class="t-title">Payout Status</div>
-        <div class="t-sub">Track pending and paid payouts.</div>
+        <div class="t-sub">Track pending, processing, and paid payouts.</div>
       </div>
     </div>
     <div class="tile" onclick="window.location.href='worker-message-center.html'">
@@ -819,31 +866,31 @@
   <!-- TODAY'S SCHEDULE -->
   <div class="section-header" id="todayScheduleSection">
     <div class="section-label" style="margin:0;">Today's Schedule</div>
-    <a class="section-link" onclick="window.location.href='worker-calendar.html'">Full Schedule</a>
+    <span class="section-link" onclick="window.location.href='worker-calendar.html'">Full Schedule</span>
   </div>
-
-  <div id="todayScheduleList" class="r-sub" style="padding:4px 2px;">Loading today's schedule...</div>
+  <div id="todayScheduleList" class="small-text">Loading today's scheduled work...</div>
 
   <!-- PENDING QUOTES -->
   <div class="section-header" id="pendingQuotesCard">
     <div class="section-label" style="margin:0;">Pending Quotes</div>
-    <a class="section-link" onclick="openPendingQuotesPage()">View All</a>
+    <span class="section-link" onclick="openPendingQuotesPage()">View Pending</span>
   </div>
-
-  <div id="pendingQuotesList" class="r-sub" style="padding:4px 2px;">Loading pending quotes...</div>
+  <div id="pendingQuotesList" class="small-text">Loading pending quotes...</div>
 
   <!-- WORKER TOOLS -->
   <div class="section-label">Worker Tools</div>
 
   <div class="row-list fade-in" style="animation-delay:0.34s;">
+
     <div class="row-card" onclick="window.location.href='worker-availability.html'">
       <div class="r-icon">🕒</div>
       <div class="r-text">
         <div class="r-title">Availability</div>
-        <div class="r-sub">Set your working days and times.</div>
+        <div class="r-sub">Set working days and times.</div>
       </div>
       <div class="r-chev">›</div>
     </div>
+
     <div class="row-card" onclick="window.location.href='worker-payout-info.html'">
       <div class="r-icon">🏦</div>
       <div class="r-text">
@@ -852,6 +899,7 @@
       </div>
       <div class="r-chev">›</div>
     </div>
+
     <div class="row-card" onclick="window.location.href='worker-tax-center.html'">
       <div class="r-icon">📄</div>
       <div class="r-text">
@@ -860,14 +908,16 @@
       </div>
       <div class="r-chev">›</div>
     </div>
+
     <div class="row-card" id="reviewsToolRow" onclick="window.location.href='worker-reviews.html'">
       <div class="r-icon">⭐</div>
       <div class="r-text">
-        <div class="r-title">Ratings & Reviews</div>
+        <div class="r-title">Ratings &amp; Reviews</div>
         <div class="r-sub">View customer feedback.</div>
       </div>
       <div class="r-chev">›</div>
     </div>
+
     <div class="row-card" id="disputesToolRow" onclick="window.location.href='worker-disputes.html'">
       <div class="red-dot" id="disputeDot"></div>
       <div class="r-icon">⚠️</div>
@@ -877,6 +927,7 @@
       </div>
       <div class="r-chev">›</div>
     </div>
+
     <div class="row-card" onclick="window.location.href='worker-settings.html'">
       <div class="r-icon">⚙️</div>
       <div class="r-text">
@@ -885,27 +936,42 @@
       </div>
       <div class="r-chev">›</div>
     </div>
+
   </div>
 
-  <!-- LOGOUT -->
-  <div class="logout-section fade-in" style="animation-delay:0.40s;">
+  <!-- ACCOUNT / LOGOUT -->
+  <div class="logout-row fade-in" style="animation-delay:0.40s;">
     <div class="section-label" style="margin:0 0 12px;">Account</div>
-    <button class="btn danger" onclick="logout()">Log Out</button>
+    <button class="logout" onclick="logout()">Log Out</button>
   </div>
 
-</div>
+</div><!-- end #dashboard -->
 
 <script>
-const SUPABASE_URL = "https://dbcthtjmtlumidpbucrc.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const SUPABASE_URL =
+  "https://dbcthtjmtlumidpbucrc.supabase.co";
+
+const SUPABASE_ANON_KEY =
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
+
+const supabaseClient =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
 
 let currentUser = null;
 let currentWorkerId = null;
 
 let rawNotificationCounts = {
-  directRequests: 0, accepted: 0, messages: 0,
-  disputes: 0, reviews: 0, payouts: 0, schedule: 0
+  directRequests: 0,
+  accepted: 0,
+  messages: 0,
+  disputes: 0,
+  reviews: 0,
+  payouts: 0,
+  schedule: 0
 };
 
 function getNotificationDismissedCount(category) {
@@ -913,87 +979,192 @@ function getNotificationDismissedCount(category) {
 }
 
 function getAdjustedNotificationCount(category, count) {
-  if (category === "messages") return Number(count || 0);
-  const adjusted = Number(count || 0) - getNotificationDismissedCount(category);
+  if (category === "messages") {
+    return Number(count || 0);
+  }
+
+  const adjusted =
+    Number(count || 0) - getNotificationDismissedCount(category);
+
   return adjusted > 0 ? adjusted : 0;
 }
 
+function markWorkerNotificationsViewed() {
+  localStorage.setItem("taskmintWorkerNotificationDismissed_directRequests", String(rawNotificationCounts.directRequests || 0));
+  localStorage.setItem("taskmintWorkerNotificationDismissed_accepted", String(rawNotificationCounts.accepted || 0));
+  localStorage.setItem("taskmintWorkerNotificationDismissed_messages", String(rawNotificationCounts.messages || 0));
+  localStorage.setItem("taskmintWorkerNotificationDismissed_disputes", String(rawNotificationCounts.disputes || 0));
+  localStorage.setItem("taskmintWorkerNotificationDismissed_reviews", String(rawNotificationCounts.reviews || 0));
+  localStorage.setItem("taskmintWorkerNotificationDismissed_payouts", String(rawNotificationCounts.payouts || 0));
+  localStorage.setItem("taskmintWorkerNotificationDismissed_schedule", String(rawNotificationCounts.schedule || 0));
+}
+
 function markWorkerNotificationCategoryViewed(category) {
-  localStorage.setItem(`taskmintWorkerNotificationDismissed_${category}`, String(rawNotificationCounts[category] || 0));
+  localStorage.setItem(
+    `taskmintWorkerNotificationDismissed_${category}`,
+    String(rawNotificationCounts[category] || 0)
+  );
+
   updateWorkerNotificationDisplay();
 }
 
 function openWorkerNotification(category, targetId) {
-  if (category === "messages") { window.location.href = "worker-message-center.html"; return; }
+  if (category === "messages") {
+    window.location.href =
+      "worker-message-center.html";
+    return;
+  }
+
   markWorkerNotificationCategoryViewed(category);
-  const panel = document.getElementById("notificationPanel");
-  if (panel) panel.classList.remove("show");
-  const target = document.getElementById(targetId);
-  if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  const panel =
+    document.getElementById("notificationPanel");
+
+  if (panel) {
+    panel.classList.remove("show");
+  }
+
+  const target =
+    document.getElementById(targetId);
+
+  if (target) {
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
 }
 
 async function refreshWorkerNotifications(event) {
-  if (event) event.stopPropagation();
+  if (event) {
+    event.stopPropagation();
+  }
+
   await loadWorkerNotifications();
 }
 
 function updateWorkerNotificationDisplay() {
-  const cats = ["directRequests","accepted","messages","disputes","reviews","payouts","schedule"];
-  const ids  = ["directRequestNotificationCount","acceptedNotificationCount","messageNotificationCount",
-                 "disputeNotificationCount","reviewNotificationCount","payoutNotificationCount","todayScheduleNotificationCount"];
-  let total = 0;
-  cats.forEach((cat, i) => {
-    const n = getAdjustedNotificationCount(cat, rawNotificationCounts[cat]);
-    total += n;
-    const el = document.getElementById(ids[i]);
-    if (el) el.innerText = n;
-  });
-  const badge = document.getElementById("notificationBadge");
-  if (badge) {
-    if (total > 0) { badge.style.display = "flex"; badge.innerText = total > 99 ? "99+" : total; }
-    else { badge.style.display = "none"; badge.innerText = "0"; }
-  }
+  const directRequestCount =
+    getAdjustedNotificationCount("directRequests", rawNotificationCounts.directRequests);
+
+  const acceptedCount =
+    getAdjustedNotificationCount("accepted", rawNotificationCounts.accepted);
+
+  const messageCount =
+    getAdjustedNotificationCount("messages", rawNotificationCounts.messages);
+
+  const disputeCount =
+    getAdjustedNotificationCount("disputes", rawNotificationCounts.disputes);
+
+  const reviewCount =
+    getAdjustedNotificationCount("reviews", rawNotificationCounts.reviews);
+
+  const payoutCount =
+    getAdjustedNotificationCount("payouts", rawNotificationCounts.payouts);
+
+  const todayScheduleCount =
+    getAdjustedNotificationCount("schedule", rawNotificationCounts.schedule);
+
+  const total =
+    directRequestCount + acceptedCount + messageCount + disputeCount + reviewCount + payoutCount + todayScheduleCount;
+
+  setNotificationCount("directRequestNotificationCount", directRequestCount);
+  setNotificationCount("acceptedNotificationCount", acceptedCount);
+  setNotificationCount("messageNotificationCount", messageCount);
+  setNotificationCount("disputeNotificationCount", disputeCount);
+  setNotificationCount("reviewNotificationCount", reviewCount);
+  setNotificationCount("payoutNotificationCount", payoutCount);
+  setNotificationCount("todayScheduleNotificationCount", todayScheduleCount);
+
+  updateNotificationBadge(total);
 }
 
 async function loadDashboard() {
-  const { data, error } = await supabaseClient.auth.getSession();
+
+  const { data, error } =
+    await supabaseClient.auth.getSession();
+
   if (error || !data.session) {
-    document.getElementById("loading").innerText = "No active worker session found. Please log in.";
+    document.getElementById("loading").innerText =
+      "No active worker session found. Log in again from the worker login page.";
     return;
   }
-  const user = data.session.user;
+
+  const user =
+    data.session.user;
+
   currentUser = user;
 
-  const { data: profile } = await supabaseClient.from("profiles").select("*").eq("email", user.email).maybeSingle();
-  const { data: workerRecord } = await supabaseClient.from("worker_profiles").select("*").eq("email", user.email).maybeSingle();
+  const { data: profile } =
+    await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("email", user.email)
+      .maybeSingle();
 
-  if (workerRecord?.id) currentWorkerId = workerRecord.id;
-  else if (profile?.id) currentWorkerId = profile.id;
-  else currentWorkerId = user.id;
+  const { data: workerRecord } =
+    await supabaseClient
+      .from("worker_profiles")
+      .select("*")
+      .eq("email", user.email)
+      .maybeSingle();
+
+  if (workerRecord && workerRecord.id) {
+    currentWorkerId = workerRecord.id;
+  } else if (profile && profile.id) {
+    currentWorkerId = profile.id;
+  } else {
+    currentWorkerId = user.id;
+  }
 
   if (profile) {
+
     const fullName =
       workerRecord?.full_name ||
       `${workerRecord?.first_name || ""} ${workerRecord?.last_name || ""}`.trim() ||
       profile?.full_name ||
       `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
-      "Worker";
+      "Worker Profile";
 
     document.getElementById("workerName").innerText = fullName;
 
-    const firstName = (workerRecord?.first_name || profile?.first_name || fullName.split(" ")[0] || "Worker");
+    const firstName =
+      workerRecord?.first_name ||
+      profile?.first_name ||
+      fullName.split(" ")[0] ||
+      "Worker";
+
     document.getElementById("workerFirstName").innerText = firstName;
 
-    if (profile.profile_photo_url?.trim()) {
-      document.getElementById("profilePic").src = profile.profile_photo_url;
+    if (
+      profile.profile_photo_url &&
+      profile.profile_photo_url.trim() !== ""
+    ) {
+      document.getElementById("profilePic").src =
+        profile.profile_photo_url;
     }
 
-    const hasPhoto = !!profile.profile_photo_url?.trim();
-    const hasExperience = !!profile.experience?.trim();
+    const hasPhoto =
+      profile.profile_photo_url &&
+      profile.profile_photo_url.trim() !== "";
+
+    const hasExperience =
+      profile.experience &&
+      profile.experience.trim() !== "";
+
+    const profileNotice =
+      document.getElementById("profileNotice");
+
     if (!hasPhoto || !hasExperience) {
-      document.getElementById("profileNotice").innerHTML =
-        `<div class="notice">⚠️ Complete your worker profile before sending quotes.</div>`;
+      profileNotice.innerHTML = `
+        <div class="notice">
+          ⚠️ Complete your worker profile before sending quotes.
+        </div>
+      `;
+    } else {
+      profileNotice.innerHTML = "";
     }
+
   }
 
   await loadPendingQuotesByEmail(user.email);
@@ -1004,308 +1175,1046 @@ async function loadDashboard() {
   await loadUnreadDisputeDot(currentWorkerId);
   await loadWorkerNotifications();
 
-  document.getElementById("loading").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
+  document.getElementById("loading").style.display =
+    "none";
+
+  document.getElementById("dashboard").style.display =
+    "block";
+
 }
 
 async function logout() {
+
   await supabaseClient.auth.signOut();
+
   localStorage.removeItem("taskmintUserId");
   localStorage.removeItem("selectedQuoteId");
   localStorage.removeItem("selectedJobId");
   localStorage.removeItem("stripeAccountId");
-  window.location.href = "worker-login.html";
-}
 
-function getWorkerIdList(workerId) {
-  const ids = [];
-  if (currentUser?.id) ids.push(currentUser.id);
-  if (workerId) ids.push(workerId);
-  return [...new Set(ids.filter(Boolean).map(String))];
+  window.location.href =
+    "worker-login.html";
+
 }
 
 async function loadWorkerRating(workerId) {
-  const workerIds = getWorkerIdList(workerId);
-  if (!workerIds.length) { document.getElementById("ratingScore").innerText = "0.0"; return; }
-  const { data: completedTasks } = await supabaseClient.from("tasks").select("id")
-    .or(`worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`)
-    .eq("status","completed").eq("customer_completed",true);
-  if (!completedTasks?.length) { document.getElementById("ratingScore").innerText = "0.0"; return; }
-  const taskIds = completedTasks.map(t => t.id).filter(Boolean);
-  const { data: reviews } = await supabaseClient.from("reviews").select("rating").in("task_id", taskIds);
-  if (!reviews?.length) { document.getElementById("ratingScore").innerText = "0.0"; return; }
-  const avg = reviews.reduce((s,r) => s + Number(r.rating||0), 0) / reviews.length;
-  document.getElementById("ratingScore").innerText = avg.toFixed(1);
-}
 
-async function loadPendingQuotesByEmail(email) {
-  const container = document.getElementById("pendingQuotesList");
-  const pendingQuotesCount = document.getElementById("pendingQuotes");
-  pendingQuotesCount.innerText = "0";
+  const workerIds =
+    getWorkerIdList(workerId);
 
-  const workerIds = [];
-  if (currentUser?.id) workerIds.push(currentUser.id);
-  if (currentWorkerId) workerIds.push(currentWorkerId);
-
-  const { data: workerProfile } = await supabaseClient.from("workers").select("id").eq("email", email).maybeSingle();
-  if (workerProfile?.id) workerIds.push(workerProfile.id);
-
-  const uniqueWorkerIds = [...new Set(workerIds.filter(Boolean).map(String))];
-  if (!uniqueWorkerIds.length) { container.innerHTML = `<div class="r-sub">Worker record not found.</div>`; return; }
-
-  const { data: quotes, error } = await supabaseClient.from("worker_quotes").select("*")
-    .in("worker_id", uniqueWorkerIds).eq("status","pending").order("created_at",{ascending:false});
-
-  if (error) { container.innerHTML = `<div class="r-sub">Error loading quotes.</div>`; return; }
-
-  if (!quotes?.length) {
-    pendingQuotesCount.innerText = "0";
-    container.innerHTML = `<div class="r-sub">No pending quotes yet. Browse available tasks to send your next quote.</div>`;
+  if (workerIds.length === 0) {
+    document.getElementById("ratingScore").innerText =
+      "0.0";
     return;
   }
 
-  pendingQuotesCount.innerText = quotes.length;
+  const { data: completedTasks, error: taskError } =
+    await supabaseClient
+      .from("tasks")
+      .select("id")
+      .or(
+        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
+      )
+      .eq("status", "completed")
+      .eq("customer_completed", true);
+
+  if (taskError || !completedTasks || completedTasks.length === 0) {
+    document.getElementById("ratingScore").innerText =
+      "0.0";
+    return;
+  }
+
+  const taskIds =
+    completedTasks
+      .map((task) => task.id)
+      .filter(Boolean);
+
+  if (taskIds.length === 0) {
+    document.getElementById("ratingScore").innerText =
+      "0.0";
+    return;
+  }
+
+  const { data: reviews, error } =
+    await supabaseClient
+      .from("reviews")
+      .select("rating")
+      .in("task_id", taskIds);
+
+  if (error || !reviews || reviews.length === 0) {
+    document.getElementById("ratingScore").innerText =
+      "0.0";
+    return;
+  }
+
+  let total = 0;
+
+  reviews.forEach((review) => {
+    total += Number(review.rating || 0);
+  });
+
+  const average =
+    total / reviews.length;
+
+  document.getElementById("ratingScore").innerText =
+    average.toFixed(1);
+
+}
+
+async function loadPendingQuotesByEmail(email) {
+
+  const container =
+    document.getElementById("pendingQuotesList");
+
+  const pendingQuotesCount =
+    document.getElementById("pendingQuotes");
+
+  pendingQuotesCount.innerText =
+    "0";
+
+  const workerIds =
+    [];
+
+  if (currentUser && currentUser.id) {
+    workerIds.push(currentUser.id);
+  }
+
+  if (currentWorkerId) {
+    workerIds.push(currentWorkerId);
+  }
+
+  const { data: workerProfile } =
+    await supabaseClient
+      .from("workers")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+  if (workerProfile && workerProfile.id) {
+    workerIds.push(workerProfile.id);
+  }
+
+  const uniqueWorkerIds =
+    [...new Set(workerIds.filter(Boolean).map(String))];
+
+  if (uniqueWorkerIds.length === 0) {
+    container.innerHTML = `
+      <div class="small-text">
+        Worker record not found for pending quotes.
+      </div>
+    `;
+    return;
+  }
+
+  const { data: quotes, error } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("*")
+      .in("worker_id", uniqueWorkerIds)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+
+  if (error) {
+    container.innerHTML = `
+      <div class="small-text">
+        Error loading quotes.
+      </div>
+    `;
+    return;
+  }
+
+  if (!quotes || quotes.length === 0) {
+    pendingQuotesCount.innerText =
+      "0";
+
+    container.innerHTML = `
+      <div class="small-text">
+        No pending quotes yet. Browse available tasks to send your next quote.
+      </div>
+    `;
+    return;
+  }
+
+  pendingQuotesCount.innerText =
+    quotes.length;
+
   container.innerHTML = "";
 
-  quotes.forEach(quote => {
+  quotes.forEach((quote) => {
+
     container.innerHTML += `
       <div class="quote-card">
-        <div class="r-sub">Quote Amount</div>
-        <div class="quote-amount">$${quote.quote_amount || "0.00"}</div>
-        <div class="r-sub" style="margin-top:6px;">Status: Pending</div>
-        <div class="quote-actions">
-          <button class="btn secondary" onclick="messageCustomerFromQuote('${quote.id}','${quote.task_id||""}','${quote.customer_id||""}')">Message</button>
-          <button class="btn danger" onclick="cancelQuote('${quote.id}')">Cancel</button>
+
+        <div class="small-text">
+          Quote Amount
         </div>
-      </div>`;
+
+        <div class="quote-amount">
+          $${quote.quote_amount || "0.00"}
+        </div>
+
+        <div class="small-text" style="margin-top:8px;">
+          Status: Pending
+        </div>
+
+        <div class="quote-actions">
+
+          <button
+            class="secondary"
+            onclick="messageCustomerFromQuote('${quote.id}', '${quote.task_id || ""}', '${quote.customer_id || ""}')">
+            Message
+          </button>
+
+          <button
+            class="danger"
+            onclick="cancelQuote('${quote.id}')">
+            Cancel
+          </button>
+
+        </div>
+
+      </div>
+    `;
+
   });
+
 }
 
 async function cancelQuote(quoteId) {
-  if (!confirm("Are you sure you want to cancel this quote?")) return;
-  const { error } = await supabaseClient.from("worker_quotes").update({status:"canceled"}).eq("id",quoteId);
-  if (error) { alert(error.message); return; }
+
+  const confirmed =
+    confirm(
+      "Are you sure you want to cancel this quote?"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const { error } =
+    await supabaseClient
+      .from("worker_quotes")
+      .update({ status: "canceled" })
+      .eq("id", quoteId);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
   alert("Quote canceled.");
+
   location.reload();
+
 }
 
-function editQuote(quoteId, taskId="", customerId="") {
-  localStorage.setItem("selectedQuoteId", quoteId);
-  if (taskId) { localStorage.setItem("selectedQuoteTaskId", taskId); localStorage.setItem("selectedTaskId", taskId); }
-  if (customerId) localStorage.setItem("selectedCustomerId", customerId);
-  window.location.href = "edit-quote.html";
+function editQuote(quoteId, taskId = "", customerId = "") {
+
+  localStorage.setItem(
+    "selectedQuoteId",
+    quoteId
+  );
+
+  if (taskId) {
+    localStorage.setItem(
+      "selectedQuoteTaskId",
+      taskId
+    );
+
+    localStorage.setItem(
+      "selectedTaskId",
+      taskId
+    );
+  }
+
+  if (customerId) {
+    localStorage.setItem(
+      "selectedCustomerId",
+      customerId
+    );
+  }
+
+  window.location.href =
+    "edit-quote.html";
+
 }
 
-function messageCustomerFromQuote(quoteId, taskId="", customerId="") {
-  localStorage.setItem("selectedQuoteId", quoteId);
-  if (taskId) { localStorage.setItem("selectedMessageTaskId", taskId); localStorage.setItem("selectedTaskId", taskId); }
-  if (customerId) localStorage.setItem("selectedCustomerId", customerId);
-  localStorage.setItem("messageContext","quote");
-  window.location.href = "worker-task-message.html";
+function messageCustomerFromQuote(quoteId, taskId = "", customerId = "") {
+
+  localStorage.setItem(
+    "selectedQuoteId",
+    quoteId
+  );
+
+  if (taskId) {
+    localStorage.setItem(
+      "selectedMessageTaskId",
+      taskId
+    );
+
+    localStorage.setItem(
+      "selectedTaskId",
+      taskId
+    );
+  }
+
+  if (customerId) {
+    localStorage.setItem(
+      "selectedCustomerId",
+      customerId
+    );
+  }
+
+  localStorage.setItem(
+    "messageContext",
+    "quote"
+  );
+
+  window.location.href =
+    "worker-task-message.html";
+
+}
+
+function getWorkerIdList(workerId) {
+
+  const ids =
+    [];
+
+  if (currentUser && currentUser.id) {
+    ids.push(currentUser.id);
+  }
+
+  if (workerId) {
+    ids.push(workerId);
+  }
+
+  return [...new Set(ids.filter(Boolean).map(String))];
+
 }
 
 function getTaskScheduleDate(task) {
-  return task.task_date||task.scheduled_for||task.scheduled_date||task.date_needed||task.scheduled_start||"";
+
+  return (
+    task.task_date ||
+    task.scheduled_for ||
+    task.scheduled_date ||
+    task.date_needed ||
+    task.scheduled_start ||
+    ""
+  );
+
 }
 
 function getDateOnlyKey(value) {
-  if (!value) return "";
-  const raw = String(value).trim();
-  const m = raw.match(/^\d{4}-\d{2}-\d{2}/);
-  if (m) return m[0];
-  const d = new Date(raw);
-  if (isNaN(d.getTime())) return "";
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+
+  if (!value) {
+    return "";
+  }
+
+  const rawValue =
+    String(value).trim();
+
+  const dateOnlyMatch =
+    rawValue.match(/^\d{4}-\d{2}-\d{2}/);
+
+  if (dateOnlyMatch) {
+    return dateOnlyMatch[0];
+  }
+
+  const date =
+    new Date(rawValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(date.getMonth() + 1).padStart(2, "0");
+
+  const day =
+    String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+
 }
 
 async function loadCompletedTaskCount(workerId) {
-  const workerIds = getWorkerIdList(workerId);
-  if (!workerIds.length) { document.getElementById("completedTasks").innerText = "0"; return; }
-  const { count } = await supabaseClient.from("tasks").select("id",{count:"exact",head:true})
-    .or(`worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`)
-    .eq("status","completed").eq("customer_completed",true);
-  document.getElementById("completedTasks").innerText = count || 0;
+
+  const workerIds =
+    getWorkerIdList(workerId);
+
+  if (workerIds.length === 0) {
+    document.getElementById("completedTasks").innerText =
+      "0";
+    return;
+  }
+
+  const { count, error } =
+    await supabaseClient
+      .from("tasks")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .or(
+        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
+      )
+      .eq("status", "completed")
+      .eq("customer_completed", true);
+
+  if (error || count === null || count === undefined) {
+    document.getElementById("completedTasks").innerText =
+      "0";
+    return;
+  }
+
+  document.getElementById("completedTasks").innerText =
+    count;
+
 }
 
 async function loadWorkerEarnings(workerId) {
-  const { data } = await supabaseClient.from("worker_earnings").select("worker_payout").eq("worker_id",workerId);
-  if (!data) { document.getElementById("earningsAmount").innerText = "$0.00"; return; }
-  const total = data.reduce((s,i) => s + Number(i.worker_payout||0), 0);
-  document.getElementById("earningsAmount").innerText = `$${total.toFixed(2)}`;
+
+  const { data, error } =
+    await supabaseClient
+      .from("worker_earnings")
+      .select("worker_payout")
+      .eq("worker_id", workerId);
+
+  if (error || !data) {
+    document.getElementById("earningsAmount").innerText =
+      "$0.00";
+    return;
+  }
+
+  let total = 0;
+
+  data.forEach((item) => {
+    total += Number(item.worker_payout || 0);
+  });
+
+  document.getElementById("earningsAmount").innerText =
+    `$${total.toFixed(2)}`;
+
 }
 
 function formatScheduleTime(value) {
-  if (!value) return "Time not set";
-  const d = new Date(value);
-  if (isNaN(d.getTime())) return value;
-  return d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+
+  if (!value) {
+    return "Time not set";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit"
+  });
+
 }
 
 function getTaskTitle(task) {
-  return task.title||task.task_title||task.job_title||task.category||task.service_type||"Scheduled Task";
+
+  return (
+    task.title ||
+    task.task_title ||
+    task.job_title ||
+    task.category ||
+    task.service_type ||
+    "Scheduled Task"
+  );
+
 }
 
 function getTaskLocation(task) {
-  return task.address||task.task_address||task.location||task.city||"Location not listed";
+
+  return (
+    task.address ||
+    task.task_address ||
+    task.location ||
+    task.city ||
+    "Location not listed"
+  );
+
 }
 
 async function loadTodaySchedule(workerId) {
-  const container = document.getElementById("todayScheduleList");
-  const workerIds = getWorkerIdList(workerId);
-  if (!workerIds.length) { container.innerHTML = `<div class="r-sub">Worker record not found.</div>`; return; }
-  const todayKey = getDateOnlyKey(new Date());
-  const { data: tasks, error } = await supabaseClient.from("tasks").select("*")
-    .or(`worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`)
-    .in("status",["accepted","in_progress","worker_completed","scheduled","paid","completed"])
-    .order("created_at",{ascending:false});
-  if (error) { container.innerHTML = `<div class="r-sub">No scheduled jobs showing yet.</div>`; return; }
-  const todayTasks = (tasks||[]).filter(t => getDateOnlyKey(getTaskScheduleDate(t)) === todayKey);
-  if (!todayTasks.length) { container.innerHTML = `<div class="r-sub">No jobs scheduled for today.</div>`; return; }
+
+  const container =
+    document.getElementById("todayScheduleList");
+
+  const workerIds =
+    getWorkerIdList(workerId);
+
+  if (workerIds.length === 0) {
+    container.innerHTML = `
+      <div class="small-text">
+        Worker record not found for today's schedule.
+      </div>
+    `;
+    return;
+  }
+
+  const todayKey =
+    getDateOnlyKey(new Date());
+
+  const { data: tasks, error } =
+    await supabaseClient
+      .from("tasks")
+      .select("*")
+      .or(
+        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
+      )
+      .in("status", [
+        "accepted",
+        "in_progress",
+        "worker_completed",
+        "scheduled",
+        "paid",
+        "completed"
+      ])
+      .order("created_at", { ascending: false });
+
+  if (error) {
+    container.innerHTML = `
+      <div class="small-text">
+        No scheduled jobs are showing here yet. Once an accepted job has today's date saved, it will appear here.
+      </div>
+    `;
+    return;
+  }
+
+  const todayTasks =
+    (tasks || []).filter((task) => {
+      return getDateOnlyKey(getTaskScheduleDate(task)) === todayKey;
+    });
+
+  if (!todayTasks || todayTasks.length === 0) {
+    container.innerHTML = `
+      <div class="small-text">
+        No jobs scheduled for today. Accepted jobs for today will show the task name, date, location, and current status here.
+      </div>
+    `;
+    return;
+  }
+
   container.innerHTML = "";
-  todayTasks.forEach(task => {
+
+  todayTasks.forEach((task) => {
+
+    const title = getTaskTitle(task);
+    const location = getTaskLocation(task);
+    const time = formatScheduleTime(
+      task.scheduled_for ||
+      task.scheduled_date ||
+      task.scheduled_start ||
+      task.task_date ||
+      task.date_needed
+    );
+    const status = task.status || "scheduled";
+
     container.innerHTML += `
       <div class="schedule-card">
-        <div class="schedule-title">${getTaskTitle(task)}</div>
-        <div class="schedule-meta">Time: ${formatScheduleTime(task.scheduled_for||task.scheduled_date||task.scheduled_start||task.task_date||task.date_needed)}<br>Location: ${getTaskLocation(task)}</div>
-        <div class="schedule-badge">${(task.status||"scheduled").replaceAll("_"," ")}</div>
-      </div>`;
+        <div class="schedule-title">
+          ${title}
+        </div>
+
+        <div class="schedule-meta">
+          Time: ${time}<br>
+          Location: ${location}
+        </div>
+
+        <div class="schedule-badge">
+          ${status.replaceAll("_", " ")}
+        </div>
+      </div>
+    `;
+
   });
+
 }
 
 async function loadUnreadDisputeDot(workerId) {
-  if (!workerId) return;
-  const { count } = await supabaseClient.from("disputes").select("id",{count:"exact",head:true})
-    .eq("worker_id",workerId).in("status",["open","reviewing"]);
-  document.getElementById("disputeDot").style.display = (count && count > 0) ? "block" : "none";
+
+  const dot =
+    document.getElementById("disputeDot");
+
+  if (!dot || !workerId) {
+    return;
+  }
+
+  const { count, error } =
+    await supabaseClient
+      .from("disputes")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("worker_id", workerId)
+      .in("status", [
+        "open",
+        "reviewing"
+      ]);
+
+  if (!error && count && count > 0) {
+    dot.style.display = "block";
+  } else {
+    dot.style.display = "none";
+  }
+
 }
 
 function toggleNotificationPanel() {
-  const panel = document.getElementById("notificationPanel");
-  if (panel) panel.classList.toggle("show");
+
+  const panel =
+    document.getElementById("notificationPanel");
+
+  if (!panel) {
+    return;
+  }
+
+  panel.classList.toggle("show");
+
+}
+
+function setNotificationCount(elementId, count) {
+
+  const element =
+    document.getElementById(elementId);
+
+  if (element) {
+    element.innerText = count || 0;
+  }
+
+}
+
+function updateNotificationBadge(total) {
+
+  const badge =
+    document.getElementById("notificationBadge");
+
+  if (!badge) {
+    return;
+  }
+
+  if (total > 0) {
+    badge.style.display = "flex";
+    badge.innerText = total > 99 ? "99+" : total;
+  } else {
+    badge.style.display = "none";
+    badge.innerText = "0";
+  }
+
 }
 
 function getWorkerNotificationIds() {
   const ids = [];
-  if (currentUser?.id) ids.push(currentUser.id);
-  if (currentWorkerId) ids.push(currentWorkerId);
+
+  if (currentUser && currentUser.id) {
+    ids.push(currentUser.id);
+  }
+
+  if (currentWorkerId) {
+    ids.push(currentWorkerId);
+  }
+
   return [...new Set(ids.filter(Boolean).map(String))];
 }
 
 async function safeCount(query) {
-  const { count, error } = await query;
-  return (!error && count != null) ? count : 0;
+  const { count, error } =
+    await query;
+
+  if (error || count === null || count === undefined) {
+    return 0;
+  }
+
+  return count;
 }
 
 async function countByColumn(tableName, columnName, values, extraBuilder) {
-  if (!values?.length) return 0;
-  let query = supabaseClient.from(tableName).select("id",{count:"exact",head:true}).in(columnName, values);
-  if (typeof extraBuilder === "function") query = extraBuilder(query);
+  if (!values || values.length === 0) {
+    return 0;
+  }
+
+  let query =
+    supabaseClient
+      .from(tableName)
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .in(columnName, values);
+
+  if (typeof extraBuilder === "function") {
+    query = extraBuilder(query);
+  }
+
   return await safeCount(query);
 }
 
 async function countUnreadMessages() {
-  const ids = getWorkerNotificationIds();
-  if (!ids.length) return 0;
+
+  const ids =
+    getWorkerNotificationIds();
+
+  if (ids.length === 0) {
+    return 0;
+  }
+
   let total = 0;
-  total += await countByColumn("task_messages","receiver_id",ids, q => q.eq("is_read",false));
-  total += await countByColumn("customer_worker_messages","worker_id",ids, q => q.eq("sender_type","customer"));
+
+  total += await countByColumn(
+    "task_messages",
+    "receiver_id",
+    ids,
+    (query) => query.eq("is_read", false)
+  );
+
+  total += await countByColumn(
+    "customer_worker_messages",
+    "worker_id",
+    ids,
+    (query) => query.eq("sender_type", "customer")
+  );
+
   return total;
+
 }
 
 async function countDisputeNotifications() {
-  if (!currentWorkerId) return 0;
-  let total = 0;
-  const { count: activeCount } = await supabaseClient.from("disputes").select("id",{count:"exact",head:true})
-    .eq("worker_id",currentWorkerId).in("status",["open","reviewing"]);
-  if (activeCount) total += activeCount;
-  const { data: workerDisputes } = await supabaseClient.from("disputes").select("id").eq("worker_id",currentWorkerId);
-  if (workerDisputes?.length) {
-    const dIds = workerDisputes.map(d => d.id);
-    const { count: replyCount } = await supabaseClient.from("dispute_messages").select("id",{count:"exact",head:true})
-      .in("dispute_id",dIds).eq("visible_to","worker").eq("sender_type","admin");
-    if (replyCount) total += replyCount;
+
+  if (!currentWorkerId) {
+    return 0;
   }
-  return total;
+
+  let activeDisputeCount = 0;
+  let taskMintReplyCount = 0;
+
+  const { count: activeCount, error: activeError } =
+    await supabaseClient
+      .from("disputes")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("worker_id", currentWorkerId)
+      .in("status", [
+        "open",
+        "reviewing"
+      ]);
+
+  if (!activeError && activeCount) {
+    activeDisputeCount = activeCount;
+  }
+
+  const { data: workerDisputes, error: disputeError } =
+    await supabaseClient
+      .from("disputes")
+      .select("id")
+      .eq("worker_id", currentWorkerId);
+
+  if (!disputeError && workerDisputes && workerDisputes.length > 0) {
+
+    const disputeIds =
+      workerDisputes.map(dispute => dispute.id);
+
+    const { count: replyCount, error: replyError } =
+      await supabaseClient
+        .from("dispute_messages")
+        .select("id", {
+          count: "exact",
+          head: true
+        })
+        .in("dispute_id", disputeIds)
+        .eq("visible_to", "worker")
+        .eq("sender_type", "admin");
+
+    if (!replyError && replyCount) {
+      taskMintReplyCount = replyCount;
+    }
+
+  }
+
+  return activeDisputeCount + taskMintReplyCount;
+
 }
 
 async function countDirectRequests() {
-  if (!currentWorkerId) return 0;
-  const { count } = await supabaseClient.from("direct_task_requests").select("id",{count:"exact",head:true})
-    .eq("worker_id",currentWorkerId).in("status",["new","pending","requested"]);
-  return count || 0;
+
+  if (!currentWorkerId) {
+    return 0;
+  }
+
+  const { count, error } =
+    await supabaseClient
+      .from("direct_task_requests")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("worker_id", currentWorkerId)
+      .in("status", [
+        "new",
+        "pending",
+        "requested"
+      ]);
+
+  if (error || count === null || count === undefined) {
+    return 0;
+  }
+
+  return count;
+
 }
 
 async function countAcceptedTasksAndQuotes() {
-  if (!currentWorkerId) return 0;
-  let total = 0;
-  const { count: taskCount } = await supabaseClient.from("tasks").select("id",{count:"exact",head:true})
-    .or(`worker_id.eq.${currentWorkerId},accepted_worker_id.eq.${currentWorkerId}`)
-    .in("status",["accepted","scheduled","in_progress"]);
-  if (taskCount) total += taskCount;
-  const { count: quoteCount } = await supabaseClient.from("worker_quotes").select("id",{count:"exact",head:true})
-    .eq("worker_id",currentWorkerId).in("status",["accepted","approved"]);
-  if (quoteCount) total += quoteCount;
-  return total;
+
+  if (!currentWorkerId) {
+    return 0;
+  }
+
+  let acceptedTaskCount = 0;
+  let acceptedQuoteCount = 0;
+
+  const { count: taskCount, error: taskError } =
+    await supabaseClient
+      .from("tasks")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .or(`worker_id.eq.${currentWorkerId},accepted_worker_id.eq.${currentWorkerId}`)
+      .in("status", [
+        "accepted",
+        "scheduled",
+        "in_progress"
+      ]);
+
+  if (!taskError && taskCount) {
+    acceptedTaskCount = taskCount;
+  }
+
+  const { count: quoteCount, error: quoteError } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("worker_id", currentWorkerId)
+      .in("status", [
+        "accepted",
+        "approved"
+      ]);
+
+  if (!quoteError && quoteCount) {
+    acceptedQuoteCount = quoteCount;
+  }
+
+  return acceptedTaskCount + acceptedQuoteCount;
+
 }
 
 async function countNewReviews() {
-  const workerIds = getWorkerNotificationIds();
-  if (!workerIds.length) return 0;
-  const since = new Date(); since.setDate(since.getDate()-14);
-  const { data: completedTasks } = await supabaseClient.from("tasks").select("id")
-    .or(`worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`)
-    .eq("status","completed").eq("customer_completed",true);
-  if (!completedTasks?.length) return 0;
-  const taskIds = completedTasks.map(t => t.id).filter(Boolean);
-  const { count } = await supabaseClient.from("reviews").select("id",{count:"exact",head:true})
-    .in("task_id",taskIds).gte("created_at",since.toISOString());
-  return count || 0;
+
+  const workerIds =
+    getWorkerNotificationIds();
+
+  if (workerIds.length === 0) {
+    return 0;
+  }
+
+  const since = new Date();
+  since.setDate(since.getDate() - 14);
+
+  const { data: completedTasks, error: taskError } =
+    await supabaseClient
+      .from("tasks")
+      .select("id")
+      .or(
+        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
+      )
+      .eq("status", "completed")
+      .eq("customer_completed", true);
+
+  if (taskError || !completedTasks || completedTasks.length === 0) {
+    return 0;
+  }
+
+  const taskIds =
+    completedTasks
+      .map((task) => task.id)
+      .filter(Boolean);
+
+  if (taskIds.length === 0) {
+    return 0;
+  }
+
+  const { count, error } =
+    await supabaseClient
+      .from("reviews")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .in("task_id", taskIds)
+      .gte("created_at", since.toISOString());
+
+  if (error || count === null || count === undefined) {
+    return 0;
+  }
+
+  return count;
+
 }
 
 async function countPayoutNotifications() {
-  if (!currentWorkerId) return 0;
-  const { count } = await supabaseClient.from("worker_earnings").select("id",{count:"exact",head:true})
-    .eq("worker_id",currentWorkerId).in("payout_status",["pending","processing","paid"]);
-  return count || 0;
+
+  if (!currentWorkerId) {
+    return 0;
+  }
+
+  const { count, error } =
+    await supabaseClient
+      .from("worker_earnings")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("worker_id", currentWorkerId)
+      .in("payout_status", [
+        "pending",
+        "processing",
+        "paid"
+      ]);
+
+  if (error || count === null || count === undefined) {
+    return 0;
+  }
+
+  return count;
+
 }
 
 async function countTodayScheduledJobs() {
-  if (!currentWorkerId) return 0;
+
+  if (!currentWorkerId) {
+    return 0;
+  }
+
   const today = new Date();
-  const start = new Date(today); start.setHours(0,0,0,0);
-  const end = new Date(today); end.setHours(23,59,59,999);
-  const { count } = await supabaseClient.from("tasks").select("id",{count:"exact",head:true})
-    .or(`worker_id.eq.${currentWorkerId},accepted_worker_id.eq.${currentWorkerId},assigned_worker_id.eq.${currentWorkerId}`)
-    .gte("scheduled_start",start.toISOString()).lte("scheduled_start",end.toISOString())
-    .in("status",["accepted","in_progress","worker_completed","scheduled","paid","completed"]);
-  return count || 0;
+  const start = new Date(today);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(today);
+  end.setHours(23, 59, 59, 999);
+
+  const startIso = start.toISOString();
+  const endIso = end.toISOString();
+
+  const { count, error } =
+    await supabaseClient
+      .from("tasks")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .or(`worker_id.eq.${currentWorkerId},accepted_worker_id.eq.${currentWorkerId},assigned_worker_id.eq.${currentWorkerId}`)
+      .gte("scheduled_start", startIso)
+      .lte("scheduled_start", endIso)
+      .in("status", [
+        "accepted",
+        "in_progress",
+        "worker_completed",
+        "scheduled",
+        "paid",
+        "completed"
+      ]);
+
+  if (error || count === null || count === undefined) {
+    return 0;
+  }
+
+  return count;
+
 }
 
 async function loadWorkerNotifications() {
+
+  const directRequestCount =
+    await countDirectRequests();
+
+  const acceptedCount =
+    await countAcceptedTasksAndQuotes();
+
+  const messageCount =
+    await countUnreadMessages();
+
+  const disputeCount =
+    await countDisputeNotifications();
+
+  const reviewCount =
+    await countNewReviews();
+
+  const payoutCount =
+    await countPayoutNotifications();
+
+  const todayScheduleCount =
+    await countTodayScheduledJobs();
+
   rawNotificationCounts = {
-    directRequests: await countDirectRequests(),
-    accepted: await countAcceptedTasksAndQuotes(),
-    messages: await countUnreadMessages(),
-    disputes: await countDisputeNotifications(),
-    reviews: await countNewReviews(),
-    payouts: await countPayoutNotifications(),
-    schedule: await countTodayScheduledJobs()
+    directRequests: directRequestCount,
+    accepted: acceptedCount,
+    messages: messageCount,
+    disputes: disputeCount,
+    reviews: reviewCount,
+    payouts: payoutCount,
+    schedule: todayScheduleCount
   };
+
   updateWorkerNotificationDisplay();
+
 }
 
-function openPendingQuotesPage() { window.location.href = "view-pending-quotes.html"; }
+function openPendingQuotesPage() {
+
+  window.location.href =
+    "view-pending-quotes.html";
+
+}
 
 function scrollToPendingQuotes() {
-  document.getElementById("pendingQuotesCard").scrollIntoView({behavior:"smooth",block:"start"});
+
+  document.getElementById("pendingQuotesCard")
+    .scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
 }
 
 function viewPublicProfile() {
-  localStorage.setItem("selectedWorkerId", currentWorkerId);
-  window.location.href = "worker-public-profile.html";
+
+  localStorage.setItem(
+    "selectedWorkerId",
+    currentWorkerId
+  );
+
+  window.location.href =
+    "worker-public-profile.html";
+
 }
 
 loadDashboard();
+
 </script>
 </body>
 </html>

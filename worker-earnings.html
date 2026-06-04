@@ -599,15 +599,38 @@ async function getCurrentWorker() {
     ids.push(profile.id);
   }
 
-  const { data: workerProfile } =
+  let workerProfile = null;
+
+  const { data: workerProfileByAuth } =
     await supabaseClient
       .from("worker_profiles")
-      .select("id, email, stripe_account_id, payout_status")
-      .eq("email", currentUser.email)
+      .select("id, auth_user_id, email, stripe_account_id, payout_status")
+      .eq("auth_user_id", currentUser.id)
       .maybeSingle();
+
+  if (workerProfileByAuth) {
+    workerProfile = workerProfileByAuth;
+  }
+
+  if (!workerProfile) {
+    const { data: workerProfileByEmail } =
+      await supabaseClient
+        .from("worker_profiles")
+        .select("id, auth_user_id, email, stripe_account_id, payout_status")
+        .eq("email", currentUser.email)
+        .maybeSingle();
+
+    if (workerProfileByEmail) {
+      workerProfile = workerProfileByEmail;
+    }
+  }
 
   if (workerProfile && workerProfile.id) {
     ids.push(workerProfile.id);
+  }
+
+  if (workerProfile && workerProfile.auth_user_id) {
+    ids.push(workerProfile.auth_user_id);
   }
 
   currentWorkerIds =

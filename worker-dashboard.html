@@ -702,6 +702,386 @@ button{
   color:#6b7280 !important;
 }
 
+
+/* ===== TaskMint Worker Dashboard Full Visual Redesign ===== */
+body {
+  background:
+    radial-gradient(circle at top left, rgba(25, 182, 76, 0.18), transparent 28%),
+    radial-gradient(circle at 85% 18%, rgba(11, 122, 40, 0.12), transparent 26%),
+    linear-gradient(180deg, #eef8f1 0%, #f7f8f7 42%, #ffffff 100%) !important;
+}
+
+.container {
+  max-width: 470px !important;
+  padding: 18px 18px 110px !important;
+}
+
+.floating-bg,
+.floating-bg2 {
+  display: none !important;
+}
+
+.top-hero {
+  border-radius: 34px !important;
+  padding: 20px 20px 58px !important;
+  margin-bottom: -42px !important;
+  background:
+    radial-gradient(circle at top right, rgba(255,255,255,0.22), transparent 34%),
+    linear-gradient(135deg, #063f18 0%, #0b7a28 48%, #22bf55 100%) !important;
+  box-shadow: 0 22px 46px rgba(11,122,40,0.28) !important;
+}
+
+.hero-top {
+  align-items: flex-start !important;
+}
+
+.logo-mini {
+  width: 122px !important;
+  border-radius: 20px !important;
+  background: rgba(255,255,255,0.92) !important;
+  padding: 8px !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+}
+
+.hero-actions {
+  gap: 8px !important;
+}
+
+.notification-circle,
+.settings-circle {
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,0.18) !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.16) !important;
+}
+
+.hero-title {
+  margin-top: 24px !important;
+  font-size: 32px !important;
+  line-height: 1.05 !important;
+  letter-spacing: -1px !important;
+  font-weight: 900 !important;
+}
+
+.hero-sub {
+  max-width: 330px !important;
+  font-size: 14px !important;
+  opacity: 0.92 !important;
+}
+
+.card {
+  border: none !important;
+  border-radius: 30px !important;
+  padding: 21px !important;
+  margin-bottom: 18px !important;
+  background: rgba(255,255,255,0.96) !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.08) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.card:nth-of-type(1) {
+  margin-top: 0 !important;
+  border: 1px solid rgba(255,255,255,0.78) !important;
+  box-shadow: 0 18px 38px rgba(0,0,0,0.12) !important;
+}
+
+.profile-row {
+  align-items: center !important;
+  gap: 16px !important;
+}
+
+.profile-pic {
+  width: 88px !important;
+  height: 88px !important;
+  border-radius: 24px !important;
+  border: 4px solid #ffffff !important;
+  box-shadow: 0 10px 24px rgba(11,122,40,0.18) !important;
+}
+
+.worker-name {
+  font-size: 22px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.35px !important;
+}
+
+.small-text {
+  color: #667267 !important;
+  font-size: 13px !important;
+}
+
+.card:nth-of-type(1) button {
+  margin-top: 14px !important;
+}
+
+.card:nth-of-type(1) button.secondary,
+.card:nth-of-type(1) button:not(.secondary) {
+  width: calc(50% - 5px) !important;
+  display: inline-block !important;
+}
+
+.card:nth-of-type(1) button.secondary {
+  margin-right: 6px !important;
+}
+
+.section-header {
+  margin-bottom: 16px !important;
+}
+
+.section-title {
+  font-size: 21px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.45px !important;
+}
+
+.section-link {
+  background: #e7f7ec !important;
+  color: #0b7a28 !important;
+  padding: 7px 10px !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+}
+
+.stats-grid {
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+
+.stat-box {
+  min-height: 128px !important;
+  border: 1px solid #edf1ee !important;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f8fbf9 100%) !important;
+  border-radius: 26px !important;
+  padding: 17px !important;
+  text-align: left !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.055) !important;
+}
+
+.stat-box:first-child {
+  grid-column: 1 / -1 !important;
+  background:
+    radial-gradient(circle at top right, rgba(255,255,255,0.23), transparent 30%),
+    linear-gradient(135deg, #0b7a28 0%, #19a447 100%) !important;
+  color: white !important;
+}
+
+.stat-box:first-child .stat-icon {
+  background: rgba(255,255,255,0.20) !important;
+  color: white !important;
+}
+
+.stat-box:first-child .stat-number,
+.stat-box:first-child .stat-label {
+  color: white !important;
+}
+
+.stat-icon {
+  margin: 0 0 10px 0 !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 17px !important;
+  font-size: 20px !important;
+}
+
+.stat-number {
+  font-size: 29px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.6px !important;
+}
+
+.stat-label {
+  font-size: 12px !important;
+  color: #667267 !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.35px !important;
+}
+
+.quick-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+  margin-top: 14px !important;
+}
+
+.quick-card {
+  min-height: unset !important;
+  border: 1px solid #edf1ee !important;
+  border-radius: 24px !important;
+  background: #ffffff !important;
+  padding: 16px !important;
+  box-shadow: 0 7px 20px rgba(0,0,0,0.055) !important;
+}
+
+.quick-card > div {
+  display: grid !important;
+  grid-template-columns: 52px 1fr !important;
+  column-gap: 12px !important;
+  align-items: center !important;
+}
+
+.quick-icon {
+  grid-row: 1 / span 2 !important;
+  width: 52px !important;
+  height: 52px !important;
+  margin: 0 !important;
+  border-radius: 19px !important;
+  font-size: 23px !important;
+}
+
+.quick-title {
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  margin: 0 0 3px !important;
+}
+
+.quick-sub {
+  font-size: 12.5px !important;
+  color: #667267 !important;
+}
+
+.quote-card,
+.schedule-card {
+  background: #ffffff !important;
+  border: 1px solid #edf1ee !important;
+  border-radius: 24px !important;
+  padding: 16px !important;
+  box-shadow: 0 7px 20px rgba(0,0,0,0.055) !important;
+}
+
+.schedule-title {
+  font-size: 16px !important;
+  font-weight: 900 !important;
+}
+
+.schedule-badge {
+  border-radius: 999px !important;
+  padding: 7px 11px !important;
+}
+
+.tool-list {
+  margin-top: 14px !important;
+  display: grid !important;
+  gap: 11px !important;
+}
+
+.tool-row {
+  border: 1px solid #edf1ee !important;
+  border-radius: 24px !important;
+  background: #ffffff !important;
+  padding: 16px !important;
+  box-shadow: 0 7px 20px rgba(0,0,0,0.05) !important;
+}
+
+.tool-icon {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 18px !important;
+  font-size: 22px !important;
+}
+
+.tool-title {
+  font-size: 15px !important;
+  font-weight: 900 !important;
+}
+
+.tool-sub {
+  color: #667267 !important;
+  font-size: 12.5px !important;
+}
+
+.arrow {
+  background: #e7f7ec !important;
+  color: #0b7a28 !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 999px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 22px !important;
+}
+
+.notification-panel {
+  margin-top: 52px !important;
+  border-radius: 28px !important;
+  border: none !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.10) !important;
+}
+
+.notification-item {
+  border: 1px solid #edf1ee !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+}
+
+.notification-icon {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 16px !important;
+}
+
+button {
+  border-radius: 18px !important;
+  font-weight: 900 !important;
+  box-shadow: 0 8px 18px rgba(11,122,40,0.13) !important;
+}
+
+button.secondary {
+  box-shadow: none !important;
+  border: 1px solid #dfe8e1 !important;
+}
+
+.logout-row {
+  background: #fff7f7 !important;
+  border: 1px solid #ffe0e0 !important;
+}
+
+.logout {
+  box-shadow: 0 8px 18px rgba(176,0,32,0.12) !important;
+}
+
+.loading {
+  background: #ffffff !important;
+  max-width: 360px !important;
+  margin: 90px auto 0 !important;
+  padding: 22px !important;
+  border-radius: 24px !important;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.08) !important;
+}
+
+@media (max-width: 360px) {
+  .container {
+    padding: 14px 14px 105px !important;
+  }
+
+  .hero-title {
+    font-size: 28px !important;
+  }
+
+  .card {
+    padding: 18px !important;
+  }
+
+  .profile-pic {
+    width: 76px !important;
+    height: 76px !important;
+  }
+
+  .card:nth-of-type(1) button.secondary,
+  .card:nth-of-type(1) button:not(.secondary) {
+    width: 100% !important;
+    display: block !important;
+  }
+
+  .card:nth-of-type(1) button.secondary {
+    margin-right: 0 !important;
+  }
+}
+
 </style>
 </head>
  

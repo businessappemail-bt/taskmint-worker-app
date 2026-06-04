@@ -1,4 +1,3 @@
-orker dashboard · TXT
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,7 +7,7 @@ orker dashboard · TXT
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
     :root {
       --bg:           #ffffff;
       --surface:      #f2f7f4;
@@ -23,7 +22,7 @@ orker dashboard · TXT
       --warn-border:  #f0c040;
       --warn-text:    #7a4f00;
     }
- 
+
     body {
       background: var(--bg);
       color: var(--text);
@@ -35,13 +34,13 @@ orker dashboard · TXT
       flex-direction: column;
       align-items: center;
     }
- 
+
     /* ── CENTER COLUMN ── */
     .top-bar, .page {
       width: 100%;
       max-width: 470px;
     }
- 
+
     /* ── TOP BAR ── */
     .top-bar {
       position: sticky;
@@ -55,19 +54,19 @@ orker dashboard · TXT
       align-items: center;
       padding: 13px 20px;
     }
- 
+
     .brand img {
       width: 130px;
       height: auto;
       object-fit: contain;
     }
- 
+
     .top-actions {
       display: flex;
       align-items: center;
       gap: 8px;
     }
- 
+
     .icon-btn {
       width: 42px; height: 42px;
       border-radius: 12px;
@@ -83,7 +82,7 @@ orker dashboard · TXT
       color: var(--text);
     }
     .icon-btn:hover { background: var(--surface2); }
- 
+
     .notification-badge {
       position: absolute;
       top: -5px; right: -5px;
@@ -99,17 +98,17 @@ orker dashboard · TXT
       border: 2px solid #fff;
       padding: 0 3px;
     }
- 
+
     /* ── PAGE ── */
     .page {
       padding: 20px 16px 30px;
     }
- 
+
     /* ── HERO GREETING ── */
     .hero {
       margin-bottom: 20px;
     }
- 
+
     .hero-label {
       font-size: 11px;
       font-weight: 700;
@@ -120,7 +119,7 @@ orker dashboard · TXT
       opacity: 0;
       animation: riseIn 0.35s 0.05s forwards;
     }
- 
+
     .hero h1 {
       font-size: 28px;
       font-weight: 800;
@@ -130,12 +129,12 @@ orker dashboard · TXT
       opacity: 0;
       animation: riseIn 0.35s 0.1s forwards;
     }
- 
+
     .hero h1 em {
       font-style: normal;
       color: var(--accent);
     }
- 
+
     .hero p {
       margin-top: 7px;
       font-size: 13px;
@@ -144,7 +143,7 @@ orker dashboard · TXT
       opacity: 0;
       animation: riseIn 0.35s 0.15s forwards;
     }
- 
+
     /* ── PROFILE CARD ── */
     .profile-card {
       background: var(--accent);
@@ -158,7 +157,7 @@ orker dashboard · TXT
       opacity: 0;
       animation: riseIn 0.35s 0.2s forwards;
     }
- 
+
     .profile-pic {
       width: 62px; height: 62px;
       border-radius: 50%;
@@ -167,28 +166,28 @@ orker dashboard · TXT
       border: 3px solid rgba(255,255,255,0.4);
       flex-shrink: 0;
     }
- 
+
     .profile-info { flex: 1; }
- 
+
     .profile-name {
       font-size: 17px;
       font-weight: 800;
       color: #fff;
       line-height: 1.2;
     }
- 
+
     .profile-sub {
       font-size: 12px;
       color: rgba(255,255,255,0.72);
       margin-top: 3px;
     }
- 
+
     .profile-btns {
       display: flex;
       gap: 8px;
       margin-top: 10px;
     }
- 
+
     .profile-btn {
       flex: 1;
       padding: 9px 10px;
@@ -210,7 +209,7 @@ orker dashboard · TXT
       background: #fff;
       color: var(--accent);
     }
- 
+
     /* ── NOTICE ── */
     .notice {
       background: var(--warn-bg);
@@ -222,7 +221,7 @@ orker dashboard · TXT
       line-height: 1.5;
       margin-bottom: 16px;
     }
- 
+
     /* ── SECTION LABEL ── */
     .section-label {
       font-size: 10.5px;
@@ -232,16 +231,16 @@ orker dashboard · TXT
       color: var(--muted);
       margin: 20px 0 9px;
     }
- 
+
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin: 20px 0 9px;
     }
- 
+
     .section-header .section-label { margin: 0; }
- 
+
     .section-link {
       font-size: 12px;
       font-weight: 700;
@@ -249,7 +248,7 @@ orker dashboard · TXT
       cursor: pointer;
       text-decoration: none;
     }
- 
+
     /* ── STATS ROW ── */
     .stats-row {
       display: grid;
@@ -258,7 +257,7 @@ orker dashboard · TXT
       opacity: 0;
       animation: riseIn 0.35s 0.25s forwards;
     }
- 
+
     .stat-box {
       background: var(--surface);
       border-radius: 16px;
@@ -268,12 +267,12 @@ orker dashboard · TXT
       cursor: pointer;
       transition: border-color 0.18s, transform 0.18s;
     }
- 
+
     .stat-box:hover {
       border-color: #a3cfb0;
       transform: translateY(-1px);
     }
- 
+
     .stat-icon {
       width: 34px; height: 34px;
       border-radius: 10px;
@@ -286,21 +285,21 @@ orker dashboard · TXT
       font-weight: 800;
       margin: 0 auto 7px;
     }
- 
+
     .stat-number {
       font-size: 17px;
       font-weight: 800;
       color: var(--accent);
       line-height: 1;
     }
- 
+
     .stat-label {
       font-size: 10px;
       color: var(--muted);
       margin-top: 4px;
       line-height: 1.3;
     }
- 
+
     /* ── 2-COL TILE ── */
     .two-col {
       display: grid;
@@ -308,7 +307,7 @@ orker dashboard · TXT
       gap: 10px;
       width: 100%;
     }
- 
+
     .tile {
       background: var(--surface);
       border-radius: 16px;
@@ -321,13 +320,13 @@ orker dashboard · TXT
       flex-direction: column;
       gap: 10px;
     }
- 
+
     .tile:hover {
       border-color: #a3cfb0;
       box-shadow: 0 4px 14px rgba(11,122,40,0.10);
       transform: translateY(-1px);
     }
- 
+
     .t-icon {
       width: 40px; height: 40px;
       border-radius: 12px;
@@ -336,21 +335,21 @@ orker dashboard · TXT
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
- 
+
     .t-title {
       font-size: 13.5px;
       font-weight: 700;
       color: var(--text);
       line-height: 1.2;
     }
- 
+
     .t-sub {
       font-size: 11px;
       color: var(--muted);
       line-height: 1.45;
       margin-top: 2px;
     }
- 
+
     /* ── ROW CARD ── */
     .row-list {
       display: flex;
@@ -358,7 +357,7 @@ orker dashboard · TXT
       gap: 8px;
       width: 100%;
     }
- 
+
     .row-card {
       background: var(--surface);
       border-radius: 14px;
@@ -372,12 +371,12 @@ orker dashboard · TXT
       transition: border-color 0.18s, transform 0.18s;
       position: relative;
     }
- 
+
     .row-card:hover {
       border-color: #a3cfb0;
       transform: translateY(-1px);
     }
- 
+
     .r-icon {
       width: 40px; height: 40px;
       border-radius: 11px;
@@ -386,28 +385,28 @@ orker dashboard · TXT
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
- 
+
     .r-text { flex: 1; }
- 
+
     .r-title {
       font-size: 13.5px;
       font-weight: 700;
       color: var(--text);
     }
- 
+
     .r-sub {
       font-size: 11px;
       color: var(--muted);
       margin-top: 2px;
       line-height: 1.4;
     }
- 
+
     .r-chev {
       font-size: 16px;
       color: #c0ccc4;
       flex-shrink: 0;
     }
- 
+
     .red-dot {
       width: 9px; height: 9px;
       background: #d50000;
@@ -416,7 +415,7 @@ orker dashboard · TXT
       top: 10px; right: 38px;
       display: none;
     }
- 
+
     /* ── SCHEDULE / QUOTE CARDS ── */
     .schedule-card {
       background: #fff;
@@ -425,20 +424,20 @@ orker dashboard · TXT
       padding: 14px;
       margin-top: 8px;
     }
- 
+
     .schedule-title {
       font-size: 13.5px;
       font-weight: 700;
       color: var(--text);
       margin-bottom: 5px;
     }
- 
+
     .schedule-meta {
       font-size: 12px;
       color: var(--muted);
       line-height: 1.5;
     }
- 
+
     .schedule-badge {
       display: inline-block;
       margin-top: 8px;
@@ -450,7 +449,7 @@ orker dashboard · TXT
       font-weight: 700;
       text-transform: capitalize;
     }
- 
+
     .quote-card {
       background: #fff;
       border: 1px solid var(--border);
@@ -458,21 +457,21 @@ orker dashboard · TXT
       padding: 14px;
       margin-top: 8px;
     }
- 
+
     .quote-amount {
       font-size: 22px;
       font-weight: 800;
       color: var(--accent);
       margin-top: 4px;
     }
- 
+
     .quote-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
       margin-top: 12px;
     }
- 
+
     /* ── BUTTONS ── */
     .btn {
       width: 100%;
@@ -487,22 +486,22 @@ orker dashboard · TXT
       transition: opacity 0.18s, transform 0.18s;
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
- 
+
     .btn:hover { opacity: 0.88; transform: translateY(-1px); }
- 
+
     .btn.secondary {
       background: var(--surface);
       color: var(--text);
       border: 1px solid var(--border);
     }
- 
+
     .btn.danger {
       background: var(--danger);
       color: #fff;
     }
- 
+
     .btn.danger:hover { opacity: 0.88; }
- 
+
     /* ── LOGOUT SECTION ── */
     .logout-section {
       background: #fff5f5;
@@ -511,7 +510,7 @@ orker dashboard · TXT
       padding: 16px;
       margin-top: 20px;
     }
- 
+
     /* ── NOTIFICATION PANEL ── */
     .notification-panel {
       background: #fff;
@@ -523,35 +522,35 @@ orker dashboard · TXT
       display: none;
       animation: riseIn 0.25s ease;
     }
- 
+
     .notification-panel.show { display: block; }
- 
+
     .notif-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
     }
- 
+
     .notif-title {
       font-size: 15px;
       font-weight: 800;
       color: var(--text);
     }
- 
+
     .notif-refresh {
       font-size: 12px;
       font-weight: 700;
       color: var(--accent);
       cursor: pointer;
     }
- 
+
     .notif-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
- 
+
     .notif-item {
       display: flex;
       align-items: center;
@@ -563,12 +562,12 @@ orker dashboard · TXT
       cursor: pointer;
       transition: border-color 0.18s, transform 0.18s;
     }
- 
+
     .notif-item:hover {
       border-color: #a3cfb0;
       transform: translateY(-1px);
     }
- 
+
     .notif-icon {
       width: 36px; height: 36px;
       border-radius: 11px;
@@ -577,22 +576,22 @@ orker dashboard · TXT
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
- 
+
     .notif-text { flex: 1; }
- 
+
     .notif-main {
       font-size: 13px;
       font-weight: 700;
       color: var(--text);
     }
- 
+
     .notif-sub {
       font-size: 11px;
       color: var(--muted);
       margin-top: 2px;
       line-height: 1.35;
     }
- 
+
     .notif-count {
       min-width: 24px; height: 24px;
       border-radius: 999px;
@@ -604,18 +603,18 @@ orker dashboard · TXT
       padding: 0 6px;
       flex-shrink: 0;
     }
- 
+
     /* ── FADE ANIMATIONS ── */
     .fade-in {
       opacity: 0;
       animation: riseIn 0.35s forwards;
     }
- 
+
     @keyframes riseIn {
       from { opacity: 0; transform: translateY(10px); }
       to   { opacity: 1; transform: translateY(0); }
     }
- 
+
     .loading {
       text-align: center;
       margin-top: 100px;
@@ -623,7 +622,7 @@ orker dashboard · TXT
       font-size: 15px;
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
- 
+
     @media (max-width: 360px) {
       .stats-row { grid-template-columns: repeat(2, 1fr); }
       .two-col { gap: 8px; }
@@ -632,7 +631,7 @@ orker dashboard · TXT
   </style>
 </head>
 <body>
- 
+
 <!-- TOP BAR -->
 <div class="top-bar">
   <div class="brand">
@@ -648,20 +647,20 @@ orker dashboard · TXT
     <button class="icon-btn" onclick="window.location.href='worker-settings.html'" aria-label="Settings">⚙️</button>
   </div>
 </div>
- 
+
 <!-- LOADING -->
 <div class="loading" id="loading">Loading worker dashboard...</div>
- 
+
 <!-- DASHBOARD -->
 <div class="page" id="dashboard" style="display:none;">
- 
+
   <!-- HERO -->
   <div class="hero">
     <div class="hero-label">Worker Dashboard</div>
     <h1>Hello, <em id="workerFirstName">Worker</em></h1>
     <p>Manage quotes, jobs, earnings, messages, and payouts from one place.</p>
   </div>
- 
+
   <!-- NOTIFICATION PANEL -->
   <div id="notificationPanel" class="notification-panel">
     <div class="notif-header">
@@ -727,7 +726,7 @@ orker dashboard · TXT
       </div>
     </div>
   </div>
- 
+
   <!-- PROFILE CARD -->
   <div class="profile-card fade-in" style="animation-delay:0.2s;">
     <img class="profile-pic" id="profilePic"
@@ -742,13 +741,13 @@ orker dashboard · TXT
       </div>
     </div>
   </div>
- 
+
   <!-- PROFILE NOTICE -->
   <div id="profileNotice"></div>
- 
+
   <!-- STATS -->
   <div class="section-label">Overview</div>
- 
+
   <div class="stats-row" id="overviewSection">
     <div class="stat-box" onclick="window.location.href='worker-earnings.html'">
       <div class="stat-icon">$</div>
@@ -771,7 +770,7 @@ orker dashboard · TXT
       <div class="stat-label">Quotes</div>
     </div>
   </div>
- 
+
   <div style="margin-top:10px;">
     <div class="row-card" onclick="window.location.href='worker-payout-status.html'" style="background:#fff;">
       <div class="r-icon">💳</div>
@@ -782,10 +781,10 @@ orker dashboard · TXT
       <div class="r-chev">›</div>
     </div>
   </div>
- 
+
   <!-- QUICK ACTIONS -->
   <div class="section-label" id="quickActionsSection">Quick Actions</div>
- 
+
   <div class="two-col fade-in" style="animation-delay:0.28s;">
     <div class="tile" onclick="window.location.href='worker-open-task.html'">
       <div class="t-icon">🔎</div>
@@ -816,26 +815,26 @@ orker dashboard · TXT
       </div>
     </div>
   </div>
- 
+
   <!-- TODAY'S SCHEDULE -->
   <div class="section-header" id="todayScheduleSection">
     <div class="section-label" style="margin:0;">Today's Schedule</div>
     <a class="section-link" onclick="window.location.href='worker-calendar.html'">Full Schedule</a>
   </div>
- 
+
   <div id="todayScheduleList" class="r-sub" style="padding:4px 2px;">Loading today's schedule...</div>
- 
+
   <!-- PENDING QUOTES -->
   <div class="section-header" id="pendingQuotesCard">
     <div class="section-label" style="margin:0;">Pending Quotes</div>
     <a class="section-link" onclick="openPendingQuotesPage()">View All</a>
   </div>
- 
+
   <div id="pendingQuotesList" class="r-sub" style="padding:4px 2px;">Loading pending quotes...</div>
- 
+
   <!-- WORKER TOOLS -->
   <div class="section-label">Worker Tools</div>
- 
+
   <div class="row-list fade-in" style="animation-delay:0.34s;">
     <div class="row-card" onclick="window.location.href='worker-availability.html'">
       <div class="r-icon">🕒</div>
@@ -887,43 +886,43 @@ orker dashboard · TXT
       <div class="r-chev">›</div>
     </div>
   </div>
- 
+
   <!-- LOGOUT -->
   <div class="logout-section fade-in" style="animation-delay:0.40s;">
     <div class="section-label" style="margin:0 0 12px;">Account</div>
     <button class="btn danger" onclick="logout()">Log Out</button>
   </div>
- 
+
 </div>
- 
+
 <script>
 const SUPABASE_URL = "https://dbcthtjmtlumidpbucrc.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
- 
+
 let currentUser = null;
 let currentWorkerId = null;
- 
+
 let rawNotificationCounts = {
   directRequests: 0, accepted: 0, messages: 0,
   disputes: 0, reviews: 0, payouts: 0, schedule: 0
 };
- 
+
 function getNotificationDismissedCount(category) {
   return Number(localStorage.getItem(`taskmintWorkerNotificationDismissed_${category}`) || 0);
 }
- 
+
 function getAdjustedNotificationCount(category, count) {
   if (category === "messages") return Number(count || 0);
   const adjusted = Number(count || 0) - getNotificationDismissedCount(category);
   return adjusted > 0 ? adjusted : 0;
 }
- 
+
 function markWorkerNotificationCategoryViewed(category) {
   localStorage.setItem(`taskmintWorkerNotificationDismissed_${category}`, String(rawNotificationCounts[category] || 0));
   updateWorkerNotificationDisplay();
 }
- 
+
 function openWorkerNotification(category, targetId) {
   if (category === "messages") { window.location.href = "worker-message-center.html"; return; }
   markWorkerNotificationCategoryViewed(category);
@@ -932,12 +931,12 @@ function openWorkerNotification(category, targetId) {
   const target = document.getElementById(targetId);
   if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
 }
- 
+
 async function refreshWorkerNotifications(event) {
   if (event) event.stopPropagation();
   await loadWorkerNotifications();
 }
- 
+
 function updateWorkerNotificationDisplay() {
   const cats = ["directRequests","accepted","messages","disputes","reviews","payouts","schedule"];
   const ids  = ["directRequestNotificationCount","acceptedNotificationCount","messageNotificationCount",
@@ -955,7 +954,7 @@ function updateWorkerNotificationDisplay() {
     else { badge.style.display = "none"; badge.innerText = "0"; }
   }
 }
- 
+
 async function loadDashboard() {
   const { data, error } = await supabaseClient.auth.getSession();
   if (error || !data.session) {
@@ -964,14 +963,14 @@ async function loadDashboard() {
   }
   const user = data.session.user;
   currentUser = user;
- 
+
   const { data: profile } = await supabaseClient.from("profiles").select("*").eq("email", user.email).maybeSingle();
   const { data: workerRecord } = await supabaseClient.from("worker_profiles").select("*").eq("email", user.email).maybeSingle();
- 
+
   if (workerRecord?.id) currentWorkerId = workerRecord.id;
   else if (profile?.id) currentWorkerId = profile.id;
   else currentWorkerId = user.id;
- 
+
   if (profile) {
     const fullName =
       workerRecord?.full_name ||
@@ -979,16 +978,16 @@ async function loadDashboard() {
       profile?.full_name ||
       `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
       "Worker";
- 
+
     document.getElementById("workerName").innerText = fullName;
- 
+
     const firstName = (workerRecord?.first_name || profile?.first_name || fullName.split(" ")[0] || "Worker");
     document.getElementById("workerFirstName").innerText = firstName;
- 
+
     if (profile.profile_photo_url?.trim()) {
       document.getElementById("profilePic").src = profile.profile_photo_url;
     }
- 
+
     const hasPhoto = !!profile.profile_photo_url?.trim();
     const hasExperience = !!profile.experience?.trim();
     if (!hasPhoto || !hasExperience) {
@@ -996,7 +995,7 @@ async function loadDashboard() {
         `<div class="notice">⚠️ Complete your worker profile before sending quotes.</div>`;
     }
   }
- 
+
   await loadPendingQuotesByEmail(user.email);
   await loadWorkerRating(currentWorkerId);
   await loadWorkerEarnings(currentWorkerId);
@@ -1004,11 +1003,11 @@ async function loadDashboard() {
   await loadTodaySchedule(currentWorkerId);
   await loadUnreadDisputeDot(currentWorkerId);
   await loadWorkerNotifications();
- 
+
   document.getElementById("loading").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
 }
- 
+
 async function logout() {
   await supabaseClient.auth.signOut();
   localStorage.removeItem("taskmintUserId");
@@ -1017,14 +1016,14 @@ async function logout() {
   localStorage.removeItem("stripeAccountId");
   window.location.href = "worker-login.html";
 }
- 
+
 function getWorkerIdList(workerId) {
   const ids = [];
   if (currentUser?.id) ids.push(currentUser.id);
   if (workerId) ids.push(workerId);
   return [...new Set(ids.filter(Boolean).map(String))];
 }
- 
+
 async function loadWorkerRating(workerId) {
   const workerIds = getWorkerIdList(workerId);
   if (!workerIds.length) { document.getElementById("ratingScore").innerText = "0.0"; return; }
@@ -1038,36 +1037,36 @@ async function loadWorkerRating(workerId) {
   const avg = reviews.reduce((s,r) => s + Number(r.rating||0), 0) / reviews.length;
   document.getElementById("ratingScore").innerText = avg.toFixed(1);
 }
- 
+
 async function loadPendingQuotesByEmail(email) {
   const container = document.getElementById("pendingQuotesList");
   const pendingQuotesCount = document.getElementById("pendingQuotes");
   pendingQuotesCount.innerText = "0";
- 
+
   const workerIds = [];
   if (currentUser?.id) workerIds.push(currentUser.id);
   if (currentWorkerId) workerIds.push(currentWorkerId);
- 
+
   const { data: workerProfile } = await supabaseClient.from("workers").select("id").eq("email", email).maybeSingle();
   if (workerProfile?.id) workerIds.push(workerProfile.id);
- 
+
   const uniqueWorkerIds = [...new Set(workerIds.filter(Boolean).map(String))];
   if (!uniqueWorkerIds.length) { container.innerHTML = `<div class="r-sub">Worker record not found.</div>`; return; }
- 
+
   const { data: quotes, error } = await supabaseClient.from("worker_quotes").select("*")
     .in("worker_id", uniqueWorkerIds).eq("status","pending").order("created_at",{ascending:false});
- 
+
   if (error) { container.innerHTML = `<div class="r-sub">Error loading quotes.</div>`; return; }
- 
+
   if (!quotes?.length) {
     pendingQuotesCount.innerText = "0";
     container.innerHTML = `<div class="r-sub">No pending quotes yet. Browse available tasks to send your next quote.</div>`;
     return;
   }
- 
+
   pendingQuotesCount.innerText = quotes.length;
   container.innerHTML = "";
- 
+
   quotes.forEach(quote => {
     container.innerHTML += `
       <div class="quote-card">
@@ -1081,7 +1080,7 @@ async function loadPendingQuotesByEmail(email) {
       </div>`;
   });
 }
- 
+
 async function cancelQuote(quoteId) {
   if (!confirm("Are you sure you want to cancel this quote?")) return;
   const { error } = await supabaseClient.from("worker_quotes").update({status:"canceled"}).eq("id",quoteId);
@@ -1089,14 +1088,14 @@ async function cancelQuote(quoteId) {
   alert("Quote canceled.");
   location.reload();
 }
- 
+
 function editQuote(quoteId, taskId="", customerId="") {
   localStorage.setItem("selectedQuoteId", quoteId);
   if (taskId) { localStorage.setItem("selectedQuoteTaskId", taskId); localStorage.setItem("selectedTaskId", taskId); }
   if (customerId) localStorage.setItem("selectedCustomerId", customerId);
   window.location.href = "edit-quote.html";
 }
- 
+
 function messageCustomerFromQuote(quoteId, taskId="", customerId="") {
   localStorage.setItem("selectedQuoteId", quoteId);
   if (taskId) { localStorage.setItem("selectedMessageTaskId", taskId); localStorage.setItem("selectedTaskId", taskId); }
@@ -1104,11 +1103,11 @@ function messageCustomerFromQuote(quoteId, taskId="", customerId="") {
   localStorage.setItem("messageContext","quote");
   window.location.href = "worker-task-message.html";
 }
- 
+
 function getTaskScheduleDate(task) {
   return task.task_date||task.scheduled_for||task.scheduled_date||task.date_needed||task.scheduled_start||"";
 }
- 
+
 function getDateOnlyKey(value) {
   if (!value) return "";
   const raw = String(value).trim();
@@ -1118,7 +1117,7 @@ function getDateOnlyKey(value) {
   if (isNaN(d.getTime())) return "";
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
- 
+
 async function loadCompletedTaskCount(workerId) {
   const workerIds = getWorkerIdList(workerId);
   if (!workerIds.length) { document.getElementById("completedTasks").innerText = "0"; return; }
@@ -1127,29 +1126,29 @@ async function loadCompletedTaskCount(workerId) {
     .eq("status","completed").eq("customer_completed",true);
   document.getElementById("completedTasks").innerText = count || 0;
 }
- 
+
 async function loadWorkerEarnings(workerId) {
   const { data } = await supabaseClient.from("worker_earnings").select("worker_payout").eq("worker_id",workerId);
   if (!data) { document.getElementById("earningsAmount").innerText = "$0.00"; return; }
   const total = data.reduce((s,i) => s + Number(i.worker_payout||0), 0);
   document.getElementById("earningsAmount").innerText = `$${total.toFixed(2)}`;
 }
- 
+
 function formatScheduleTime(value) {
   if (!value) return "Time not set";
   const d = new Date(value);
   if (isNaN(d.getTime())) return value;
   return d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
 }
- 
+
 function getTaskTitle(task) {
   return task.title||task.task_title||task.job_title||task.category||task.service_type||"Scheduled Task";
 }
- 
+
 function getTaskLocation(task) {
   return task.address||task.task_address||task.location||task.city||"Location not listed";
 }
- 
+
 async function loadTodaySchedule(workerId) {
   const container = document.getElementById("todayScheduleList");
   const workerIds = getWorkerIdList(workerId);
@@ -1172,38 +1171,38 @@ async function loadTodaySchedule(workerId) {
       </div>`;
   });
 }
- 
+
 async function loadUnreadDisputeDot(workerId) {
   if (!workerId) return;
   const { count } = await supabaseClient.from("disputes").select("id",{count:"exact",head:true})
     .eq("worker_id",workerId).in("status",["open","reviewing"]);
   document.getElementById("disputeDot").style.display = (count && count > 0) ? "block" : "none";
 }
- 
+
 function toggleNotificationPanel() {
   const panel = document.getElementById("notificationPanel");
   if (panel) panel.classList.toggle("show");
 }
- 
+
 function getWorkerNotificationIds() {
   const ids = [];
   if (currentUser?.id) ids.push(currentUser.id);
   if (currentWorkerId) ids.push(currentWorkerId);
   return [...new Set(ids.filter(Boolean).map(String))];
 }
- 
+
 async function safeCount(query) {
   const { count, error } = await query;
   return (!error && count != null) ? count : 0;
 }
- 
+
 async function countByColumn(tableName, columnName, values, extraBuilder) {
   if (!values?.length) return 0;
   let query = supabaseClient.from(tableName).select("id",{count:"exact",head:true}).in(columnName, values);
   if (typeof extraBuilder === "function") query = extraBuilder(query);
   return await safeCount(query);
 }
- 
+
 async function countUnreadMessages() {
   const ids = getWorkerNotificationIds();
   if (!ids.length) return 0;
@@ -1212,7 +1211,7 @@ async function countUnreadMessages() {
   total += await countByColumn("customer_worker_messages","worker_id",ids, q => q.eq("sender_type","customer"));
   return total;
 }
- 
+
 async function countDisputeNotifications() {
   if (!currentWorkerId) return 0;
   let total = 0;
@@ -1228,14 +1227,14 @@ async function countDisputeNotifications() {
   }
   return total;
 }
- 
+
 async function countDirectRequests() {
   if (!currentWorkerId) return 0;
   const { count } = await supabaseClient.from("direct_task_requests").select("id",{count:"exact",head:true})
     .eq("worker_id",currentWorkerId).in("status",["new","pending","requested"]);
   return count || 0;
 }
- 
+
 async function countAcceptedTasksAndQuotes() {
   if (!currentWorkerId) return 0;
   let total = 0;
@@ -1248,7 +1247,7 @@ async function countAcceptedTasksAndQuotes() {
   if (quoteCount) total += quoteCount;
   return total;
 }
- 
+
 async function countNewReviews() {
   const workerIds = getWorkerNotificationIds();
   if (!workerIds.length) return 0;
@@ -1262,14 +1261,14 @@ async function countNewReviews() {
     .in("task_id",taskIds).gte("created_at",since.toISOString());
   return count || 0;
 }
- 
+
 async function countPayoutNotifications() {
   if (!currentWorkerId) return 0;
   const { count } = await supabaseClient.from("worker_earnings").select("id",{count:"exact",head:true})
     .eq("worker_id",currentWorkerId).in("payout_status",["pending","processing","paid"]);
   return count || 0;
 }
- 
+
 async function countTodayScheduledJobs() {
   if (!currentWorkerId) return 0;
   const today = new Date();
@@ -1281,7 +1280,7 @@ async function countTodayScheduledJobs() {
     .in("status",["accepted","in_progress","worker_completed","scheduled","paid","completed"]);
   return count || 0;
 }
- 
+
 async function loadWorkerNotifications() {
   rawNotificationCounts = {
     directRequests: await countDirectRequests(),
@@ -1294,18 +1293,18 @@ async function loadWorkerNotifications() {
   };
   updateWorkerNotificationDisplay();
 }
- 
+
 function openPendingQuotesPage() { window.location.href = "view-pending-quotes.html"; }
- 
+
 function scrollToPendingQuotes() {
   document.getElementById("pendingQuotesCard").scrollIntoView({behavior:"smooth",block:"start"});
 }
- 
+
 function viewPublicProfile() {
   localStorage.setItem("selectedWorkerId", currentWorkerId);
   window.location.href = "worker-public-profile.html";
 }
- 
+
 loadDashboard();
 </script>
 </body>

@@ -473,13 +473,29 @@ function formatDate(value) {
   if (!value) {
     return "Not specified";
   }
- 
+
+  const dateOnlyMatch =
+    String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+  if (dateOnlyMatch) {
+    const year =
+      dateOnlyMatch[1];
+
+    const month =
+      dateOnlyMatch[2];
+
+    const day =
+      dateOnlyMatch[3];
+
+    return `${month}/${day}/${year}`;
+  }
+
   const date = new Date(value);
- 
+
   if (Number.isNaN(date.getTime())) {
     return value;
   }
- 
+
   return date.toLocaleDateString([], {
     year: "numeric",
     month: "short",
@@ -906,8 +922,23 @@ function isWithinSevenDays(task) {
     return false;
   }
  
-  const taskDate = new Date(taskDateValue);
- 
+  const dateOnlyMatch =
+    String(taskDateValue).match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+  let taskDate;
+
+  if (dateOnlyMatch) {
+    taskDate =
+      new Date(
+        Number(dateOnlyMatch[1]),
+        Number(dateOnlyMatch[2]) - 1,
+        Number(dateOnlyMatch[3])
+      );
+  } else {
+    taskDate =
+      new Date(taskDateValue);
+  }
+
   if (Number.isNaN(taskDate.getTime())) {
     return false;
   }

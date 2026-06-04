@@ -641,14 +641,69 @@ function isAvailableEarning(row) {
       "payment_status"
     ], "available")
   ).toLowerCase();
- 
+
   return [
     "available",
     "released",
     "ready",
     "completed",
-    "unpaid"
+    "unpaid",
+    "pending"
   ].includes(status);
+}
+
+function calculateInstantFee(amount) {
+  const balance =
+    Number(amount || 0);
+
+  if (balance <= 0) {
+    return 0;
+  }
+
+  return Math.max(
+    Number((balance * INSTANT_PAYOUT_FEE_RATE).toFixed(2)),
+    INSTANT_PAYOUT_MIN_FEE
+  );
+}
+
+function updatePayoutButtons() {
+  const standardButton =
+    document.getElementById("standardPayoutButton");
+
+  const instantButton =
+    document.getElementById("instantPayoutButton");
+
+  const instantFeeBox =
+    document.getElementById("instantFeeAmount");
+
+  const instantNetBox =
+    document.getElementById("instantNetAmount");
+
+  const instantFee =
+    calculateInstantFee(availableBalance);
+
+  const instantNet =
+    Math.max(availableBalance - instantFee, 0);
+
+  if (instantFeeBox) {
+    instantFeeBox.innerText =
+      money(instantFee);
+  }
+
+  if (instantNetBox) {
+    instantNetBox.innerText =
+      money(instantNet);
+  }
+
+  if (standardButton) {
+    standardButton.disabled =
+      availableBalance <= 0;
+  }
+
+  if (instantButton) {
+    instantButton.disabled =
+      availableBalance <= 0 || instantNet <= 0;
+  }
 }
  
 async function loadAvailableBalance() {
@@ -721,45 +776,70 @@ async function loadPayoutRequests() {
       .order("created_at", { ascending: false });
  
   if (error) {
+    payoutRequests = [];
     list.innerHTML = `
       <div class="empty">
-        Payout requests could not load. Check the worker_payout_requests table and RLS policies.
+        No payout requests found yet.
       </div>
     `;
+    await updateSummary();
     return;
   }
  
   payoutRequests = data || [];
   renderPayoutRequests();
-  updateSummary();
+  await updateSummary();
 }
  
-function updateSummary() {
+async function updateSummary() {
   let pending = 0;
   let approved = 0;
   let paid = 0;
- 
+
   payoutRequests.forEach(row => {
     const status = requestStatus(row);
     const amount = requestAmount(row);
- 
+
     if (["requested", "pending", "processing"].includes(status)) {
       pending += amount;
     }
- 
+
     if (status === "approved") {
       approved += amount;
     }
- 
+
     if (["paid", "completed"].includes(status)) {
       paid += amount;
     }
   });
- 
+
+  const { data: earningsData } =
+    await supabaseClient
+      .from("worker_earnings")
+      .select("*")
+      .in("worker_id", currentWorkerIds);
+
+  (earningsData || []).forEach(row => {
+    const status = String(row.payout_status || "").toLowerCase();
+    const amount = getEarningAmount(row);
+
+    if (["pending", "available", "released", "ready", "completed", "unpaid"].includes(status)) {
+      pending += amount;
+    }
+
+    if (status === "approved") {
+      approved += amount;
+    }
+
+    if (status === "paid") {
+      paid += amount;
+    }
+  });
+
   document.getElementById("pendingAmount").innerText = money(pending);
   document.getElementById("approvedAmount").innerText = money(approved);
   document.getElementById("paidAmount").innerText = money(paid);
- 
+
   document.getElementById("lastRequestDate").innerText =
     payoutRequests.length > 0
       ? formatDate(requestCreatedAt(payoutRequests[0]))

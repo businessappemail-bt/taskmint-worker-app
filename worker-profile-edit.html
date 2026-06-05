@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,18 +7,22 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     :root {
-      --bg:       #ffffff;
-      --surface:  #f2f7f4;
+      --bg: #ffffff;
+      --surface: #f2f7f4;
       --surface2: #e6f4eb;
-      --border:   #e2ebe5;
-      --accent:   #0b7a28;
-      --text:     #111111;
-      --muted:    #6b7870;
-      --danger:   #b00020;
-      --warn-bg:  #fffbeb;
+      --border: #e2ebe5;
+      --accent: #0b7a28;
+      --text: #111111;
+      --muted: #6b7870;
+      --danger: #b00020;
+      --warn-bg: #fffbeb;
       --warn-border: #f0c040;
       --warn-text: #7a4f00;
     }
@@ -27,13 +32,17 @@
       font-family: 'Plus Jakarta Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding-bottom: 80px;
+      padding-bottom: 90px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    .top-bar, .container { width: 100%; max-width: 470px; }
+    .top-bar,
+    .container {
+      width: 100%;
+      max-width: 470px;
+    }
 
     .top-bar {
       position: sticky;
@@ -49,43 +58,76 @@
 
     .back {
       color: var(--accent);
-      font-weight: 700;
+      font-weight: 800;
       text-decoration: none;
       font-size: 14px;
     }
 
-    .container { padding: 20px 16px 30px; }
+    .container {
+      padding: 20px 16px 30px;
+    }
 
-    /* ── HERO ── */
     .top-card {
       background: var(--accent);
-      border-radius: 20px;
-      padding: 22px 20px;
+      border-radius: 22px;
+      padding: 24px 20px;
       margin-bottom: 14px;
-      box-shadow: 0 6px 20px rgba(11,122,40,0.20);
+      box-shadow: 0 8px 24px rgba(11,122,40,0.22);
+      position: relative;
+      overflow: hidden;
       opacity: 0;
       animation: riseIn 0.35s 0.05s forwards;
     }
 
+    .top-card::before {
+      content: "";
+      position: absolute;
+      width: 155px;
+      height: 155px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      top: -65px;
+      right: -55px;
+    }
+
+    .top-card::after {
+      content: "";
+      position: absolute;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      bottom: -45px;
+      left: -35px;
+    }
+
     .top-title {
-      font-size: 26px;
+      font-size: 29px;
       font-weight: 800;
-      margin-bottom: 6px;
+      margin-bottom: 7px;
       color: #fff;
-      letter-spacing: -0.4px;
+      letter-spacing: -0.5px;
+      line-height: 1.08;
+      position: relative;
+      z-index: 2;
     }
 
     .top-sub {
       font-size: 13px;
       line-height: 1.5;
-      color: rgba(255,255,255,0.80);
+      color: rgba(255,255,255,0.82);
+      position: relative;
+      z-index: 2;
     }
 
     .progress-wrap {
-      margin-top: 14px;
-      background: rgba(255,255,255,0.18);
-      border-radius: 14px;
-      padding: 12px;
+      margin-top: 15px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 16px;
+      padding: 13px;
+      position: relative;
+      z-index: 2;
     }
 
     .progress-top {
@@ -93,15 +135,15 @@
       justify-content: space-between;
       align-items: center;
       font-size: 12px;
-      font-weight: 700;
-      color: rgba(255,255,255,0.90);
+      font-weight: 800;
+      color: rgba(255,255,255,0.92);
       margin-bottom: 8px;
     }
 
     .progress-track {
       width: 100%;
       height: 10px;
-      background: rgba(255,255,255,0.28);
+      background: rgba(255,255,255,0.24);
       border-radius: 999px;
       overflow: hidden;
     }
@@ -114,24 +156,29 @@
       transition: width 0.25s ease;
     }
 
-    /* ── CARDS ── */
     .card {
       background: var(--surface);
-      border-radius: 18px;
+      border-radius: 20px;
       padding: 16px;
       margin-bottom: 12px;
       border: 1px solid var(--border);
+      opacity: 0;
+      animation: riseIn 0.35s 0.12s forwards;
     }
 
     .section-title {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 800;
       margin-bottom: 12px;
       color: var(--text);
+      letter-spacing: -0.1px;
     }
 
-    /* ── CHECKLIST ── */
-    .checklist { display: grid; gap: 8px; margin-top: 12px; }
+    .checklist {
+      display: grid;
+      gap: 9px;
+      margin-top: 12px;
+    }
 
     .checklist-item {
       display: flex;
@@ -140,18 +187,24 @@
       gap: 10px;
       background: #fff;
       border: 1px solid var(--border);
-      border-radius: 13px;
-      padding: 11px 12px;
-      font-size: 13.5px;
+      border-radius: 16px;
+      padding: 12px;
+      font-size: 13px;
       color: var(--text);
       cursor: pointer;
     }
 
-    .check-left { display: flex; align-items: center; gap: 9px; }
+    .check-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-weight: 700;
+    }
 
     .check-icon {
-      width: 22px;
-      height: 22px;
+      width: 25px;
+      height: 25px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -163,49 +216,68 @@
       flex-shrink: 0;
     }
 
-    .checklist-item.done .check-icon { background: var(--accent); color: #fff; }
+    .checklist-item.done .check-icon {
+      background: var(--accent);
+      color: #fff;
+    }
 
-    .check-status { font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap; }
-    .checklist-item.done .check-status { color: var(--accent); }
+    .check-status {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+      white-space: nowrap;
+      background: var(--surface);
+      border-radius: 999px;
+      padding: 6px 9px;
+    }
 
-    /* ── PROFILE PHOTO ── */
-    .profile-photo-section { text-align: center; margin-bottom: 8px; }
+    .checklist-item.done .check-status {
+      color: var(--accent);
+      background: var(--surface2);
+    }
+
+    .profile-photo-section {
+      text-align: center;
+      margin-bottom: 8px;
+    }
 
     .profile-preview-wrap {
-      width: 116px;
-      height: 116px;
-      margin: 0 auto 12px;
-      border-radius: 50%;
-      padding: 4px;
+      width: 124px;
+      height: 124px;
+      margin: 0 auto 13px;
+      border-radius: 30px;
+      padding: 5px;
       background: var(--accent);
+      box-shadow: 0 8px 18px rgba(11,122,40,0.16);
     }
 
     .profile-preview {
-      width: 108px;
-      height: 108px;
-      border-radius: 50%;
+      width: 114px;
+      height: 114px;
+      border-radius: 25px;
       object-fit: cover;
       background: var(--surface2);
       border: 4px solid #fff;
     }
 
-    /* ── FORM ── */
     label {
       display: block;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--accent);
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
       text-transform: uppercase;
-      margin: 12px 0 5px;
+      margin: 13px 0 7px;
     }
 
-    textarea, input, select {
+    textarea,
+    input,
+    select {
       width: 100%;
-      padding: 11px 13px;
+      padding: 13px;
       border: 1px solid var(--border);
-      border-radius: 11px;
-      font-size: 13.5px;
+      border-radius: 13px;
+      font-size: 14px;
       font-family: 'Plus Jakarta Sans', sans-serif;
       background: #fff;
       outline: none;
@@ -213,501 +285,16 @@
       transition: border-color 0.18s, box-shadow 0.18s;
     }
 
-    textarea:focus, input:focus, select:focus {
+    textarea:focus,
+    input:focus,
+    select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
     }
 
-    textarea { min-height: 120px; resize: vertical; }
-
-    .help-text {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 5px;
-      line-height: 1.4;
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+      line-height: 1.45;
     }
-
-    .locked-input { background: #f4f4f4 !important; color: var(--muted) !important; cursor: not-allowed; font-weight: 700; }
-
-    .address-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .address-grid .full-row { grid-column: 1 / -1; }
-
-    .privacy-box {
-      margin-top: 12px;
-      padding: 12px 14px;
-      border-radius: 13px;
-      background: var(--warn-bg);
-      border: 1px solid var(--warn-border);
-      color: var(--warn-text);
-      font-size: 12.5px;
-      line-height: 1.5;
-    }
-
-    .inline-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .saved-location-card {
-      display: none;
-      margin-top: 12px;
-      padding: 12px 13px;
-      border-radius: 14px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-    }
-
-    .saved-location-title { font-size: 12px; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
-    .saved-location-text { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
-
-    .pill-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: var(--surface2);
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .section-divider { height: 1px; background: var(--border); margin: 14px 0 4px; }
-
-    /* ── BUTTONS ── */
-    button {
-      width: 100%;
-      padding: 13px;
-      margin-top: 12px;
-      border: none;
-      border-radius: 12px;
-      background: var(--accent);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity 0.18s, transform 0.18s;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-
-    button:hover { opacity: 0.88; transform: translateY(-1px); }
-    button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-    button.secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
-    button.small-btn { margin-top: 0; padding: 11px; font-size: 12.5px; }
-
-    #statusMessage, #locationStatusMessage, #photoStatusMessage, #emailStatusMessage {
-      margin-top: 10px;
-      font-weight: 700;
-      text-align: center;
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    @keyframes riseIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-  </style>
-</head>
-
-<body>
-
-<div class="top-bar">
-  <a class="back" href="worker-settings.html">← Back</a>
-</div>
-
-<div class="container">
-
-  <div class="top-card">
-    <div class="top-title">Edit Worker Profile</div>
-    <div class="top-sub">Complete your profile so customers can see your experience, service area, and the work you offer.</div>
-    <div class="progress-wrap">
-      <div class="progress-top">
-        <span>Profile Completion</span>
-        <span id="completionPercent">0%</span>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="completionFill"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="section-title">Completion Checklist</div>
-    <div class="checklist">
-      <div class="checklist-item" id="photoCheck">
-        <div class="check-left"><div class="check-icon">•</div><div>Upload profile picture</div></div>
-        <div class="check-status">Needed</div>
-      </div>
-      <div class="checklist-item" id="experienceCheck">
-        <div class="check-left"><div class="check-icon">•</div><div>Add work experience</div></div>
-        <div class="check-status">Needed</div>
-      </div>
-      <div class="checklist-item" id="serviceAreaCheck">
-        <div class="check-left"><div class="check-icon">•</div><div>Save service area</div></div>
-        <div class="check-status">Needed</div>
-      </div>
-      <div class="checklist-item" id="servicesCheck">
-        <div class="check-left"><div class="check-icon">•</div><div>Add services offered</div></div>
-        <div class="check-status">Needed</div>
-      </div>
-      <div class="checklist-item" id="taxCheck" onclick="window.location.href='worker-tax-center.html'">
-        <div class="check-left"><div class="check-icon">•</div><div>Tax setup</div></div>
-        <div class="check-status">Needed</div>
-      </div>
-      <div class="checklist-item" id="payoutCheck" onclick="window.location.href='worker-payout-info.html'">
-        <div class="check-left"><div class="check-icon">•</div><div>Payout setup</div></div>
-        <div class="check-status">Needed</div>
-      </div>
-      <div class="checklist-item" id="verificationCheck">
-        <div class="check-left"><div class="check-icon">•</div><div>ID verification</div></div>
-        <div class="check-status">Later</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="section-title">Profile Photo</div>
-    <div class="profile-photo-section">
-      <div class="profile-preview-wrap">
-        <img id="profilePreview" class="profile-preview" src="Taskmintlogo.png" alt="Profile Picture">
-      </div>
-      <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(event)">
-      <button type="button" class="secondary" onclick="document.getElementById('profilePhotoInput').click()">Upload Profile Picture</button>
-      <p id="photoStatusMessage"></p>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="section-title">Legal Name</div>
-    <label for="legalName">Full Legal Name</label>
-    <input id="legalName" type="text" class="locked-input" disabled placeholder="Legal name">
-    <div class="help-text">Your name must match your government-issued ID and cannot be edited here.</div>
-  </div>
-
-  <div class="card">
-    <div class="section-title">Login Email</div>
-    <label for="loginEmail">Email Address</label>
-    <input id="loginEmail" type="email" placeholder="worker@email.com">
-    <div class="help-text">This is the email used to log in to your worker account. You may need to confirm the change from your inbox.</div>
-    <button type="button" class="secondary" onclick="updateLoginEmail()">Update Login Email</button>
-    <p id="emailStatusMessage"></p>
-  </div>
-
-  <div class="card">
-    <div class="section-title">Experience & Services</div>
-    <label for="experienceDescription">Experience Description</label>
-    <textarea id="experienceDescription" oninput="handleLiveProfileUpdate()" placeholder="Tell customers what type of work you have experience with, how long you've been doing it, and what makes you reliable."></textarea>
-    <div class="help-text">This is what customers will see on your public worker profile.</div>
-    <label for="servicesOffered">Services Offered</label>
-    <input id="servicesOffered" type="text" oninput="handleLiveProfileUpdate()" placeholder="Cleaning, moving, yard work, painting">
-    <div class="pill-row" id="servicesPreview"></div>
-  </div>
-
-  <div class="card">
-    <div class="section-title">Service Area & Address</div>
-    <label for="serviceArea">Primary Service Area</label>
-    <input id="serviceArea" type="text" oninput="handleLiveProfileUpdate()" placeholder="Douglasville, GA">
-    <div class="help-text">This is the public service area customers can see on your worker profile.</div>
-    <div class="section-divider"></div>
-    <label for="workerAddress">Edit Address</label>
-    <input id="workerAddress" type="text" oninput="handleLiveProfileUpdate()" placeholder="Street address">
-    <div class="address-grid">
-      <div>
-        <label for="workerCity">City</label>
-        <input id="workerCity" type="text" oninput="handleLiveProfileUpdate()" placeholder="City">
-      </div>
-      <div>
-        <label for="workerState">State</label>
-        <input id="workerState" type="text" oninput="handleLiveProfileUpdate()" placeholder="GA" maxlength="2">
-      </div>
-      <div class="full-row">
-        <label for="workerZip">Zip Code</label>
-        <input id="workerZip" type="text" oninput="handleLiveProfileUpdate()" placeholder="Zip code">
-      </div>
-    </div>
-    <div class="privacy-box">This address is used to calculate your mileage and nearby job matches. Customers will not see your full home address.</div>
-    <label for="serviceRadius">Service Radius</label>
-    <select id="serviceRadius" onchange="handleLiveProfileUpdate()">
-      <option value="">Select radius</option>
-      <option value="10">Within 10 miles of my saved address</option>
-      <option value="25">Within 25 miles of my saved address</option>
-      <option value="50">Within 50 miles of my saved address</option>
-      <option value="75">Within 75 miles of my saved address</option>
-    </select>
-    <div class="help-text">TaskMint will read your saved address and service radius to match you with nearby customer tasks.</div>
-    <div class="inline-actions">
-      <button type="button" class="small-btn" onclick="saveServiceArea()">Save Address & Service Area</button>
-      <button type="button" class="secondary small-btn" onclick="clearServiceArea()">Clear</button>
-    </div>
-    <div class="saved-location-card" id="savedLocationCard">
-      <div class="saved-location-title">Saved Address & Service Area</div>
-      <div class="saved-location-text" id="savedLocationText"></div>
-    </div>
-    <p id="locationStatusMessage"></p>
-  </div>
-
-  <div class="card">
-    <button onclick="saveProfile()">Save Full Profile</button>
-    <button class="secondary" onclick="window.location.href='worker-dashboard.html'">Back to Dashboard</button>
-    <p id="statusMessage"></p>
-  </div>
-
-</div>
-
-<script>
-const SUPABASE_URL = "https://dbcthtjmtlumidpbucrc.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-let currentUser = null;
-let currentProfile = {
-  profile_photo_url: "", experience: "", skills: "", service_area: "", service_radius: "",
-  worker_address: "", worker_city: "", worker_state: "", worker_zip: "",
-  first_name: "", last_name: "", full_name: "", tax_setup_complete: false,
-  payout_setup_complete: false, payout_status: "", stripe_account_id: "",
-  bank_account_last4: "", debit_card_last4: "", identity_verified: false,
-  worker_verification_status: "", submitted_for_verification: false,
-  verification_submitted_at: "", can_send_quotes: false, is_worker_approved: false
-};
-
-let profileSubmitInProgress = false;
-let profileAlreadySubmitted = false;
-
-function getInputValue(id) { return document.getElementById(id).value.trim(); }
-function hasValue(value) { return value !== null && value !== undefined && String(value).trim() !== ""; }
-
-function setMessage(id, text, color) {
-  const element = document.getElementById(id);
-  element.style.color = color;
-  element.innerText = text;
-}
-
-function setChecklistState(id, done, doneText) {
-  const row = document.getElementById(id);
-  if (!row) return;
-  const icon = row.querySelector(".check-icon");
-  const status = row.querySelector(".check-status");
-  if (done) { row.classList.add("done"); icon.innerText = "✓"; status.innerText = doneText || "Done"; }
-  else { row.classList.remove("done"); icon.innerText = "•"; status.innerText = "Needed"; }
-}
-
-function getLiveProfileSnapshot() {
-  const previewSrc = document.getElementById("profilePreview").getAttribute("src") || "";
-  const photoUrl = hasValue(currentProfile.profile_photo_url) ? currentProfile.profile_photo_url : previewSrc;
-  return {
-    profile_photo_url: photoUrl, experience: getInputValue("experienceDescription"),
-    skills: getInputValue("servicesOffered"), service_area: getInputValue("serviceArea"),
-    service_radius: document.getElementById("serviceRadius").value,
-    worker_address: getInputValue("workerAddress"), worker_city: getInputValue("workerCity"),
-    worker_state: getInputValue("workerState"), worker_zip: getInputValue("workerZip"),
-    tax_setup_complete: currentProfile.tax_setup_complete, tax_status: currentProfile.tax_status,
-    payout_setup_complete: currentProfile.payout_setup_complete, payout_status: currentProfile.payout_status,
-    stripe_account_id: currentProfile.stripe_account_id, bank_account_last4: currentProfile.bank_account_last4,
-    debit_card_last4: currentProfile.debit_card_last4, identity_verified: currentProfile.identity_verified,
-    worker_verification_status: currentProfile.worker_verification_status,
-    submitted_for_verification: currentProfile.submitted_for_verification
-  };
-}
-
-function calculateCompletion(profile) {
-  const photoDone = hasValue(profile.profile_photo_url) && !profile.profile_photo_url.includes("Taskmintlogo.png");
-  const experienceDone = hasValue(profile.experience);
-  const servicesDone = hasValue(profile.skills);
-  const areaDone = hasValue(profile.service_area) && hasValue(profile.service_radius) && hasValue(profile.worker_address) && hasValue(profile.worker_city) && hasValue(profile.worker_state) && hasValue(profile.worker_zip);
-  const taxDone = profile.tax_setup_complete === true || profile.tax_status === "completed" || profile.tax_status === "verified";
-  const payoutDone = profile.payout_setup_complete === true || profile.payout_status === "completed" || profile.payout_status === "verified" || hasValue(profile.stripe_account_id) || hasValue(profile.bank_account_last4) || hasValue(profile.debit_card_last4);
-  const verificationDone = profile.identity_verified === true || profile.worker_verification_status === "pending" || profile.worker_verification_status === "approved" || profile.submitted_for_verification === true;
-  const items = [photoDone, experienceDone, areaDone, servicesDone, taxDone, payoutDone, verificationDone];
-  const doneCount = items.filter(Boolean).length;
-  const percent = Math.round((doneCount / items.length) * 100);
-  return { percent, photoDone, experienceDone, areaDone, servicesDone, taxDone, payoutDone, verificationDone };
-}
-
-function isProfileAlreadySentForVerification() {
-  return profileAlreadySubmitted === true || currentProfile.submitted_for_verification === true || String(currentProfile.worker_verification_status || "").toLowerCase() === "pending" || String(currentProfile.worker_verification_status || "").toLowerCase() === "approved" || currentProfile.is_worker_approved === true;
-}
-
-async function submitProfileForVerificationIfReady(profile, completionResult) {
-  if (!currentUser || !completionResult || completionResult.percent < 100) return;
-  if (profileSubmitInProgress || isProfileAlreadySentForVerification()) return;
-  profileSubmitInProgress = true;
-  const submittedAt = new Date().toISOString();
-  const payload = {
-    id: currentUser.id, email: currentUser.email, profile_photo_url: profile.profile_photo_url,
-    experience: profile.experience, skills: profile.skills, service_area: profile.service_area,
-    service_radius: profile.service_radius, worker_address: profile.worker_address,
-    worker_city: profile.worker_city, worker_state: profile.worker_state, worker_zip: profile.worker_zip,
-    account_type: "worker", submitted_for_verification: true, worker_verification_status: "pending",
-    verification_submitted_at: submittedAt, can_send_quotes: false, is_worker_approved: false
-  };
-  const { error } = await supabaseClient.from("profiles").upsert(payload);
-  profileSubmitInProgress = false;
-  if (error) { console.error(error); setMessage("statusMessage", "Profile is complete, but it could not be sent to TaskMint for verification.", "red"); return; }
-  profileAlreadySubmitted = true;
-  currentProfile = { ...currentProfile, ...payload };
-  setMessage("statusMessage", "Profile is 100% complete and has been sent to TaskMint for verification. Quote access stays locked until TaskMint approves the account.", "green");
-}
-
-function updateCompletionUI(profile) {
-  const result = calculateCompletion(profile);
-  document.getElementById("completionPercent").innerText = `${result.percent}%`;
-  document.getElementById("completionFill").style.width = `${result.percent}%`;
-  setChecklistState("photoCheck", result.photoDone, "Done");
-  setChecklistState("experienceCheck", result.experienceDone, "Done");
-  setChecklistState("serviceAreaCheck", result.areaDone, "Saved");
-  setChecklistState("servicesCheck", result.servicesDone, "Done");
-  setChecklistState("taxCheck", result.taxDone, "Done");
-  setChecklistState("payoutCheck", result.payoutDone, "Done");
-  setChecklistState("verificationCheck", result.verificationDone, "Done");
-  updateServicesPreview(profile.skills);
-  updateSavedLocationCard(profile.service_area, profile.service_radius, profile.worker_address, profile.worker_city, profile.worker_state, profile.worker_zip);
-  submitProfileForVerificationIfReady(profile, result);
-}
-
-function handleLiveProfileUpdate() { const profile = getLiveProfileSnapshot(); updateCompletionUI(profile); }
-
-function updateServicesPreview(value) {
-  const container = document.getElementById("servicesPreview");
-  container.innerHTML = "";
-  if (!hasValue(value)) return;
-  const services = value.split(",").map(item => item.trim()).filter(Boolean);
-  services.forEach(service => { container.innerHTML += `<span class="pill">${service}</span>`; });
-}
-
-function updateSavedLocationCard(area, radius, address, city, state, zip) {
-  const card = document.getElementById("savedLocationCard");
-  const text = document.getElementById("savedLocationText");
-  if (!hasValue(area) || !hasValue(radius) || !hasValue(address) || !hasValue(city) || !hasValue(state) || !hasValue(zip)) { card.style.display = "none"; text.innerText = ""; return; }
-  card.style.display = "block";
-  text.innerText = `${area} • ${address}, ${city}, ${state} ${zip} • Within ${radius} miles of saved address`;
-}
-
-async function checkLogin() {
-  const { data, error } = await supabaseClient.auth.getUser();
-  if (error || !data || !data.user) { alert("You must log in first."); window.location.href = "worker-login.html"; return; }
-  currentUser = data.user;
-  await loadProfile();
-}
-
-async function loadProfile() {
-  const { data, error } = await supabaseClient.from("profiles").select("*").eq("id", currentUser.id).maybeSingle();
-  if (error) { console.error(error); setMessage("statusMessage", "Error loading profile. Check your profiles table permissions.", "red"); updateCompletionUI(getLiveProfileSnapshot()); return; }
-  if (!data) { updateCompletionUI(getLiveProfileSnapshot()); return; }
-  currentProfile = { ...currentProfile, ...data };
-  document.getElementById("experienceDescription").value = data.experience || "";
-  document.getElementById("servicesOffered").value = data.skills || "";
-  document.getElementById("serviceArea").value = data.service_area || "";
-  document.getElementById("serviceRadius").value = data.service_radius || "";
-  document.getElementById("workerAddress").value = data.worker_address || data.address || data.street_address || "";
-  document.getElementById("workerCity").value = data.worker_city || data.city || "";
-  document.getElementById("workerState").value = data.worker_state || data.state || "";
-  document.getElementById("workerZip").value = data.worker_zip || data.zip_code || data.zip || "";
-  const legalName = data.full_name || `${data.first_name || ""} ${data.last_name || ""}`.trim() || currentUser.email || "Legal name not saved";
-  document.getElementById("legalName").value = legalName;
-  if (hasValue(data.profile_photo_url)) document.getElementById("profilePreview").src = data.profile_photo_url;
-  updateCompletionUI(getLiveProfileSnapshot());
-}
-
-async function updateLoginEmail() {
-  if (!currentUser) { alert("You must log in first."); window.location.href = "worker-login.html"; return; }
-  const newEmail = getInputValue("loginEmail");
-  if (!hasValue(newEmail)) { setMessage("emailStatusMessage", "Enter the new login email before saving.", "red"); return; }
-  if (newEmail.toLowerCase() === String(currentUser.email || "").toLowerCase()) { setMessage("emailStatusMessage", "This is already your current login email.", "#555"); return; }
-  setMessage("emailStatusMessage", "Updating login email...", "#0b7a28");
-  const { error } = await supabaseClient.auth.updateUser({ email: newEmail });
-  if (error) { console.error(error); setMessage("emailStatusMessage", error.message, "red"); return; }
-  await supabaseClient.from("profiles").upsert({ id: currentUser.id, email: newEmail, account_type: "worker" });
-  currentUser = { ...currentUser, email: newEmail };
-  setMessage("emailStatusMessage", "Login email update started. Check your inbox to confirm the new email if required.", "green");
-}
-
-async function uploadProfilePhoto(event) {
-  const file = event.target.files[0];
-  if (!file || !currentUser) return;
-  setMessage("photoStatusMessage", "Uploading photo...", "#0b7a28");
-  const fileExt = file.name.split(".").pop();
-  const filePath = `worker-profile-photos/${currentUser.id}-${Date.now()}.${fileExt}`;
-  const { error: uploadError } = await supabaseClient.storage.from("profile-photos").upload(filePath, file);
-  if (uploadError) { console.error(uploadError); setMessage("photoStatusMessage", "Error uploading photo. Check the profile-photos storage bucket.", "red"); return; }
-  const { data } = supabaseClient.storage.from("profile-photos").getPublicUrl(filePath);
-  const publicUrl = data.publicUrl;
-  document.getElementById("profilePreview").src = publicUrl;
-  const { error: updateError } = await supabaseClient.from("profiles").upsert({ id: currentUser.id, email: currentUser.email, profile_photo_url: publicUrl, account_type: "worker" });
-  await supabaseClient.from("worker_profiles").upsert({ id: currentUser.id, auth_user_id: currentUser.id, email: currentUser.email, profile_photo_url: publicUrl });
-  if (updateError) { console.error(updateError); setMessage("photoStatusMessage", "Photo uploaded, but there was an error saving it to your profile.", "red"); return; }
-  currentProfile.profile_photo_url = publicUrl;
-  updateCompletionUI(getLiveProfileSnapshot());
-  setMessage("photoStatusMessage", "Profile photo saved.", "green");
-}
-
-async function saveServiceArea() {
-  const area = getInputValue("serviceArea");
-  const radius = document.getElementById("serviceRadius").value;
-  const address = getInputValue("workerAddress");
-  const city = getInputValue("workerCity");
-  const state = getInputValue("workerState");
-  const zip = getInputValue("workerZip");
-  if (!currentUser) { alert("You must log in first."); window.location.href = "worker-login.html"; return; }
-  if (!hasValue(area)) { setMessage("locationStatusMessage", "Enter your primary service area before saving.", "red"); return; }
-  if (!hasValue(radius)) { setMessage("locationStatusMessage", "Select a service radius before saving.", "red"); return; }
-  if (!hasValue(address) || !hasValue(city) || !hasValue(state) || !hasValue(zip)) { setMessage("locationStatusMessage", "Enter your full address, city, state, and zip code before saving.", "red"); return; }
-  setMessage("locationStatusMessage", "Saving service area...", "#0b7a28");
-  const { error } = await supabaseClient.from("profiles").upsert({ id: currentUser.id, email: currentUser.email, service_area: area, service_radius: radius, worker_address: address, worker_city: city, worker_state: state, worker_zip: zip, account_type: "worker" });
-  if (error) { console.error(error); setMessage("locationStatusMessage", error.message, "red"); return; }
-  currentProfile.service_area = area; currentProfile.service_radius = radius; currentProfile.worker_address = address;
-  currentProfile.worker_city = city; currentProfile.worker_state = state; currentProfile.worker_zip = zip;
-  updateCompletionUI(getLiveProfileSnapshot());
-  setMessage("locationStatusMessage", "Service area saved.", "green");
-}
-
-function clearServiceArea() {
-  document.getElementById("serviceArea").value = "";
-  document.getElementById("serviceRadius").value = "";
-  document.getElementById("workerAddress").value = "";
-  document.getElementById("workerCity").value = "";
-  document.getElementById("workerState").value = "";
-  document.getElementById("workerZip").value = "";
-  setMessage("locationStatusMessage", "Service area cleared. Save again to update your profile.", "#555");
-  handleLiveProfileUpdate();
-}
-
-async function saveProfile() {
-  const status = document.getElementById("statusMessage");
-  if (!currentUser) { alert("You must log in first."); window.location.href = "worker-login.html"; return; }
-  const experience = getInputValue("experienceDescription");
-  const services = getInputValue("servicesOffered");
-  const area = getInputValue("serviceArea");
-  const radius = document.getElementById("serviceRadius").value;
-  const address = getInputValue("workerAddress");
-  const city = getInputValue("workerCity");
-  const state = getInputValue("workerState");
-  const zip = getInputValue("workerZip");
-  status.style.color = "#0b7a28";
-  status.innerText = "Saving profile...";
-  const { error } = await supabaseClient.from("profiles").upsert({
-    id: currentUser.id, email: currentUser.email, experience: experience, skills: services,
-    service_area: area, service_radius: radius, worker_address: address, worker_city: city,
-    worker_state: state, worker_zip: zip, account_type: "worker",
-    submitted_for_verification: currentProfile.submitted_for_verification === true,
-    worker_verification_status: currentProfile.submitted_for_verification === true ? currentProfile.worker_verification_status : "incomplete",
-    can_send_quotes: currentProfile.is_worker_approved === true,
-    is_worker_approved: currentProfile.is_worker_approved === true
-  });
-  if (error) { console.error(error); status.style.color = "red"; status.innerText = error.message; return; }
-  currentProfile = { ...currentProfile, experience, skills: services, service_area: area, service_radius: radius, worker_address: address, worker_city: city, worker_state: state, worker_zip: zip, can_send_quotes: currentProfile.is_worker_approved === true };
-  updateCompletionUI(getLiveProfileSnapshot());
-  status.style.color = "green";
-  status.innerText = "Profile saved successfully.";
-}
-
-checkLogin();
-</script>
-</body>
-</html>
-
+o

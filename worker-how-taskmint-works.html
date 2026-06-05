@@ -3,133 +3,199 @@
 <head>
   <title>How TaskMint Works for Workers</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #ffffff;
+      --surface: #f2f7f4;
+      --surface2: #e6f4eb;
+      --border: #e2ebe5;
+      --accent: #0b7a28;
+      --text: #111111;
+      --muted: #6b7870;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      color: #111;
-      padding-bottom: 70px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .container {
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 20px;
+      width: 100%;
+      max-width: 470px;
+      padding: 20px 16px 30px;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      width: 100%;
+      max-width: 470px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 20px;
+      margin: -20px -16px 20px;
     }
 
     .back {
-      color: #0b7a28;
-      font-weight: bold;
+      color: var(--accent);
+      font-weight: 800;
       text-decoration: none;
       display: inline-block;
-      margin-bottom: 18px;
-      font-size: 15px;
+      font-size: 14px;
     }
 
     .hero-card {
-      background: linear-gradient(135deg, #0b7a28, #159447);
+      background: var(--accent);
       color: white;
       border-radius: 22px;
-      padding: 24px 18px;
-      margin-bottom: 18px;
-      box-shadow: 0 8px 22px rgba(0,0,0,0.16);
-      text-align: center;
-      animation: slideUp 0.45s ease;
+      padding: 24px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(11,122,40,0.22);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: riseIn 0.35s 0.05s forwards;
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      width: 155px;
+      height: 155px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      top: -65px;
+      right: -55px;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      bottom: -45px;
+      left: -35px;
     }
 
     .hero-icon {
-      width: 82px;
-      height: 82px;
-      border-radius: 50%;
-      background: white;
-      color: #0b7a28;
+      width: 52px;
+      height: 52px;
+      border-radius: 17px;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.22);
+      color: white;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 40px;
-      font-weight: bold;
-      margin: 0 auto 14px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.16);
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 2;
     }
 
     h1 {
-      margin: 0;
-      font-size: 25px;
-      line-height: 1.2;
+      margin: 0 0 7px;
+      font-size: 29px;
+      line-height: 1.08;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      position: relative;
+      z-index: 2;
     }
 
     .hero-text {
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.5;
-      margin-top: 10px;
-      opacity: 0.95;
+      color: rgba(255,255,255,0.82);
+      position: relative;
+      z-index: 2;
     }
 
-    .search-card {
-      background: white;
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      animation: slideUp 0.55s ease;
+    .search-card,
+    .worker-help-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 12px;
+      opacity: 0;
+      animation: riseIn 0.35s 0.12s forwards;
     }
 
     .search-box {
       width: 100%;
       box-sizing: border-box;
-      padding: 14px;
-      border-radius: 12px;
-      border: 1px solid #ddd;
-      font-size: 15px;
-      font-family: Arial, sans-serif;
+      padding: 13px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       outline: none;
+      background: white;
+      color: var(--text);
     }
 
     .search-box:focus {
-      border-color: #0b7a28;
-      box-shadow: 0 0 0 3px rgba(11,122,40,0.12);
-    }
-
-    .worker-help-card {
-      background: white;
-      border-radius: 18px;
-      padding: 18px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      animation: slideUp 0.65s ease;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
     }
 
     .section-title {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 14px;
-      color: #111;
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: var(--text);
+      letter-spacing: -0.1px;
     }
 
     .faq-item {
-      border-bottom: 1px solid #eee;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: white;
+      margin-bottom: 10px;
+      overflow: hidden;
     }
 
     .faq-item:last-child {
-      border-bottom: none;
+      margin-bottom: 0;
     }
 
     .faq-question {
       width: 100%;
       background: white;
       border: none;
-      padding: 18px 0;
+      padding: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      color: #111;
-      font-size: 16px;
-      font-weight: 700;
+      color: var(--text);
+      font-size: 13.5px;
+      font-weight: 800;
       cursor: pointer;
       text-align: left;
-      font-family: Arial, sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
     .faq-question span:first-child {
@@ -138,27 +204,28 @@
     }
 
     .faq-icon {
-      color: #0b7a28;
-      font-size: 28px;
-      font-weight: bold;
-      min-width: 25px;
+      color: var(--accent);
+      font-size: 22px;
+      font-weight: 800;
+      min-width: 24px;
       text-align: right;
-      transition: transform 0.25s ease;
+      transition: transform 0.2s ease;
     }
 
     .faq-answer {
       max-height: 0;
       overflow: hidden;
-      color: #555;
-      font-size: 15px;
-      line-height: 1.6;
-      transition: max-height 0.3s ease, padding 0.3s ease;
-      padding: 0;
+      color: var(--muted);
+      font-size: 12.8px;
+      line-height: 1.55;
+      transition: max-height 0.25s ease, padding 0.25s ease;
+      padding: 0 14px;
+      background: white;
     }
 
     .faq-answer.open {
-      max-height: 300px;
-      padding: 0 0 18px;
+      max-height: 320px;
+      padding: 0 14px 14px;
     }
 
     .faq-item.active .faq-icon {
@@ -168,22 +235,24 @@
     .no-results {
       display: none;
       text-align: center;
-      color: #666;
-      font-size: 14px;
-      padding: 18px;
-      background: white;
-      border-radius: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      color: var(--muted);
+      font-size: 13px;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      line-height: 1.45;
+      font-weight: 600;
     }
 
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(14px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 360px) {
+      h1 {
+        font-size: 25px;
       }
     }
   </style>
@@ -193,9 +262,461 @@
 
 <div class="container">
 
-  <a class="back" href="worker-settings.html">
-    ← Back to Settings
-  </a>
+  <div class="top-bar">
+    <a class="back" href="worker-settings.html">
+      ← Back to Settings
+    </a>
+  </div>
+
+  <div class="hero-card">
+
+    <div class="hero-icon">
+      ?
+    </div>
+
+    <h1>
+      How TaskMint Works for Workers
+    </h1>
+
+    <div class="hero-text">
+      Search common worker questions about jobs, quotes, payouts, arrival codes, disputes, scheduling, and ratings.
+    </div>
+
+  </div>
+
+  <div class="search-card">
+    <input
+      id="faqSearch"
+      class="search-box"
+      type="text"
+      placeholder="Search worker questions..."
+      oninput="searchFAQs()"
+    >
+  </div>
+
+  <div class="worker-help-card" id="faqList">
+
+    <div class="section-title">
+      Worker FAQ
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>How do I get jobs?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        Browse open tasks, submit quotes, and wait for the customer to accept your offer. Once accepted, the task moves into your active jobs.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>When do I get paid?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        Payments are released after the customer confirms the task is complete. Some payouts may be delayed briefly for fraud prevention, payment processing, or disputes.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>Can I change a scheduled job time?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        Yes. Either the customer or worker can request a reschedule, but both parties must approve the change before the schedule updates.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>Why do customers have an arrival code?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        The arrival code confirms you arrived before work begins and helps protect workers from false claims that they never showed up.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>What happens if there is a dispute?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        TaskMint may temporarily hold payment while reviewing messages, timestamps, photos, location verification, and other evidence from both parties.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>Can I pause my worker profile?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        Yes. Pause Mode hides your worker profile from new job opportunities while keeping your account active.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>How do ratings and reviews work?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        Customers can leave a 1–5 star rating and written review after completed jobs. Workers may publicly respond to a review one time.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        <span>Can customers pay me outside TaskMint?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        No. For safety, dispute protection, and payout tracking, all TaskMint jobs must be paid through the TaskMint platform.
+      </div>
+    </div>
+
+  </div>
+
+  <div id="noResults" class="no-results">
+    No matching questions found.
+  </div>
+
+</div>
+
+<script>
+function toggleFAQ(button) {
+  const item = button.parentElement;
+  const answer = button.nextElementSibling;
+  const icon = button.querySelector(".faq-icon");
+
+  const isOpen = answer.classList.contains("open");
+
+  document.querySelectorAll(".faq-answer").forEach(answerBox => {
+    answerBox.classList.remove("open");
+  });
+
+  document.querySelectorAll(".faq-icon").forEach(iconBox => {
+    iconBox.innerText = "+";
+  });
+
+  document.querySelectorAll(".faq-item").forEach(faqItem => {
+    faqItem.classList.remove("active");
+  });
+
+  if (!isOpen) {
+    answer.classList.add("open");
+    icon.innerText = "−";
+    item.classList.add("active");
+  }
+}
+
+function searchFAQs() {
+  const searchValue =
+    document.getElementById("faqSearch").value.toLowerCase().trim();
+
+  const faqItems =
+    document.querySelectorAll(".faq-item");
+
+  let matches = 0;
+
+  faqItems.forEach(item => {
+    const question =
+      item.querySelector(".faq-question").innerText.toLowerCase();
+
+    const answer =
+      item.querySelector(".faq-answer").innerText.toLowerCase();
+
+    if (
+      question.includes(searchValue) ||
+      answer.includes(searchValue)
+    ) {
+      item.style.display = "block";
+      matches++;
+    } else {
+      item.style.display = "none";
+    }
+  });
+
+  document.getElementById("noResults").style.display =
+    matches === 0 ? "block" : "none";
+}
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html>
+<head>
+  <title>How TaskMint Works for Workers</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #ffffff;
+      --surface: #f2f7f4;
+      --surface2: #e6f4eb;
+      --border: #e2ebe5;
+      --accent: #0b7a28;
+      --text: #111111;
+      --muted: #6b7870;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 470px;
+      padding: 20px 16px 30px;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      width: 100%;
+      max-width: 470px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 20px;
+      margin: -20px -16px 20px;
+    }
+
+    .back {
+      color: var(--accent);
+      font-weight: 800;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+    }
+
+    .hero-card {
+      background: var(--accent);
+      color: white;
+      border-radius: 22px;
+      padding: 24px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(11,122,40,0.22);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: riseIn 0.35s 0.05s forwards;
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      width: 155px;
+      height: 155px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      top: -65px;
+      right: -55px;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      bottom: -45px;
+      left: -35px;
+    }
+
+    .hero-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 17px;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.22);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 {
+      margin: 0 0 7px;
+      font-size: 29px;
+      line-height: 1.08;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.82);
+      position: relative;
+      z-index: 2;
+    }
+
+    .search-card,
+    .worker-help-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 12px;
+      opacity: 0;
+      animation: riseIn 0.35s 0.12s forwards;
+    }
+
+    .search-box {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 13px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      outline: none;
+      background: white;
+      color: var(--text);
+    }
+
+    .search-box:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: var(--text);
+      letter-spacing: -0.1px;
+    }
+
+    .faq-item {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: white;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .faq-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .faq-question {
+      width: 100%;
+      background: white;
+      border: none;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text);
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: left;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .faq-question span:first-child {
+      padding-right: 12px;
+      line-height: 1.35;
+    }
+
+    .faq-icon {
+      color: var(--accent);
+      font-size: 22px;
+      font-weight: 800;
+      min-width: 24px;
+      text-align: right;
+      transition: transform 0.2s ease;
+    }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 12.8px;
+      line-height: 1.55;
+      transition: max-height 0.25s ease, padding 0.25s ease;
+      padding: 0 14px;
+      background: white;
+    }
+
+    .faq-answer.open {
+      max-height: 320px;
+      padding: 0 14px 14px;
+    }
+
+    .faq-item.active .faq-icon {
+      transform: rotate(180deg);
+    }
+
+    .no-results {
+      display: none;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 360px) {
+      h1 {
+        font-size: 25px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="top-bar">
+    <a class="back" href="worker-settings.html">
+      ← Back to Settings
+    </a>
+  </div>
 
   <div class="hero-card">
 

@@ -6,58 +6,152 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #ffffff;
+      --surface: #f2f7f4;
+      --surface2: #e6f4eb;
+      --border: #e2ebe5;
+      --accent: #0b7a28;
+      --text: #111111;
+      --muted: #6b7870;
+      --danger: #b00020;
+      --warning-bg: #fffbeb;
+      --warning-border: #f0c040;
+      --warning-text: #7a4f00;
+      --blue-bg: #eef5ff;
+      --blue-text: #0b4d91;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      color: #111;
-      padding-bottom: 70px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .container {
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 20px;
+      width: 100%;
+      max-width: 470px;
+      padding: 20px 16px 30px;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      width: 100%;
+      max-width: 470px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 13px 20px;
+      margin: -20px -16px 16px;
     }
 
     .back {
-      color: #0b7a28;
-      font-weight: bold;
+      color: var(--accent);
+      font-weight: 800;
       text-decoration: none;
       display: inline-block;
-      margin-bottom: 18px;
-      font-size: 15px;
+      font-size: 14px;
+    }
+
+    .hero {
+      background: var(--accent);
+      color: white;
+      border-radius: 22px;
+      padding: 24px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(11,122,40,0.22);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: riseIn 0.35s 0.05s forwards;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 155px;
+      height: 155px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      top: -65px;
+      right: -55px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      bottom: -45px;
+      left: -35px;
     }
 
     h1 {
-      text-align: center;
-      color: #0b7a28;
-      margin-bottom: 20px;
-      font-size: 28px;
+      margin: 0 0 7px;
+      font-size: 29px;
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.5px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.82);
+      position: relative;
+      z-index: 2;
     }
 
     .card {
-      background: white;
-      border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 12px;
+      opacity: 0;
+      animation: riseIn 0.35s 0.12s forwards;
     }
 
     .section-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 14px;
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      letter-spacing: -0.1px;
     }
 
     label {
       display: block;
-      margin-top: 14px;
-      margin-bottom: 6px;
-      font-weight: bold;
-      font-size: 14px;
+      margin-top: 13px;
+      margin-bottom: 7px;
+      font-weight: 800;
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
     }
 
     select,
@@ -65,138 +159,199 @@
     input {
       width: 100%;
       box-sizing: border-box;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-      font-family: Arial, sans-serif;
+      padding: 13px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      outline: none;
+      background: white;
+      color: var(--text);
+    }
+
+    select:focus,
+    textarea:focus,
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
     }
 
     textarea {
-      min-height: 110px;
+      min-height: 118px;
       resize: vertical;
+      line-height: 1.45;
+    }
+
+    input[type="file"] {
+      background: white;
+      font-size: 12.5px;
+      color: var(--muted);
     }
 
     button {
       width: 100%;
       padding: 14px;
       border: none;
-      border-radius: 10px;
-      background: #0b7a28;
+      border-radius: 13px;
+      background: var(--accent);
       color: white;
-      font-size: 15px;
-      font-weight: bold;
+      font-size: 14px;
+      font-weight: 800;
       cursor: pointer;
-      margin-top: 16px;
+      margin-top: 14px;
+      transition: opacity 0.18s, transform 0.18s, box-shadow 0.18s;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(11,122,40,0.10);
     }
 
     button.secondary {
       background: white;
-      color: #111;
-      border: 1px solid #ddd;
+      color: var(--accent);
+      border: 1px solid var(--border);
     }
 
     .note {
-      font-size: 13px;
-      color: #666;
+      font-size: 12.5px;
+      color: var(--muted);
       line-height: 1.5;
       margin-top: 8px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 11px;
     }
 
     .status-message {
       text-align: center;
-      font-weight: bold;
+      font-weight: 800;
       margin-top: 14px;
-      font-size: 14px;
+      font-size: 13px;
+      line-height: 1.4;
     }
 
     .empty {
       text-align: center;
-      color: #666;
-      padding: 18px;
+      color: var(--muted);
+      padding: 20px 14px;
+      font-size: 13px;
+      line-height: 1.45;
+      background: white;
+      border: 1px dashed #bfd1c6;
+      border-radius: 16px;
     }
 
     .dispute-card {
-      border-left: 4px solid #0b7a28;
+      background: white;
+      border-left: 4px solid var(--accent);
     }
 
     .small-text {
-      font-size: 13px;
-      color: #666;
+      font-size: 12.8px;
+      color: var(--muted);
       line-height: 1.5;
       margin-top: 8px;
+      font-weight: 600;
+      white-space: pre-wrap;
     }
 
     .status {
-      display: inline-block;
-      padding: 5px 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
       border-radius: 999px;
-      font-size: 12px;
-      font-weight: bold;
+      font-size: 11px;
+      font-weight: 800;
       margin-top: 10px;
       text-transform: capitalize;
     }
 
     .open {
-      background: #fff4e5;
-      color: #a15c00;
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border: 1px solid var(--warning-border);
     }
 
     .reviewing {
-      background: #e8f1ff;
-      color: #004a99;
+      background: var(--blue-bg);
+      color: var(--blue-text);
+      border: 1px solid #c9def8;
     }
 
     .resolved {
-      background: #e7f7ec;
-      color: #0b7a28;
+      background: var(--surface2);
+      color: var(--accent);
+      border: 1px solid #cfead7;
     }
 
     .rejected {
       background: #ffe5e5;
-      color: #b00020;
+      color: var(--danger);
+      border: 1px solid #ffc4c4;
     }
 
     .message-thread {
       margin-top: 14px;
-      background: #f7faf8;
-      border: 1px solid #e3eee6;
-      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
       padding: 12px;
     }
 
     .thread-title {
-      font-weight: bold;
+      font-weight: 800;
       margin-bottom: 8px;
-      color: #111;
-      font-size: 14px;
+      color: var(--text);
+      font-size: 13px;
     }
 
     .support-message {
-      margin-top: 10px;
+      margin-top: 9px;
       background: white;
       padding: 12px;
-      border-radius: 10px;
-      border-left: 4px solid #0b7a28;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
     }
 
     .response-title {
-      font-weight: bold;
+      font-weight: 800;
       margin-bottom: 6px;
-      color: #0b7a28;
+      color: var(--accent);
+      font-size: 12.5px;
     }
 
     .reply-status {
       font-size: 13px;
-      font-weight: bold;
+      font-weight: 800;
       margin-top: 8px;
       text-align: center;
+      line-height: 1.4;
     }
 
     img {
       width: 100%;
-      border-radius: 10px;
+      border-radius: 16px;
       margin-top: 12px;
+      border: 1px solid var(--border);
+      background: white;
+      display: block;
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 360px) {
+      h1 {
+        font-size: 25px;
+      }
     }
   </style>
 </head>
@@ -205,11 +360,16 @@
 
 <div class="container">
 
-  <a class="back" href="worker-settings.html">
-    ← Back to Settings
-  </a>
+  <div class="top-bar">
+    <a class="back" href="worker-settings.html">
+      ← Back to Settings
+    </a>
+  </div>
 
-  <h1>Dispute Center</h1>
+  <div class="hero">
+    <h1>Dispute Center</h1>
+    <p>Open a dispute, upload evidence, and review TaskMint support responses in one place.</p>
+  </div>
 
   <div class="card">
 

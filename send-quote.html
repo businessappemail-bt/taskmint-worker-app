@@ -3,120 +3,265 @@
 <head>
   <title>Send Quote - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #ffffff;
+      --surface: #f2f7f4;
+      --surface2: #e6f4eb;
+      --border: #e2ebe5;
+      --accent: #0b7a28;
+      --text: #111111;
+      --muted: #6b7870;
+      --danger: #b00020;
+      --warning-bg: #fffbeb;
+      --warning-border: #f0c040;
+      --warning-text: #7a4f00;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      color: #111;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .container {
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 20px;
+      width: 100%;
+      max-width: 470px;
+      min-height: 100vh;
+      padding: 20px 16px 30px;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      width: 100%;
+      max-width: 470px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 20px;
+      margin: -20px -16px 20px;
     }
 
     .back {
-      color: #0b7a28;
-      font-weight: bold;
+      color: var(--accent);
+      font-weight: 800;
       text-decoration: none;
       display: inline-block;
-      margin-bottom: 15px;
       cursor: pointer;
+      font-size: 14px;
     }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #0b7a28;
+    .hero {
+      background: var(--accent);
+      color: white;
+      border-radius: 22px;
+      padding: 24px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(11,122,40,0.22);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: riseIn 0.35s 0.05s forwards;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 155px;
+      height: 155px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      top: -65px;
+      right: -55px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      bottom: -45px;
+      left: -35px;
+    }
+
+    .hero h1 {
+      margin: 0 0 7px;
+      font-size: 29px;
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.5px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.82);
+      position: relative;
+      z-index: 2;
+    }
+
+    .card,
+    .notice,
+    .error {
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      opacity: 0;
+      animation: riseIn 0.35s 0.12s forwards;
     }
 
     .card {
-      background: white;
-      border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-
-    .task-title {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .task-info {
-      font-size: 14px;
-      color: #444;
-      margin: 8px 0;
-      line-height: 1.5;
-    }
-
-    input,
-    textarea {
-      width: 100%;
-      padding: 14px;
-      margin-top: 12px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      font-size: 15px;
-      box-sizing: border-box;
-    }
-
-    textarea {
-      min-height: 120px;
-      resize: none;
-    }
-
-    button {
-      width: 100%;
-      padding: 15px;
-      margin-top: 16px;
-      border: none;
-      border-radius: 12px;
-      background: #0b7a28;
-      color: white;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      background: #aaa;
-      cursor: not-allowed;
+      background: var(--surface);
     }
 
     .notice {
-      background: #fff7e6;
-      border: 1px solid #ffd27a;
-      color: #7a4b00;
-      padding: 12px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      font-size: 14px;
-      line-height: 1.4;
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      color: var(--warning-text);
+      font-size: 12.5px;
+      line-height: 1.5;
+      font-weight: 700;
     }
 
     .error {
       background: #fff2f2;
       border: 1px solid #ffb7b7;
       color: #8b0018;
-      padding: 12px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      font-size: 14px;
-      line-height: 1.4;
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 800;
       display: none;
+    }
+
+    .task-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      line-height: 1.2;
+      letter-spacing: -0.2px;
+    }
+
+    .task-info {
+      font-size: 13px;
+      color: var(--text);
+      margin: 9px 0;
+      line-height: 1.5;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 11px;
+    }
+
+    .task-info strong {
+      color: var(--accent);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 800;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .quote-panel {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .panel-label {
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 7px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 13px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      box-sizing: border-box;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      outline: none;
+      background: white;
+      color: var(--text);
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 13px;
+      background: var(--accent);
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: opacity 0.18s, transform 0.18s, box-shadow 0.18s;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(11,122,40,0.10);
+    }
+
+    button:disabled {
+      background: #b9b9b9;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
     }
 
     .money-field {
       display: flex;
       align-items: center;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
       background: white;
       overflow: hidden;
     }
@@ -124,8 +269,13 @@
     .money-field span {
       padding: 0 16px;
       font-size: 18px;
-      font-weight: bold;
-      color: #111;
+      font-weight: 800;
+      color: var(--accent);
+      background: var(--surface2);
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid var(--border);
     }
 
     .money-field input {
@@ -135,6 +285,26 @@
       padding: 14px;
       font-size: 15px;
       outline: none;
+      box-shadow: none;
+    }
+
+    .character-count {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 7px;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 360px) {
+      .hero h1 {
+        font-size: 25px;
+      }
     }
   </style>
 </head>
@@ -143,11 +313,16 @@
 
 <div class="container">
 
-  <a class="back" onclick="window.location.href='worker-open-task.html'">
-    ← Back
-  </a>
+  <div class="top-bar">
+    <a class="back" onclick="window.location.href='worker-open-task.html'">
+      ← Back
+    </a>
+  </div>
 
-  <h1>Send Quote</h1>
+  <div class="hero">
+    <h1>Send Quote</h1>
+    <p>Review the task details, enter your quote, and send the customer a clear message.</p>
+  </div>
 
   <div class="notice">
     Workers must complete their profile and be approved before quotes can be submitted.
@@ -164,12 +339,12 @@
     <div class="task-info" id="taskDescription"></div>
 
     <div class="task-info">
-      <strong>Location:</strong>
+      <strong>Location</strong>
       <span id="taskLocation"></span>
     </div>
 
     <div class="task-info">
-      <strong>Date Needed:</strong>
+      <strong>Date Needed</strong>
       <span id="taskDate"></span>
     </div>
 
@@ -177,32 +352,34 @@
 
   <div class="card">
 
-    <div class="money-field">
-      <span>$</span>
-      <input
-        type="number"
-        id="quoteAmount"
-        placeholder="0.00"
-        step="0.01"
-        min="1"
-        oninput="preventNegative(this)"
-      >
+    <div class="quote-panel">
+      <div class="panel-label">Quote Amount</div>
+
+      <div class="money-field">
+        <span>$</span>
+        <input
+          type="number"
+          id="quoteAmount"
+          placeholder="0.00"
+          step="0.01"
+          min="1"
+          oninput="preventNegative(this)"
+        >
+      </div>
     </div>
 
-    <textarea
-      id="quoteMessage"
-      maxlength="500"
-      placeholder="Describe your experience, timeline, or anything the customer should know..."
-    ></textarea>
+    <div class="quote-panel">
+      <div class="panel-label">Message to Customer</div>
 
-    <div id="characterCount"
-      style="
-        font-size:13px;
-        color:#666;
-        margin-top:6px;
-        text-align:right;
-      ">
-      0 / 500
+      <textarea
+        id="quoteMessage"
+        maxlength="500"
+        placeholder="Describe your experience, timeline, or anything the customer should know..."
+      ></textarea>
+
+      <div id="characterCount" class="character-count">
+        0 / 500
+      </div>
     </div>
 
     <button id="submitQuoteBtn" onclick="submitQuote()">

@@ -5,376 +5,647 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
  
   <style>
-    * {
+    *, *::before, *::after {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
- 
+
+    :root {
+      --bg: #ffffff;
+      --surface: #f2f7f4;
+      --surface2: #e6f4eb;
+      --border: #e2ebe5;
+      --accent: #0b7a28;
+      --text: #111111;
+      --muted: #6b7870;
+      --danger: #b00020;
+      --warning-bg: #fffbeb;
+      --warning-border: #f0c040;
+      --warning-text: #7a4f00;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      color: #111;
-      padding-bottom: 90px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 105px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
- 
+
     .container {
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 20px;
+      width: 100%;
+      max-width: 470px;
+      padding: 20px 16px 30px;
     }
- 
-    .back {
-      color: #0b7a28;
-      font-weight: bold;
-      text-decoration: none;
-      display: inline-block;
-      margin-bottom: 15px;
-    }
- 
-    h1 {
-      text-align: center;
-      color: #0b7a28;
-      margin: 0 0 8px;
-    }
- 
-    .subtitle {
-      text-align: center;
-      color: #666;
-      font-size: 14px;
-      line-height: 1.4;
-      margin: 0 0 18px;
-    }
- 
-    .card {
-      background: white;
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
- 
-    .section-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 12px;
-    }
- 
-    .availability-row {
-      padding: 11px 0;
-      border-bottom: 1px solid #eee;
-    }
- 
-    .availability-row:last-child {
-      border-bottom: none;
-    }
- 
-    .availability-row label {
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      width: 100%;
+      max-width: 470px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-weight: bold;
-      margin-bottom: 8px;
-      font-size: 15px;
+      padding: 13px 20px;
+      margin: -20px -16px 20px;
     }
- 
+
+    .back {
+      color: var(--accent);
+      font-weight: 800;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+    }
+
+    .hero {
+      background: var(--accent);
+      color: white;
+      border-radius: 22px;
+      padding: 24px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(11,122,40,0.22);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: riseIn 0.35s 0.05s forwards;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 155px;
+      height: 155px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      top: -65px;
+      right: -55px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      bottom: -45px;
+      left: -35px;
+    }
+
+    .hero h1 {
+      margin: 0 0 7px;
+      font-size: 29px;
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.5px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.82);
+      position: relative;
+      z-index: 2;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 12px;
+      opacity: 0;
+      animation: riseIn 0.35s 0.12s forwards;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      letter-spacing: -0.1px;
+    }
+
+    .availability-row {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 13px;
+      margin-bottom: 10px;
+    }
+
+    .availability-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .availability-row label.day-toggle-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 800;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
     .availability-row input[type="checkbox"] {
       width: 18px;
       height: 18px;
       margin: 0;
-      accent-color: #0b7a28;
+      accent-color: var(--accent);
     }
- 
+
     .day-times {
-      display: flex;
-      gap: 8px;
+      display: none;
     }
- 
-    .day-times input {
-      flex: 1;
+
+    .native-time-hidden {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      height: 0;
+      width: 0;
+      padding: 0;
+      margin: 0;
+      border: 0;
     }
- 
+
+    .modern-time-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .time-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .time-box.disabled {
+      opacity: 0.55;
+    }
+
+    .time-label {
+      color: var(--accent);
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+    }
+
+    .modern-time-select {
+      width: 100%;
+      padding: 11px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 800;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      outline: none;
+      appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--accent) 50%),
+        linear-gradient(135deg, var(--accent) 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) 50%,
+        calc(100% - 13px) 50%;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+    }
+
+    .modern-time-select:disabled {
+      background-color: #eef3ef;
+      color: #9aa59e;
+    }
+
     input,
     select {
       width: 100%;
-      padding: 11px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
+      padding: 13px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
       font-size: 14px;
       box-sizing: border-box;
       background: white;
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      outline: none;
     }
- 
+
     input:disabled {
-      background: #eeeeee;
-      color: #999;
+      background: #eef3ef;
+      color: #9aa59e;
     }
- 
+
     input:focus,
     select:focus {
-      outline: none;
-      border-color: #0b7a28;
+      border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
     }
- 
+
     button {
       width: 100%;
       padding: 14px;
       margin-top: 12px;
       border: none;
-      border-radius: 12px;
-      background: #0b7a28;
+      border-radius: 13px;
+      background: var(--accent);
       color: white;
-      font-size: 15px;
-      font-weight: bold;
+      font-size: 14px;
+      font-weight: 800;
       cursor: pointer;
+      transition: opacity 0.18s, transform 0.18s, box-shadow 0.18s;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
- 
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(11,122,40,0.10);
+    }
+
     button:disabled {
       opacity: 0.65;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
- 
+
     .secondary {
       background: white;
-      color: #111;
-      border: 1px solid #ddd;
+      color: var(--accent);
+      border: 1px solid var(--border);
     }
- 
+
     .danger {
-      background: #b00020;
+      background: var(--danger);
       color: white;
     }
- 
+
     .quick-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-bottom: 6px;
+      margin-bottom: 12px;
     }
- 
+
     .quick-actions button {
       margin-top: 0;
-      padding: 11px;
-      font-size: 13px;
+      padding: 12px;
+      font-size: 12.5px;
     }
- 
+
     .note {
-      font-size: 13px;
-      color: #666;
+      font-size: 12.5px;
+      color: var(--muted);
       line-height: 1.5;
       margin-top: 10px;
     }
- 
+
     .blocked-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      gap: 10px;
       margin-top: 8px;
     }
- 
+
     .small-label {
       display: block;
-      font-size: 12px;
-      font-weight: bold;
-      color: #555;
-      margin-bottom: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
     }
- 
+
     .blocked-list {
       margin-top: 12px;
     }
- 
+
     .blocked-date-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 8px;
-      background: #f7f7f7;
-      border-radius: 10px;
-      padding: 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 11px;
       margin-top: 8px;
-      font-size: 14px;
+      font-size: 13px;
+      font-weight: 700;
     }
- 
+
     .blocked-date-item button {
       width: auto;
       margin: 0;
       padding: 8px 10px;
       font-size: 12px;
-      border-radius: 8px;
-    }
- 
-    .empty-note {
-      background: #f7f7f7;
-      border: 1px dashed #ccc;
       border-radius: 10px;
-      padding: 12px;
-      text-align: center;
-      color: #666;
-      font-size: 13px;
     }
- 
+
+    .empty-note {
+      background: #fff;
+      border: 1px dashed #bfd1c6;
+      border-radius: 14px;
+      padding: 13px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
     .save-card {
       position: sticky;
       bottom: 0;
-      background: #f4f4f4;
-      padding-top: 8px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      margin: 0 -16px -30px;
+      padding: 12px 16px 16px;
+      z-index: 30;
     }
- 
+
     #statusMessage {
       min-height: 18px;
       margin-top: 8px;
       text-align: center;
       font-size: 13px;
-      font-weight: bold;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 360px) {
+      .hero h1 {
+        font-size: 25px;
+      }
+
+      .modern-time-row,
+      .blocked-grid,
+      .quick-actions {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
- 
+
 <body>
- 
+
 <div class="container">
- 
-  <a class="back" href="worker-dashboard.html">&larr; Back</a>
- 
-  <h1>Set Availability</h1>
-  <p class="subtitle">Choose when you normally work and block dates you are unavailable.</p>
- 
+
+  <div class="top-bar">
+    <a class="back" href="worker-dashboard.html">&larr; Back</a>
+  </div>
+
+  <div class="hero">
+    <h1>Set Availability</h1>
+    <p>Choose when you normally work and block dates you are unavailable.</p>
+  </div>
+
   <div class="card">
     <div class="section-title">Weekly Availability</div>
- 
+
     <div class="quick-actions">
       <button class="secondary" type="button" onclick="applyWeekdayPreset()">
         Weekdays 9-5
       </button>
- 
+
       <button class="secondary" type="button" onclick="clearAvailability()">
         Clear All
       </button>
     </div>
- 
+
+    
     <div class="availability-row">
-      <label>
+      <label class="day-toggle-label">
         Monday
         <input type="checkbox" id="mondayAvailable" onchange="toggleDayInputs('monday')">
       </label>
+
       <div class="day-times">
         <input type="time" id="mondayStart" step="900" disabled>
         <input type="time" id="mondayEnd" step="900" disabled>
       </div>
+
+      <div class="modern-time-row">
+        <div class="time-box disabled" id="mondayStartBox">
+          <div class="time-label">Start</div>
+          <select id="mondayStartSelect" class="modern-time-select" disabled onchange="syncHiddenTime('monday', 'Start')"></select>
+        </div>
+
+        <div class="time-box disabled" id="mondayEndBox">
+          <div class="time-label">End</div>
+          <select id="mondayEndSelect" class="modern-time-select" disabled onchange="syncHiddenTime('monday', 'End')"></select>
+        </div>
+      </div>
     </div>
- 
     <div class="availability-row">
-      <label>
+      <label class="day-toggle-label">
         Tuesday
         <input type="checkbox" id="tuesdayAvailable" onchange="toggleDayInputs('tuesday')">
       </label>
+
       <div class="day-times">
         <input type="time" id="tuesdayStart" step="900" disabled>
         <input type="time" id="tuesdayEnd" step="900" disabled>
       </div>
+
+      <div class="modern-time-row">
+        <div class="time-box disabled" id="tuesdayStartBox">
+          <div class="time-label">Start</div>
+          <select id="tuesdayStartSelect" class="modern-time-select" disabled onchange="syncHiddenTime('tuesday', 'Start')"></select>
+        </div>
+
+        <div class="time-box disabled" id="tuesdayEndBox">
+          <div class="time-label">End</div>
+          <select id="tuesdayEndSelect" class="modern-time-select" disabled onchange="syncHiddenTime('tuesday', 'End')"></select>
+        </div>
+      </div>
     </div>
- 
     <div class="availability-row">
-      <label>
+      <label class="day-toggle-label">
         Wednesday
         <input type="checkbox" id="wednesdayAvailable" onchange="toggleDayInputs('wednesday')">
       </label>
+
       <div class="day-times">
         <input type="time" id="wednesdayStart" step="900" disabled>
         <input type="time" id="wednesdayEnd" step="900" disabled>
       </div>
+
+      <div class="modern-time-row">
+        <div class="time-box disabled" id="wednesdayStartBox">
+          <div class="time-label">Start</div>
+          <select id="wednesdayStartSelect" class="modern-time-select" disabled onchange="syncHiddenTime('wednesday', 'Start')"></select>
+        </div>
+
+        <div class="time-box disabled" id="wednesdayEndBox">
+          <div class="time-label">End</div>
+          <select id="wednesdayEndSelect" class="modern-time-select" disabled onchange="syncHiddenTime('wednesday', 'End')"></select>
+        </div>
+      </div>
     </div>
- 
     <div class="availability-row">
-      <label>
+      <label class="day-toggle-label">
         Thursday
         <input type="checkbox" id="thursdayAvailable" onchange="toggleDayInputs('thursday')">
       </label>
+
       <div class="day-times">
         <input type="time" id="thursdayStart" step="900" disabled>
         <input type="time" id="thursdayEnd" step="900" disabled>
       </div>
+
+      <div class="modern-time-row">
+        <div class="time-box disabled" id="thursdayStartBox">
+          <div class="time-label">Start</div>
+          <select id="thursdayStartSelect" class="modern-time-select" disabled onchange="syncHiddenTime('thursday', 'Start')"></select>
+        </div>
+
+        <div class="time-box disabled" id="thursdayEndBox">
+          <div class="time-label">End</div>
+          <select id="thursdayEndSelect" class="modern-time-select" disabled onchange="syncHiddenTime('thursday', 'End')"></select>
+        </div>
+      </div>
     </div>
- 
     <div class="availability-row">
-      <label>
+      <label class="day-toggle-label">
         Friday
         <input type="checkbox" id="fridayAvailable" onchange="toggleDayInputs('friday')">
       </label>
+
       <div class="day-times">
         <input type="time" id="fridayStart" step="900" disabled>
         <input type="time" id="fridayEnd" step="900" disabled>
       </div>
+
+      <div class="modern-time-row">
+        <div class="time-box disabled" id="fridayStartBox">
+          <div class="time-label">Start</div>
+          <select id="fridayStartSelect" class="modern-time-select" disabled onchange="syncHiddenTime('friday', 'Start')"></select>
+        </div>
+
+        <div class="time-box disabled" id="fridayEndBox">
+          <div class="time-label">End</div>
+          <select id="fridayEndSelect" class="modern-time-select" disabled onchange="syncHiddenTime('friday', 'End')"></select>
+        </div>
+      </div>
     </div>
- 
     <div class="availability-row">
-      <label>
+      <label class="day-toggle-label">
         Saturday
         <input type="checkbox" id="saturdayAvailable" onchange="toggleDayInputs('saturday')">
       </label>
+
       <div class="day-times">
         <input type="time" id="saturdayStart" step="900" disabled>
         <input type="time" id="saturdayEnd" step="900" disabled>
       </div>
+
+      <div class="modern-time-row">
+        <div class="time-box disabled" id="saturdayStartBox">
+          <div class="time-label">Start</div>
+          <select id="saturdayStartSelect" class="modern-time-select" disabled onchange="syncHiddenTime('saturday', 'Start')"></select>
+        </div>
+
+        <div class="time-box disabled" id="saturdayEndBox">
+          <div class="time-label">End</div>
+          <select id="saturdayEndSelect" class="modern-time-select" disabled onchange="syncHiddenTime('saturday', 'End')"></select>
+        </div>
+      </div>
     </div>
- 
     <div class="availability-row">
-      <label>
+      <label class="day-toggle-label">
         Sunday
         <input type="checkbox" id="sundayAvailable" onchange="toggleDayInputs('sunday')">
       </label>
+
       <div class="day-times">
         <input type="time" id="sundayStart" step="900" disabled>
         <input type="time" id="sundayEnd" step="900" disabled>
       </div>
+
+      <div class="modern-time-row">
+        <div class="time-box disabled" id="sundayStartBox">
+          <div class="time-label">Start</div>
+          <select id="sundayStartSelect" class="modern-time-select" disabled onchange="syncHiddenTime('sunday', 'Start')"></select>
+        </div>
+
+        <div class="time-box disabled" id="sundayEndBox">
+          <div class="time-label">End</div>
+          <select id="sundayEndSelect" class="modern-time-select" disabled onchange="syncHiddenTime('sunday', 'End')"></select>
+        </div>
+      </div>
     </div>
- 
+
     <div class="note">
       Customers can request times only inside the windows you save here.
     </div>
   </div>
- 
+
   <div class="card">
     <div class="section-title">Blocked Dates</div>
- 
+
     <div class="blocked-grid">
       <div>
         <label class="small-label" for="blockedStartDate">From</label>
         <input type="date" id="blockedStartDate">
       </div>
- 
+
       <div>
         <label class="small-label" for="blockedEndDate">Through</label>
         <input type="date" id="blockedEndDate">
       </div>
     </div>
- 
+
     <button type="button" class="secondary" onclick="addBlockedDateRange()">
       Add Blocked Date Range
     </button>
- 
+
     <div id="blockedDatesList" class="blocked-list">
       <div class="empty-note">No blocked dates added yet.</div>
     </div>
- 
+
     <div class="note">
       Use this for vacations, appointments, or days you cannot accept work.
     </div>
   </div>
- 
+
   <div class="save-card">
     <button type="button" id="saveButton" onclick="saveAvailability()">
       Save Availability
     </button>
- 
+
     <div id="statusMessage"></div>
   </div>
- 
+
 </div>
- 
+
 <script>
 const supabaseClient = window.supabase.createClient(
   "https://dbcthtjmtlumidpbucrc.supabase.co",
@@ -395,6 +666,100 @@ let blockedDates = [];
 let currentUser = null;
 let currentWorkerId = null;
  
+
+function formatTimeOption(value) {
+  if (!value) {
+    return "";
+  }
+
+  const parts = value.split(":");
+  let hour = Number(parts[0]);
+  const minute = parts[1] || "00";
+
+  if (Number.isNaN(hour)) {
+    return value;
+  }
+
+  const suffix = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12;
+
+  if (hour === 0) {
+    hour = 12;
+  }
+
+  return `${hour}:${minute} ${suffix}`;
+}
+
+function createTimeOptions() {
+  const values = [];
+
+  for (let hour = 6; hour <= 22; hour++) {
+    ["00", "15", "30", "45"].forEach(minute => {
+      values.push(`${String(hour).padStart(2, "0")}:${minute}`);
+    });
+  }
+
+  days.forEach(day => {
+    const lower = day.toLowerCase();
+
+    ["Start", "End"].forEach(kind => {
+      const select = document.getElementById(`${lower}${kind}Select`);
+
+      if (!select || select.dataset.ready === "true") {
+        return;
+      }
+
+      select.innerHTML = `<option value="">Select ${kind.toLowerCase()} time</option>`;
+
+      values.forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = formatTimeOption(value);
+        select.appendChild(option);
+      });
+
+      select.dataset.ready = "true";
+    });
+  });
+}
+
+function syncHiddenTime(day, kind) {
+  const select = document.getElementById(`${day}${kind}Select`);
+  const input = document.getElementById(`${day}${kind}`);
+
+  if (select && input) {
+    input.value = select.value;
+  }
+}
+
+function syncTimeSelect(day, kind) {
+  const select = document.getElementById(`${day}${kind}Select`);
+  const input = document.getElementById(`${day}${kind}`);
+
+  if (select && input) {
+    select.value = input.value || "";
+  }
+}
+
+function setModernTimeControls(day, enabled) {
+  ["Start", "End"].forEach(kind => {
+    const select = document.getElementById(`${day}${kind}Select`);
+    const box = document.getElementById(`${day}${kind}Box`);
+
+    if (select) {
+      select.disabled = !enabled;
+    }
+
+    if (box) {
+      if (enabled) {
+        box.classList.remove("disabled");
+      } else {
+        box.classList.add("disabled");
+      }
+    }
+  });
+}
+
 function setStatus(message, color = "#666") {
   const status = document.getElementById("statusMessage");
   status.style.color = color;
@@ -405,43 +770,55 @@ function toggleDayInputs(day) {
   const checked = document.getElementById(`${day}Available`).checked;
   const startInput = document.getElementById(`${day}Start`);
   const endInput = document.getElementById(`${day}End`);
- 
+
   startInput.disabled = !checked;
   endInput.disabled = !checked;
- 
+  setModernTimeControls(day, checked);
+
   if (checked && !startInput.value && !endInput.value) {
     startInput.value = "09:00";
     endInput.value = "17:00";
   }
- 
+
   if (!checked) {
     startInput.value = "";
     endInput.value = "";
   }
+
+  syncTimeSelect(day, "Start");
+  syncTimeSelect(day, "End");
 }
  
 function applyWeekdayPreset() {
   days.forEach(day => {
     const lower = day.toLowerCase();
     const isWeekday = !["saturday", "sunday"].includes(lower);
- 
+
     document.getElementById(`${lower}Available`).checked = isWeekday;
     document.getElementById(`${lower}Start`).disabled = !isWeekday;
     document.getElementById(`${lower}End`).disabled = !isWeekday;
     document.getElementById(`${lower}Start`).value = isWeekday ? "09:00" : "";
     document.getElementById(`${lower}End`).value = isWeekday ? "17:00" : "";
+
+    setModernTimeControls(lower, isWeekday);
+    syncTimeSelect(lower, "Start");
+    syncTimeSelect(lower, "End");
   });
 }
  
 function clearAvailability() {
   days.forEach(day => {
     const lower = day.toLowerCase();
- 
+
     document.getElementById(`${lower}Available`).checked = false;
     document.getElementById(`${lower}Start`).value = "";
     document.getElementById(`${lower}End`).value = "";
     document.getElementById(`${lower}Start`).disabled = true;
     document.getElementById(`${lower}End`).disabled = true;
+
+    setModernTimeControls(lower, false);
+    syncTimeSelect(lower, "Start");
+    syncTimeSelect(lower, "End");
   });
 }
  
@@ -570,6 +947,9 @@ async function loadAvailability() {
         document.getElementById(`${lower}End`).disabled = false;
         document.getElementById(`${lower}Start`).value = row.start_time || "";
         document.getElementById(`${lower}End`).value = row.end_time || "";
+        setModernTimeControls(lower, true);
+        syncTimeSelect(lower, "Start");
+        syncTimeSelect(lower, "End");
       }
  
       if (Array.isArray(row.blocked_dates)) {
@@ -675,7 +1055,8 @@ async function saveAvailability() {
     }
 
     setStatus("Availability saved.", "#0b7a28");
-    await loadAvailability();
+    await createTimeOptions();
+loadAvailability();
 
   } catch (error) {
     setStatus(
@@ -688,11 +1069,9 @@ async function saveAvailability() {
   }
 }
  
+createTimeOptions();
 loadAvailability();
 </script>
  
 </body>
 </html>
-
-
-

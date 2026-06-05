@@ -3,76 +3,93 @@
 <head>
   <title>Payout Status - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
- 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
- 
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #ffffff;
+      --surface:     #f2f7f4;
+      --surface2:    #e6f4eb;
+      --border:      #e2ebe5;
+      --accent:      #0b7a28;
+      --text:        #111111;
+      --muted:       #6b7870;
+      --danger:      #b00020;
+      --warn-bg:     #fffbeb;
+      --warn-border: #f0c040;
+      --warn-text:   #7a4f00;
     }
- 
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(180deg, #e9f7ee 0%, #f5f5f5 100%);
-      color: #111;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       padding-bottom: 90px;
-      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
- 
-    .container {
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 18px;
-    }
- 
+
+    .top-bar, .container { width: 100%; max-width: 470px; }
+
     .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      padding: 13px 20px;
     }
- 
-    .back,
-    .refresh-link {
-      color: #0b7a28;
+
+    .back, .refresh-link {
+      color: var(--accent);
       font-size: 14px;
-      font-weight: 800;
+      font-weight: 700;
       text-decoration: none;
       cursor: pointer;
     }
- 
+
+    .container { padding: 20px 16px 30px; }
+
     .hero {
-      background: linear-gradient(135deg, #0b7a28, #19a447);
-      color: white;
-      border-radius: 26px;
-      padding: 22px;
-      margin-bottom: 16px;
-      box-shadow: 0 10px 28px rgba(11,122,40,0.22);
+      background: var(--accent);
+      border-radius: 20px;
+      padding: 22px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(11,122,40,0.20);
+      opacity: 0;
+      animation: riseIn 0.35s 0.05s forwards;
     }
- 
+
     .hero-title {
-      font-size: 25px;
-      font-weight: 900;
+      font-size: 26px;
+      font-weight: 800;
       margin-bottom: 6px;
+      color: #fff;
       letter-spacing: -0.4px;
     }
- 
+
     .hero-sub {
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.5;
-      opacity: 0.95;
+      color: rgba(255,255,255,0.80);
     }
- 
+
     .card {
-      background: white;
-      border-radius: 22px;
-      padding: 17px;
-      margin-bottom: 16px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-      border: 1px solid #edf1ee;
+      background: var(--surface);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
     }
- 
+
     .section-header {
       display: flex;
       justify-content: space-between;
@@ -80,255 +97,148 @@
       gap: 10px;
       margin-bottom: 12px;
     }
- 
+
     .section-title {
-      font-size: 18px;
-      font-weight: 900;
-      color: #111;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
     }
- 
+
     .section-note {
-      font-size: 13px;
-      color: #666;
+      font-size: 12.5px;
+      color: var(--muted);
       line-height: 1.45;
       margin-bottom: 12px;
     }
- 
+
     .balance-box {
-      background: #f7faf8;
-      border: 1px solid #e3eee6;
-      border-radius: 18px;
-      padding: 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
       text-align: center;
       margin-bottom: 12px;
     }
- 
+
     .balance-label {
-      font-size: 12px;
-      color: #666;
-      font-weight: 800;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.35px;
+      letter-spacing: 0.5px;
       margin-bottom: 6px;
     }
- 
+
     .balance-amount {
       font-size: 34px;
-      font-weight: 900;
-      color: #0b7a28;
+      font-weight: 800;
+      color: var(--accent);
       letter-spacing: -0.7px;
     }
- 
+
     .balance-sub {
-      color: #666;
+      color: var(--muted);
       font-size: 12px;
       margin-top: 6px;
       line-height: 1.4;
     }
- 
+
     .stats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
       margin-top: 10px;
     }
- 
+
     .stat-box {
-      background: #fbfbfb;
-      border: 1px solid #eeeeee;
-      border-radius: 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
       padding: 12px;
-      min-height: 78px;
+      min-height: 72px;
     }
- 
+
     .stat-label {
-      color: #666;
-      font-size: 11px;
-      font-weight: 900;
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.25px;
-      margin-bottom: 6px;
+      letter-spacing: 0.4px;
+      margin-bottom: 5px;
     }
- 
+
     .stat-value {
-      color: #111;
+      color: var(--text);
       font-size: 15px;
-      font-weight: 900;
+      font-weight: 800;
       line-height: 1.3;
     }
- 
+
     button {
       width: 100%;
-      padding: 14px;
+      padding: 13px;
       border: none;
-      border-radius: 14px;
-      background: #0b7a28;
-      color: white;
-      font-size: 14px;
-      font-weight: 900;
+      border-radius: 12px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
-      transition: 0.2s;
+      transition: opacity 0.18s, transform 0.18s;
       margin-top: 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
- 
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 5px 12px rgba(0,0,0,0.10);
-    }
- 
+
+    button:hover { opacity: 0.88; transform: translateY(-1px); }
+
     button:disabled {
-      opacity: 0.55;
+      opacity: 0.5;
       cursor: not-allowed;
       transform: none;
-      box-shadow: none;
     }
- 
+
     button.secondary {
-      background: white;
-      color: #111;
-      border: 1px solid #dfe5e0;
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border);
     }
- 
+
     .status-pill {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 6px 10px;
+      padding: 5px 10px;
       border-radius: 999px;
-      font-size: 12px;
-      font-weight: 900;
+      font-size: 11px;
+      font-weight: 700;
       text-transform: capitalize;
       white-space: nowrap;
     }
- 
-    .pill-pending {
-      background: #fff7e6;
-      color: #8a5300;
-      border: 1px solid #ffd27a;
-    }
- 
-    .pill-approved,
-    .pill-paid {
-      background: #e7f7ec;
-      color: #0b7a28;
-      border: 1px solid #bfe6c9;
-    }
- 
-    .pill-denied,
-    .pill-failed {
-      background: #ffe5e5;
-      color: #b00020;
-      border: 1px solid #ffbcbc;
-    }
- 
-    .pill-requested,
-    .pill-processing {
-      background: #eef4ff;
-      color: #234a91;
-      border: 1px solid #cddcff;
-    }
- 
-    .request-card {
-      background: #f7faf8;
-      border: 1px solid #e3eee6;
-      border-radius: 18px;
-      padding: 13px;
-      margin-top: 10px;
-    }
- 
-    .request-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: flex-start;
-      margin-bottom: 8px;
-    }
- 
-    .request-amount {
-      font-size: 18px;
-      font-weight: 900;
-      color: #111;
-    }
- 
-    .request-meta {
-      font-size: 12px;
-      color: #666;
-      line-height: 1.45;
-    }
- 
-    .request-note {
-      margin-top: 8px;
-      padding: 9px;
-      border-radius: 12px;
-      background: white;
-      border: 1px solid #e5e5e5;
-      font-size: 12px;
-      color: #555;
-      line-height: 1.4;
-    }
- 
-    .empty {
-      text-align: center;
-      color: #666;
-      font-size: 14px;
-      line-height: 1.45;
-      padding: 18px 10px;
-    }
- 
-    .loading-spinner {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      border: 3px solid #dfe5e0;
-      border-top-color: #0b7a28;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 12px;
-    }
- 
-    .message {
-      min-height: 18px;
-      text-align: center;
-      font-size: 13px;
-      font-weight: 800;
-      margin-top: 10px;
-      line-height: 1.35;
-    }
- 
-    .warning-box {
-      background: #fff7e6;
-      border: 1px solid #ffd27a;
-      color: #7a4b00;
-      border-radius: 14px;
-      padding: 11px;
-      font-size: 12px;
-      line-height: 1.45;
-      margin-top: 10px;
-    }
 
+    .pill-pending { background: var(--warn-bg); color: #8a5300; border: 1px solid var(--warn-border); }
+    .pill-approved, .pill-paid { background: var(--surface2); color: var(--accent); border: 1px solid #bfe6c9; }
+    .pill-denied, .pill-failed { background: #ffe5e5; color: var(--danger); border: 1px solid #ffbcbc; }
+    .pill-requested, .pill-processing { background: #eef4ff; color: #234a91; border: 1px solid #cddcff; }
 
-    .payout-options {
-      display: grid;
-      gap: 10px;
-      margin-top: 10px;
-    }
+    .payout-options { display: grid; gap: 10px; margin-top: 10px; }
 
     .payout-option {
-      background: #f7faf8;
-      border: 1px solid #e3eee6;
-      border-radius: 18px;
-      padding: 13px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
     }
 
     .payout-option-title {
-      font-size: 14px;
-      font-weight: 900;
-      color: #111;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--text);
       margin-bottom: 4px;
     }
 
     .payout-option-text {
       font-size: 12px;
-      color: #666;
+      color: var(--muted);
       line-height: 1.45;
       margin-bottom: 8px;
     }
@@ -338,148 +248,176 @@
       justify-content: space-between;
       gap: 10px;
       font-size: 12px;
-      font-weight: 800;
-      color: #444;
+      font-weight: 700;
+      color: var(--muted);
       margin-top: 5px;
     }
 
-    .fee-row strong {
-      color: #111;
+    .fee-row strong { color: var(--text); }
+
+    .request-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px;
+      margin-top: 10px;
     }
- 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+
+    .request-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .request-amount {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .request-meta {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .request-note {
+      margin-top: 8px;
+      padding: 9px;
+      border-radius: 11px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .warning-box {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      color: var(--warn-text);
+      border-radius: 12px;
+      padding: 11px 13px;
+      font-size: 12px;
+      line-height: 1.45;
+      margin-top: 10px;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      padding: 18px 10px;
+    }
+
+    .loading-spinner {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    .message {
+      min-height: 18px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 10px;
+      line-height: 1.35;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
- 
+
 <body>
- 
+
+<div class="top-bar">
+  <a class="back" href="worker-dashboard.html">← Back</a>
+  <div class="refresh-link" onclick="loadPayoutPage()">Refresh</div>
+</div>
+
 <div class="container">
- 
-  <div class="top-bar">
-    <a class="back" href="worker-dashboard.html">&larr; Back</a>
-    <div class="refresh-link" onclick="loadPayoutPage()">Refresh</div>
-  </div>
- 
+
   <div class="hero">
     <div class="hero-title">Payout Status</div>
-    <div class="hero-sub">
-      Track available earnings, payout requests, approvals, denials, and Stripe transfer status.
-    </div>
+    <div class="hero-sub">Track available earnings, payout requests, approvals, denials, and Stripe transfer status.</div>
   </div>
- 
+
   <div class="card">
     <div class="section-header">
       <div class="section-title">Available for Payout</div>
     </div>
- 
+
     <div class="balance-box">
       <div class="balance-label">Current available balance</div>
       <div class="balance-amount" id="availableBalance">$0.00</div>
-      <div class="balance-sub" id="balanceSubtext">
-        Completed and released jobs will show here.
-      </div>
+      <div class="balance-sub" id="balanceSubtext">Completed and released jobs will show here.</div>
     </div>
-<div class="payout-options">
+
+    <div class="payout-options">
       <div class="payout-option">
         <div class="payout-option-title">Free Friday Payout</div>
-        <div class="payout-option-text">
-          Request your available balance with no payout fee. Standard payouts are reviewed and processed during the Friday payout run.
-        </div>
-        <button id="standardPayoutButton" onclick="requestPayout('standard')" disabled>
-          Request Free Friday Payout
-        </button>
+        <div class="payout-option-text">Request your available balance with no payout fee. Standard payouts are reviewed and processed during the Friday payout run.</div>
+        <button id="standardPayoutButton" onclick="requestPayout('standard')" disabled>Request Free Friday Payout</button>
       </div>
 
       <div class="payout-option">
         <div class="payout-option-title">Instant Payout</div>
-        <div class="payout-option-text">
-          Request faster payout processing for a small instant payout fee.
-        </div>
-        <div class="fee-row">
-          <span>Instant fee</span>
-          <strong id="instantFeeAmount">$0.00</strong>
-        </div>
-        <div class="fee-row">
-          <span>You receive</span>
-          <strong id="instantNetAmount">$0.00</strong>
-        </div>
-        <button id="instantPayoutButton" onclick="requestPayout('instant')" disabled>
-          Request Instant Payout
-        </button>
+        <div class="payout-option-text">Request faster payout processing for a small instant payout fee.</div>
+        <div class="fee-row"><span>Instant fee</span><strong id="instantFeeAmount">$0.00</strong></div>
+        <div class="fee-row"><span>You receive</span><strong id="instantNetAmount">$0.00</strong></div>
+        <button id="instantPayoutButton" onclick="requestPayout('instant')" disabled>Request Instant Payout</button>
       </div>
     </div>
 
-    <button class="secondary" onclick="window.location.href='worker-payout-info.html'">
-      Update Payout Information
-    </button>
- 
+    <button class="secondary" onclick="window.location.href='worker-payout-info.html'">Update Payout Information</button>
+
     <div id="actionMessage" class="message"></div>
- 
+
     <div class="warning-box">
       Payout processing must run through a secure backend or Supabase Edge Function connected to Stripe. Do not put Stripe secret keys inside this page.
     </div>
   </div>
- 
+
   <div class="card">
     <div class="section-title">Payout Summary</div>
- 
     <div class="stats-grid">
-      <div class="stat-box">
-        <div class="stat-label">Pending</div>
-        <div class="stat-value" id="pendingAmount">$0.00</div>
-      </div>
- 
-      <div class="stat-box">
-        <div class="stat-label">Approved</div>
-        <div class="stat-value" id="approvedAmount">$0.00</div>
-      </div>
- 
-      <div class="stat-box">
-        <div class="stat-label">Paid</div>
-        <div class="stat-value" id="paidAmount">$0.00</div>
-      </div>
- 
-      <div class="stat-box">
-        <div class="stat-label">Last Request</div>
-        <div class="stat-value" id="lastRequestDate">None</div>
-      </div>
+      <div class="stat-box"><div class="stat-label">Pending</div><div class="stat-value" id="pendingAmount">$0.00</div></div>
+      <div class="stat-box"><div class="stat-label">Approved</div><div class="stat-value" id="approvedAmount">$0.00</div></div>
+      <div class="stat-box"><div class="stat-label">Paid</div><div class="stat-value" id="paidAmount">$0.00</div></div>
+      <div class="stat-box"><div class="stat-label">Last Request</div><div class="stat-value" id="lastRequestDate">None</div></div>
     </div>
   </div>
- 
+
   <div class="card">
     <div class="section-header">
       <div class="section-title">Payout Requests</div>
     </div>
- 
-    <div class="section-note">
-      Each request shows when it was submitted and whether it is pending, approved, denied, processing, or paid.
-    </div>
- 
+    <div class="section-note">Each request shows when it was submitted and whether it is pending, approved, denied, processing, or paid.</div>
     <div id="payoutRequestsList">
-      <div class="empty">
-        <div class="loading-spinner"></div>
-        Loading payout requests...
-      </div>
+      <div class="empty"><div class="loading-spinner"></div>Loading payout requests...</div>
     </div>
   </div>
- 
+
 </div>
- 
+
 <script>
-const SUPABASE_URL =
-  "https://dbcthtjmtlumidpbucrc.supabase.co";
- 
-const SUPABASE_ANON_KEY =
-  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
- 
-const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
- 
+const SUPABASE_URL = "https://dbcthtjmtlumidpbucrc.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 let currentUser = null;
 let currentWorkerId = null;
 let currentWorkerIds = [];
@@ -488,112 +426,60 @@ let payoutRequests = [];
 
 const INSTANT_PAYOUT_FEE_RATE = 0.015;
 const INSTANT_PAYOUT_MIN_FEE = 1.00;
- 
+
 function money(value) {
   const amount = Number(value || 0);
- 
-  return amount.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD"
-  });
+  return amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
- 
+
 function cleanText(value, fallback = "Not listed") {
-  if (value === null || value === undefined) {
-    return fallback;
-  }
- 
+  if (value === null || value === undefined) return fallback;
   const text = String(value).trim();
- 
   return text === "" ? fallback : text;
 }
- 
+
 function formatDate(value) {
-  if (!value) {
-    return "Not listed";
-  }
- 
+  if (!value) return "Not listed";
   const date = new Date(value);
- 
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
- 
-  return date.toLocaleDateString([], {
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  });
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
 }
- 
+
 function formatDateTime(value) {
-  if (!value) {
-    return "Not listed";
-  }
- 
+  if (!value) return "Not listed";
   const date = new Date(value);
- 
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
- 
-  return date.toLocaleString([], {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString([], { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
- 
+
 function setActionMessage(message, color = "#666") {
   const box = document.getElementById("actionMessage");
   box.style.color = color;
   box.innerText = message;
 }
- 
+
 function getFirstAvailable(record, keys, fallback = "") {
-  if (!record) {
-    return fallback;
-  }
- 
+  if (!record) return fallback;
   for (const key of keys) {
-    if (
-      record[key] !== null &&
-      record[key] !== undefined &&
-      String(record[key]).trim() !== ""
-    ) {
+    if (record[key] !== null && record[key] !== undefined && String(record[key]).trim() !== "") {
       return record[key];
     }
   }
- 
   return fallback;
 }
 
 function calculateInstantFee(amount) {
   const payoutAmount = Number(amount || 0);
-
-  if (payoutAmount <= 0) {
-    return 0;
-  }
-
-  return Math.min(
-    payoutAmount,
-    Math.max(
-      INSTANT_PAYOUT_MIN_FEE,
-      Math.round((payoutAmount * INSTANT_PAYOUT_FEE_RATE) * 100) / 100
-    )
-  );
+  if (payoutAmount <= 0) return 0;
+  return Math.min(payoutAmount, Math.max(INSTANT_PAYOUT_MIN_FEE, Math.round((payoutAmount * INSTANT_PAYOUT_FEE_RATE) * 100) / 100));
 }
 
 function getNextFridayDate() {
   const date = new Date();
   const day = date.getDay();
   const daysUntilFriday = (5 - day + 7) % 7;
-
   date.setDate(date.getDate() + daysUntilFriday);
   date.setHours(0, 0, 0, 0);
-
   return date.toISOString().split("T")[0];
 }
 
@@ -605,295 +491,116 @@ function updatePayoutButtons() {
   const instantFee = calculateInstantFee(availableBalance);
   const instantNet = Math.max(Number(availableBalance || 0) - instantFee, 0);
   const hasAvailableBalance = Number(availableBalance || 0) > 0;
-
-  if (instantFeeBox) {
-    instantFeeBox.innerText = money(instantFee);
-  }
-
-  if (instantNetBox) {
-    instantNetBox.innerText = money(instantNet);
-  }
-
-  if (standardButton) {
-    standardButton.disabled = !hasAvailableBalance;
-  }
-
-  if (instantButton) {
-    instantButton.disabled = !hasAvailableBalance || instantNet <= 0;
-  }
+  if (instantFeeBox) instantFeeBox.innerText = money(instantFee);
+  if (instantNetBox) instantNetBox.innerText = money(instantNet);
+  if (standardButton) standardButton.disabled = !hasAvailableBalance;
+  if (instantButton) instantButton.disabled = !hasAvailableBalance || instantNet <= 0;
 }
- 
-async function getCurrentWorker() {
-  const { data: sessionData, error: sessionError } =
-    await supabaseClient.auth.getSession();
 
-  if (
-    sessionError ||
-    !sessionData ||
-    !sessionData.session ||
-    !sessionData.session.user
-  ) {
+async function getCurrentWorker() {
+  const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+  if (sessionError || !sessionData || !sessionData.session || !sessionData.session.user) {
     window.location.href = "worker-login.html";
     return false;
   }
-
   currentUser = sessionData.session.user;
-
   const ids = [currentUser.id];
-
-  const { data: profile } =
-    await supabaseClient
-      .from("profiles")
-      .select("id, email")
-      .eq("email", currentUser.email)
-      .maybeSingle();
-
-  if (profile && profile.id) {
-    ids.push(profile.id);
-  }
-
-  const { data: workerProfile } =
-    await supabaseClient
-      .from("worker_profiles")
-      .select("id, email, stripe_account_id, payout_status")
-      .eq("email", currentUser.email)
-      .maybeSingle();
-
-  if (workerProfile && workerProfile.id) {
-    ids.push(workerProfile.id);
-  }
-
-  currentWorkerIds =
-    [...new Set(ids.filter(Boolean).map(String))];
-
-  currentWorkerId =
-    workerProfile && workerProfile.id
-      ? workerProfile.id
-      : currentWorkerIds[0];
-
+  const { data: profile } = await supabaseClient.from("profiles").select("id, email").eq("email", currentUser.email).maybeSingle();
+  if (profile && profile.id) ids.push(profile.id);
+  const { data: workerProfile } = await supabaseClient.from("worker_profiles").select("id, email, stripe_account_id, payout_status").eq("email", currentUser.email).maybeSingle();
+  if (workerProfile && workerProfile.id) ids.push(workerProfile.id);
+  currentWorkerIds = [...new Set(ids.filter(Boolean).map(String))];
+  currentWorkerId = workerProfile && workerProfile.id ? workerProfile.id : currentWorkerIds[0];
   return currentWorkerIds.length > 0;
 }
 
- 
 function getEarningAmount(row) {
-  return Number(
-    getFirstAvailable(row, [
-      "worker_payout",
-      "net_payout",
-      "amount",
-      "payout_amount"
-    ], 0)
-  );
+  return Number(getFirstAvailable(row, ["worker_payout","net_payout","amount","payout_amount"], 0));
 }
- 
+
 function isAvailableEarning(row) {
-  const status = String(
-    getFirstAvailable(row, [
-      "payout_status",
-      "status",
-      "payment_status"
-    ], "available")
-  ).toLowerCase();
- 
-  return [
-    "available",
-    "released",
-    "ready",
-    "completed",
-    "unpaid"
-  ].includes(status);
+  const status = String(getFirstAvailable(row, ["payout_status","status","payment_status"], "available")).toLowerCase();
+  return ["available","released","ready","completed","unpaid"].includes(status);
 }
- 
+
 async function loadAvailableBalance() {
-  const { data, error } =
-    await supabaseClient
-      .from("worker_earnings")
-      .select("*")
-      .in("worker_id", currentWorkerIds);
- 
+  const { data, error } = await supabaseClient.from("worker_earnings").select("*").in("worker_id", currentWorkerIds);
   if (error || !data) {
     availableBalance = 0;
     document.getElementById("availableBalance").innerText = money(0);
-    document.getElementById("balanceSubtext").innerText =
-      "No available earnings found yet.";
+    document.getElementById("balanceSubtext").innerText = "No available earnings found yet.";
     updatePayoutButtons();
     return;
   }
- 
-  availableBalance = data
-    .filter(row => isAvailableEarning(row))
-    .reduce((total, row) => total + getEarningAmount(row), 0);
- 
-  document.getElementById("availableBalance").innerText =
-    money(availableBalance);
- 
-  document.getElementById("balanceSubtext").innerText =
-    availableBalance > 0
-      ? "You can request this available amount for payout."
-      : "Completed and released jobs will show here.";
- 
+  availableBalance = data.filter(row => isAvailableEarning(row)).reduce((total, row) => total + getEarningAmount(row), 0);
+  document.getElementById("availableBalance").innerText = money(availableBalance);
+  document.getElementById("balanceSubtext").innerText = availableBalance > 0 ? "You can request this available amount for payout." : "Completed and released jobs will show here.";
   updatePayoutButtons();
 }
- 
+
 function requestAmount(row) {
-  return Number(
-    getFirstAvailable(row, [
-      "amount",
-      "payout_amount",
-      "requested_amount"
-    ], 0)
-  );
+  return Number(getFirstAvailable(row, ["amount","payout_amount","requested_amount"], 0));
 }
- 
+
 function requestStatus(row) {
-  return String(
-    getFirstAvailable(row, [
-      "status",
-      "payout_status",
-      "request_status"
-    ], "pending")
-  ).toLowerCase();
+  return String(getFirstAvailable(row, ["status","payout_status","request_status"], "pending")).toLowerCase();
 }
- 
+
 function requestCreatedAt(row) {
-  return getFirstAvailable(row, [
-    "requested_at",
-    "created_at",
-    "submitted_at"
-  ], "");
+  return getFirstAvailable(row, ["requested_at","created_at","submitted_at"], "");
 }
- 
+
 async function loadPayoutRequests() {
   const list = document.getElementById("payoutRequestsList");
- 
-  const { data, error } =
-    await supabaseClient
-      .from("worker_payouts")
-      .select("*")
-      .in("worker_id", currentWorkerIds)
-      .order("created_at", { ascending: false });
- 
+  const { data, error } = await supabaseClient.from("worker_payouts").select("*").in("worker_id", currentWorkerIds).order("created_at", { ascending: false });
   if (error) {
-    list.innerHTML = `
-      <div class="empty">
-        Payout requests could not load. Check the worker_payout_requests table and RLS policies.
-      </div>
-    `;
+    list.innerHTML = `<div class="empty">Payout requests could not load. Check the worker_payout_requests table and RLS policies.</div>`;
     return;
   }
- 
   payoutRequests = data || [];
   renderPayoutRequests();
   updateSummary();
 }
- 
+
 function updateSummary() {
-  let pending = 0;
-  let approved = 0;
-  let paid = 0;
- 
+  let pending = 0, approved = 0, paid = 0;
   payoutRequests.forEach(row => {
     const status = requestStatus(row);
     const amount = requestAmount(row);
- 
-    if (["requested", "pending", "processing"].includes(status)) {
-      pending += amount;
-    }
- 
-    if (status === "approved") {
-      approved += amount;
-    }
- 
-    if (["paid", "completed"].includes(status)) {
-      paid += amount;
-    }
+    if (["requested","pending","processing"].includes(status)) pending += amount;
+    if (status === "approved") approved += amount;
+    if (["paid","completed"].includes(status)) paid += amount;
   });
- 
   document.getElementById("pendingAmount").innerText = money(pending);
   document.getElementById("approvedAmount").innerText = money(approved);
   document.getElementById("paidAmount").innerText = money(paid);
- 
-  document.getElementById("lastRequestDate").innerText =
-    payoutRequests.length > 0
-      ? formatDate(requestCreatedAt(payoutRequests[0]))
-      : "None";
+  document.getElementById("lastRequestDate").innerText = payoutRequests.length > 0 ? formatDate(requestCreatedAt(payoutRequests[0])) : "None";
 }
- 
+
 function getPillClass(status) {
-  if (["approved"].includes(status)) {
-    return "pill-approved";
-  }
- 
-  if (["paid", "completed"].includes(status)) {
-    return "pill-paid";
-  }
- 
-  if (["denied", "failed", "rejected"].includes(status)) {
-    return "pill-denied";
-  }
- 
-  if (["requested", "processing"].includes(status)) {
-    return "pill-processing";
-  }
- 
+  if (["approved"].includes(status)) return "pill-approved";
+  if (["paid","completed"].includes(status)) return "pill-paid";
+  if (["denied","failed","rejected"].includes(status)) return "pill-denied";
+  if (["requested","processing"].includes(status)) return "pill-processing";
   return "pill-pending";
 }
- 
+
 function renderPayoutRequests() {
   const list = document.getElementById("payoutRequestsList");
- 
   if (!payoutRequests || payoutRequests.length === 0) {
-    list.innerHTML = `
-      <div class="empty">
-        No payout requests yet. Once you request a payout, it will show here with its status.
-      </div>
-    `;
+    list.innerHTML = `<div class="empty">No payout requests yet. Once you request a payout, it will show here with its status.</div>`;
     return;
   }
- 
   list.innerHTML = "";
- 
   payoutRequests.forEach(row => {
     const status = requestStatus(row);
     const submitted = requestCreatedAt(row);
-    const processedAt = getFirstAvailable(row, [
-      "processed_at",
-      "approved_at",
-      "paid_at",
-      "updated_at"
-    ], "");
- 
-    const denialReason = getFirstAvailable(row, [
-      "denial_reason",
-      "rejection_reason",
-      "failure_reason"
-    ], "");
- 
-    const stripeReference = getFirstAvailable(row, [
-      "stripe_transfer_id",
-      "stripe_payout_id",
-      "stripe_payment_intent_id",
-      "stripe_reference"
-    ], "");
- 
-    const payoutSpeed = getFirstAvailable(row, [
-      "payout_speed",
-      "payout_type",
-      "speed"
-    ], "standard");
-
-    const feeAmount = Number(getFirstAvailable(row, [
-      "fee_amount",
-      "instant_fee",
-      "processing_fee"
-    ], 0));
-
-    const netAmount = Number(getFirstAvailable(row, [
-      "net_amount",
-      "net_payout_amount",
-      "amount_after_fee"
-    ], requestAmount(row)));
-
+    const processedAt = getFirstAvailable(row, ["processed_at","approved_at","paid_at","updated_at"], "");
+    const denialReason = getFirstAvailable(row, ["denial_reason","rejection_reason","failure_reason"], "");
+    const stripeReference = getFirstAvailable(row, ["stripe_transfer_id","stripe_payout_id","stripe_payment_intent_id","stripe_reference"], "");
+    const payoutSpeed = getFirstAvailable(row, ["payout_speed","payout_type","speed"], "standard");
+    const feeAmount = Number(getFirstAvailable(row, ["fee_amount","instant_fee","processing_fee"], 0));
+    const netAmount = Number(getFirstAvailable(row, ["net_amount","net_payout_amount","amount_after_fee"], requestAmount(row)));
     const note = status === "denied" || status === "failed" || status === "rejected"
       ? `Reason: ${cleanText(denialReason, "No reason listed")}`
       : stripeReference
@@ -901,223 +608,106 @@ function renderPayoutRequests() {
         : payoutSpeed === "instant"
           ? `Instant payout fee: ${money(feeAmount)}. Estimated payout after fee: ${money(netAmount)}.`
           : "Free Friday payout. Stripe status will update after processing.";
- 
     list.innerHTML += `
       <div class="request-card">
         <div class="request-top">
           <div>
             <div class="request-amount">${money(requestAmount(row))}</div>
-            <div class="request-meta">
-              Type: ${cleanText(payoutSpeed).replaceAll("_", " ")}<br>
-              Submitted: ${formatDateTime(submitted)}<br>
-              Last Update: ${formatDateTime(processedAt)}
-            </div>
+            <div class="request-meta">Type: ${cleanText(payoutSpeed).replaceAll("_"," ")}<br>Submitted: ${formatDateTime(submitted)}<br>Last Update: ${formatDateTime(processedAt)}</div>
           </div>
- 
-          <div class="status-pill ${getPillClass(status)}">
-            ${status.replaceAll("_", " ")}
-          </div>
+          <div class="status-pill ${getPillClass(status)}">${status.replaceAll("_"," ")}</div>
         </div>
- 
-        <div class="request-note">
-          ${note}
-        </div>
-      </div>
-    `;
+        <div class="request-note">${note}</div>
+      </div>`;
   });
 }
- 
+
 async function requestPayout(payoutSpeed) {
   const standardButton = document.getElementById("standardPayoutButton");
   const instantButton = document.getElementById("instantPayoutButton");
   const selectedSpeed = payoutSpeed === "instant" ? "instant" : "standard";
   const button = selectedSpeed === "instant" ? instantButton : standardButton;
   const originalText = button ? button.innerText : "";
-  const feeAmount = selectedSpeed === "instant"
-    ? calculateInstantFee(availableBalance)
-    : 0;
+  const feeAmount = selectedSpeed === "instant" ? calculateInstantFee(availableBalance) : 0;
   const netAmount = Math.max(availableBalance - feeAmount, 0);
-
-  if (availableBalance <= 0) {
-    setActionMessage("No available balance to request.", "#b00020");
-    return;
-  }
-
-  if (selectedSpeed === "instant" && netAmount <= 0) {
-    setActionMessage("Instant payout amount is too low after the fee.", "#b00020");
-    return;
-  }
-
-  const confirmMessage =
-    selectedSpeed === "instant"
-      ? `Request instant payout for ${money(availableBalance)}? Instant fee: ${money(feeAmount)}. You receive: ${money(netAmount)}.`
-      : `Request free Friday payout for ${money(availableBalance)}?`;
-
+  if (availableBalance <= 0) { setActionMessage("No available balance to request.", "#b00020"); return; }
+  if (selectedSpeed === "instant" && netAmount <= 0) { setActionMessage("Instant payout amount is too low after the fee.", "#b00020"); return; }
+  const confirmMessage = selectedSpeed === "instant"
+    ? `Request instant payout for ${money(availableBalance)}? Instant fee: ${money(feeAmount)}. You receive: ${money(netAmount)}.`
+    : `Request free Friday payout for ${money(availableBalance)}?`;
   const confirmed = confirm(confirmMessage);
-
-  if (!confirmed) {
-    return;
-  }
-
-  if (standardButton) {
-    standardButton.disabled = true;
-  }
-
-  if (instantButton) {
-    instantButton.disabled = true;
-  }
-
-  if (button) {
-    button.innerText = "Submitting...";
-  }
-
+  if (!confirmed) return;
+  if (standardButton) standardButton.disabled = true;
+  if (instantButton) instantButton.disabled = true;
+  if (button) button.innerText = "Submitting...";
   setActionMessage("Submitting payout request...", "#666");
-
   try {
-    const { data: requestRow, error: insertError } =
-      await supabaseClient
-        .from("worker_payouts")
-        .insert({
-          worker_id: currentWorkerId,
-          worker_email: currentUser.email,
-          amount: availableBalance,
-          payout_type: selectedSpeed,
-          fee_amount: feeAmount,
-          net_amount: netAmount,
-          status: "requested",
-          requested_at: new Date().toISOString(),
-          scheduled_payout_date: selectedSpeed === "standard" ? getNextFridayDate() : null
-        })
-        .select("*")
-        .single();
-
-    if (insertError) {
-      setActionMessage(insertError.message, "#b00020");
-      return;
-    }
-
-    const { error: earningsUpdateError } =
-      await supabaseClient
-        .from("worker_earnings")
-        .update({
-          payout_status: "requested",
-          payout_request_id: requestRow.id,
-          payout_requested_at: new Date().toISOString()
-        })
-        .in("worker_id", currentWorkerIds)
-        .in("payout_status", [
-          "available",
-          "released",
-          "ready",
-          "completed",
-          "unpaid"
-        ]);
-
-    if (earningsUpdateError) {
-      setActionMessage(earningsUpdateError.message, "#b00020");
-      return;
-    }
-
+    const { data: requestRow, error: insertError } = await supabaseClient.from("worker_payouts").insert({
+      worker_id: currentWorkerId,
+      worker_email: currentUser.email,
+      amount: availableBalance,
+      payout_type: selectedSpeed,
+      fee_amount: feeAmount,
+      net_amount: netAmount,
+      status: "requested",
+      requested_at: new Date().toISOString(),
+      scheduled_payout_date: selectedSpeed === "standard" ? getNextFridayDate() : null
+    }).select("*").single();
+    if (insertError) { setActionMessage(insertError.message, "#b00020"); return; }
+    const { error: earningsUpdateError } = await supabaseClient.from("worker_earnings").update({
+      payout_status: "requested",
+      payout_request_id: requestRow.id,
+      payout_requested_at: new Date().toISOString()
+    }).in("worker_id", currentWorkerIds).in("payout_status", ["available","released","ready","completed","unpaid"]);
+    if (earningsUpdateError) { setActionMessage(earningsUpdateError.message, "#b00020"); return; }
     availableBalance = 0;
     document.getElementById("availableBalance").innerText = money(0);
-    document.getElementById("balanceSubtext").innerText =
-      "Your available balance has been requested for payout.";
+    document.getElementById("balanceSubtext").innerText = "Your available balance has been requested for payout.";
     updatePayoutButtons();
-
-    const { data: sessionData } =
-      await supabaseClient.auth.getSession();
-
-    const accessToken =
-      sessionData && sessionData.session
-        ? sessionData.session.access_token
-        : "";
-
-    const stripeResponse = await fetch(
-      `${SUPABASE_URL}/functions/v1/request-worker-payout`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({
-          worker_id: currentWorkerId,
-          payout_request_id: requestRow.id,
-          amount: availableBalance,
-          payout_speed: selectedSpeed,
-          fee_amount: feeAmount,
-          net_amount: netAmount
-        })
-      }
-    );
-
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const accessToken = sessionData && sessionData.session ? sessionData.session.access_token : "";
+    const stripeResponse = await fetch(`${SUPABASE_URL}/functions/v1/request-worker-payout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
+      body: JSON.stringify({ worker_id: currentWorkerId, payout_request_id: requestRow.id, amount: availableBalance, payout_speed: selectedSpeed, fee_amount: feeAmount, net_amount: netAmount })
+    });
     if (!stripeResponse.ok) {
-      setActionMessage(
-        "Payout request saved. Stripe processing backend still needs to be connected.",
-        "#8a5300"
-      );
+      setActionMessage("Payout request saved. Stripe processing backend still needs to be connected.", "#8a5300");
       await loadPayoutPage();
       return;
     }
-
-    setActionMessage(
-      selectedSpeed === "instant"
-        ? "Instant payout request submitted for processing."
-        : "Free Friday payout request submitted for processing.",
-      "#0b7a28"
-    );
-
+    setActionMessage(selectedSpeed === "instant" ? "Instant payout request submitted for processing." : "Free Friday payout request submitted for processing.", "#0b7a28");
     await loadPayoutPage();
-
   } catch (error) {
-    setActionMessage(
-      error.message || "Something went wrong requesting payout.",
-      "#b00020"
-    );
+    setActionMessage(error.message || "Something went wrong requesting payout.", "#b00020");
   } finally {
-    if (button) {
-      button.innerText = originalText;
-    }
-
+    if (button) button.innerText = originalText;
     updatePayoutButtons();
   }
 }
 
- 
 async function loadPayoutPage() {
   setActionMessage("", "#666");
- 
   try {
     const ready = await getCurrentWorker();
- 
     if (!ready) {
-      document.getElementById("payoutRequestsList").innerHTML = `
-        <div class="empty">
-          Worker profile not found. Complete your worker profile before requesting payouts.
-        </div>
-      `;
+      document.getElementById("payoutRequestsList").innerHTML = `<div class="empty">Worker profile not found. Complete your worker profile before requesting payouts.</div>`;
       return;
     }
- 
     await loadAvailableBalance();
     await loadPayoutRequests();
   } catch (error) {
     console.error(error);
     availableBalance = 0;
     document.getElementById("availableBalance").innerText = money(0);
-    document.getElementById("balanceSubtext").innerText =
-      "Payout details could not load. Check worker_earnings, worker_payouts, and RLS policies.";
-    document.getElementById("payoutRequestsList").innerHTML = `
-      <div class="empty">
-        Payout requests could not load. ${cleanText(error.message, "Check the payout tables and RLS policies.")}
-      </div>
-    `;
+    document.getElementById("balanceSubtext").innerText = "Payout details could not load. Check worker_earnings, worker_payouts, and RLS policies.";
+    document.getElementById("payoutRequestsList").innerHTML = `<div class="empty">Payout requests could not load. ${cleanText(error.message, "Check the payout tables and RLS policies.")}</div>`;
     updatePayoutButtons();
   }
 }
- 
+
 loadPayoutPage();
 </script>
- 
+
 </body>
 </html>

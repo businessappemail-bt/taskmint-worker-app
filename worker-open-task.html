@@ -5,129 +5,198 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
  
   <style>
-    * {
+    *, *::before, *::after {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
- 
+
+    :root {
+      --bg: #ffffff;
+      --surface: #f2f7f4;
+      --surface2: #e6f4eb;
+      --border: #e2ebe5;
+      --accent: #0b7a28;
+      --text: #111111;
+      --muted: #6b7870;
+      --danger: #b00020;
+      --warning-bg: #fffbeb;
+      --warning-border: #f0c040;
+      --warning-text: #7a4f00;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(180deg, #e9f7ee 0%, #f5f5f5 100%);
-      color: #111;
-      padding-bottom: 80px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 90px;
       overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
- 
+
     .container {
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 18px;
+      width: 100%;
+      max-width: 470px;
+      padding: 20px 16px 30px;
       position: relative;
     }
- 
+
     .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      width: 100%;
+      max-width: 470px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 14px;
+      padding: 13px 20px;
+      margin: -20px -16px 20px;
     }
- 
+
     .back {
-      color: #0b7a28;
+      color: var(--accent);
       font-weight: 800;
       text-decoration: none;
       font-size: 14px;
     }
- 
+
     .small-action {
-      color: #0b7a28;
+      color: var(--accent);
       font-weight: 800;
-      font-size: 13px;
+      font-size: 12px;
       cursor: pointer;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 11px;
     }
- 
+
     .hero {
-      background: linear-gradient(135deg, #0b7a28, #19a447);
+      background: var(--accent);
       color: white;
-      border-radius: 26px;
-      padding: 22px;
-      margin-bottom: 16px;
-      box-shadow: 0 10px 28px rgba(11,122,40,0.22);
-      animation: fadeUp 0.35s ease;
-    }
- 
-    .hero-title {
-      font-size: 26px;
-      font-weight: 900;
-      letter-spacing: -0.5px;
-      margin-bottom: 7px;
-    }
- 
-    .hero-sub {
-      font-size: 14px;
-      line-height: 1.5;
-      opacity: 0.95;
-    }
- 
-    .card {
-      background: white;
       border-radius: 22px;
-      padding: 17px;
-      margin-bottom: 16px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-      border: 1px solid #edf1ee;
-      animation: fadeUp 0.45s ease;
+      padding: 24px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(11,122,40,0.22);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: riseIn 0.35s 0.05s forwards;
     }
- 
-    .filter-title {
-      font-size: 17px;
-      font-weight: 900;
-      margin-bottom: 4px;
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 155px;
+      height: 155px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      top: -65px;
+      right: -55px;
     }
- 
-    .filter-sub {
-      color: #666;
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      bottom: -45px;
+      left: -35px;
+    }
+
+    .hero-title {
+      font-size: 29px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.08;
+      margin-bottom: 7px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-sub {
       font-size: 13px;
-      line-height: 1.4;
-      margin-bottom: 12px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.82);
+      position: relative;
+      z-index: 2;
     }
- 
+
+    .card {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      opacity: 0;
+      animation: riseIn 0.35s 0.12s forwards;
+    }
+
+    .filter-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      letter-spacing: -0.1px;
+    }
+
+    .filter-sub {
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.45;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
     select,
     input {
       width: 100%;
       padding: 13px;
       margin-top: 10px;
-      border-radius: 14px;
-      border: 1px solid #dfe5e0;
-      font-size: 15px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      font-size: 14px;
       box-sizing: border-box;
       background: white;
+      color: var(--text);
       outline: none;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
- 
+
     select:focus,
     input:focus {
-      border-color: #0b7a28;
+      border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
     }
- 
+
     .filter-grid {
       display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
- 
+
     .task-card {
       background: white;
-      border-radius: 22px;
-      padding: 17px;
-      margin-bottom: 16px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-      border: 1px solid #edf1ee;
+      border-radius: 20px;
+      padding: 15px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      opacity: 0;
+      animation: riseIn 0.35s 0.12s forwards;
     }
- 
+
     .task-top {
       display: flex;
       align-items: flex-start;
@@ -135,14 +204,15 @@
       gap: 12px;
       margin-bottom: 12px;
     }
- 
+
     .task-title {
-      font-size: 18px;
-      font-weight: 900;
+      font-size: 17px;
+      font-weight: 800;
       line-height: 1.25;
-      margin-bottom: 6px;
+      margin-bottom: 7px;
+      letter-spacing: -0.1px;
     }
- 
+
     .category-pill,
     .request-pill {
       display: inline-flex;
@@ -150,93 +220,99 @@
       justify-content: center;
       padding: 6px 10px;
       border-radius: 999px;
-      background: #e7f7ec;
-      color: #0b7a28;
-      font-size: 12px;
-      font-weight: 900;
+      background: var(--surface2);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
       white-space: nowrap;
       text-transform: capitalize;
+      border: 1px solid #cfead7;
     }
 
     .request-pill {
-      background: #111;
+      background: var(--text);
       color: white;
       margin-top: 6px;
+      border-color: var(--text);
     }
 
     .request-pill.direct {
-      background: #fff7e6;
-      color: #7a4b00;
-      border: 1px solid #ffd27a;
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border: 1px solid var(--warning-border);
     }
- 
+
     .customer-row {
       display: flex;
       align-items: center;
       gap: 10px;
       padding: 11px;
       border-radius: 16px;
-      background: #f7faf8;
-      border: 1px solid #e3eee6;
+      background: var(--surface);
+      border: 1px solid var(--border);
       margin-bottom: 12px;
     }
- 
+
     .customer-photo {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      border-radius: 15px;
       object-fit: cover;
-      border: 2px solid #e7f7ec;
-      background: #e7f7ec;
+      border: 1px solid var(--border);
+      background: var(--surface2);
       flex-shrink: 0;
     }
- 
+
     .customer-name {
-      font-size: 14px;
-      font-weight: 900;
-      color: #111;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
     }
- 
+
     .customer-sub {
-      font-size: 12px;
-      color: #666;
-      margin-top: 2px;
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.35;
+      font-weight: 600;
     }
- 
+
     .info-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 9px;
       margin-bottom: 12px;
     }
- 
+
     .info-box {
-      background: #f7faf8;
-      border: 1px solid #e3eee6;
-      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 15px;
       padding: 11px;
-      min-height: 72px;
+      min-height: 70px;
     }
- 
+
     .info-label {
-      font-size: 11px;
-      font-weight: 900;
-      color: #0b7a28;
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--accent);
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
       margin-bottom: 5px;
     }
- 
+
     .info-value {
-      font-size: 13px;
-      color: #111;
+      font-size: 12.5px;
+      color: var(--text);
       line-height: 1.35;
       font-weight: 700;
+      word-break: break-word;
     }
- 
+
     .details-box {
-      background: #fbfbfb;
-      border: 1px solid #eeeeee;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 16px;
       padding: 12px;
       margin-bottom: 12px;
@@ -248,126 +324,169 @@
     }
 
     .summary-box {
-      background: #f7faf8;
-      border: 1px solid #e3eee6;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 11px;
+      padding: 12px;
       margin-bottom: 12px;
     }
- 
+
     .details-label {
       font-size: 12px;
-      font-weight: 900;
-      color: #111;
+      font-weight: 800;
+      color: var(--text);
       margin-bottom: 6px;
     }
- 
+
     .details-text {
-      font-size: 14px;
-      color: #444;
+      font-size: 13px;
+      color: var(--text);
       line-height: 1.45;
       white-space: pre-wrap;
+      font-weight: 600;
     }
- 
+
     .privacy-note {
       font-size: 12px;
-      color: #666;
-      line-height: 1.4;
-      background: #fff7e6;
-      border: 1px solid #ffd27a;
+      color: var(--warning-text);
+      line-height: 1.45;
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
       border-radius: 14px;
-      padding: 10px;
+      padding: 11px;
       margin-bottom: 12px;
+      font-weight: 700;
     }
 
     .quote-sent-note {
       font-size: 12px;
-      color: #0b7a28;
-      line-height: 1.4;
-      background: #e7f7ec;
+      color: var(--accent);
+      line-height: 1.45;
+      background: var(--surface2);
       border: 1px solid #bfe6c9;
       border-radius: 14px;
-      padding: 10px;
+      padding: 11px;
       margin-bottom: 12px;
-      font-weight: 900;
+      font-weight: 800;
     }
- 
+
     .button-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
- 
+
     button {
       width: 100%;
       padding: 13px;
       border: none;
-      border-radius: 14px;
-      background: #0b7a28;
+      border-radius: 13px;
+      background: var(--accent);
       color: white;
-      font-size: 14px;
-      font-weight: 900;
+      font-size: 13px;
+      font-weight: 800;
       cursor: pointer;
-      transition: 0.2s;
+      transition: opacity 0.18s, transform 0.18s, box-shadow 0.18s;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
- 
+
     button:hover {
+      opacity: 0.9;
       transform: translateY(-1px);
-      box-shadow: 0 5px 12px rgba(0,0,0,0.10);
+      box-shadow: 0 6px 14px rgba(11,122,40,0.10);
     }
- 
+
     button.secondary {
       background: white;
-      color: #111;
-      border: 1px solid #dfe5e0;
+      color: var(--accent);
+      border: 1px solid var(--border);
     }
- 
+
     button.full {
       grid-column: 1 / -1;
     }
- 
+
+    button:disabled {
+      background: #b9b9b9;
+      color: white;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      opacity: 0.75;
+    }
+
     .empty {
       text-align: center;
-      color: #666;
-      padding: 25px;
+      color: var(--muted);
+      padding: 24px 18px;
       line-height: 1.5;
+      font-size: 13px;
+      font-weight: 600;
     }
- 
+
     .count-line {
       font-size: 13px;
-      color: #666;
+      color: var(--muted);
       margin: 0 0 12px;
-      font-weight: 700;
+      font-weight: 800;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 11px;
     }
- 
+
     .loading-spinner {
       width: 26px;
       height: 26px;
       border-radius: 50%;
-      border: 3px solid #dfe5e0;
-      border-top-color: #0b7a28;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
       animation: spin 0.8s linear infinite;
       margin: 0 auto 12px;
     }
- 
+
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
- 
-    @keyframes fadeUp {
+
+    @keyframes riseIn {
       from {
         opacity: 0;
-        transform: translateY(12px);
+        transform: translateY(10px);
       }
- 
+
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
+
+    @media (max-width: 360px) {
+      .hero-title {
+        font-size: 25px;
+      }
+
+      .filter-grid,
+      .info-grid,
+      .button-grid {
+        grid-template-columns: 1fr;
+      }
+
+      button.full {
+        grid-column: auto;
+      }
+
+      .task-top {
+        display: block;
+      }
+
+      .category-pill {
+        margin-top: 8px;
+      }
+    }
   </style>
 </head>
- 
+
 <body>
  
 <div class="container">
@@ -528,900 +647,4 @@ function getTaskDetails(task) {
   const rawDetails = getFirstAvailable(task, [
     "description",
     "details",
-    "task_details",
-    "additional_notes",
-    "notes",
-    "special_instructions"
-  ], "");
-
-  if (rawDetails && typeof rawDetails === "object") {
-    return Object.keys(rawDetails)
-      .map(key => {
-        const label =
-          key.replaceAll("_", " ").replace(/\b\w/g, char => char.toUpperCase());
-
-        const value =
-          Array.isArray(rawDetails[key])
-            ? rawDetails[key].join(", ")
-            : rawDetails[key];
-
-        return `${label}: ${value}`;
-      })
-      .join("\n");
-  }
-
-  return rawDetails || "No additional task details were provided.";
-}
-
-
-function removeHiddenAddressDetails(textValue) {
-  const text = cleanText(textValue, "");
-
-  if (!text) {
-    return "";
-  }
-
-  return text
-    .split("\n")
-    .filter(line => {
-      const lowered = String(line || "").toLowerCase().trim();
-
-      return !(
-        lowered.startsWith("drop-off address:") ||
-        lowered.startsWith("dropoff address:") ||
-        lowered.startsWith("drop off address:") ||
-        lowered.startsWith("drop-off unit:") ||
-        lowered.startsWith("dropoff unit:") ||
-        lowered.startsWith("drop off unit:") ||
-        lowered.startsWith("drop-off city:") ||
-        lowered.startsWith("dropoff city:") ||
-        lowered.startsWith("drop off city:") ||
-        lowered.startsWith("drop-off state:") ||
-        lowered.startsWith("dropoff state:") ||
-        lowered.startsWith("drop off state:") ||
-        lowered.startsWith("drop-off zip:") ||
-        lowered.startsWith("dropoff zip:") ||
-        lowered.startsWith("drop off zip:")
-      );
-    })
-    .join("\n")
-    .trim();
-}
-
-function getSafeTaskDetails(task) {
-  const details = getTaskDetails(task);
-
-  if (canShowFullAddress(task)) {
-    return details;
-  }
-
-  return removeHiddenAddressDetails(details) ||
-    "Task details are available. Full address information will unlock after the customer accepts and pays your quote and the task is within 7 days.";
-}
-
-function getDirectTaskDetails(task) {
-  const answers =
-    task.task_details && typeof task.task_details === "object"
-      ? Object.keys(task.task_details)
-          .map(key => {
-            const label =
-              key.replaceAll("_", " ").replace(/\b\w/g, char => char.toUpperCase());
-
-            const value =
-              Array.isArray(task.task_details[key])
-                ? task.task_details[key].join(", ")
-                : task.task_details[key];
-
-            return `${label}: ${value || "Not answered"}`;
-          })
-          .join("\n")
-      : "";
-
-  const notes =
-    task.additional_notes || task.description || "";
-
-  if (answers && notes) {
-    return `${answers}\n\nAdditional Notes: ${notes}`;
-  }
-
-  return answers || notes || "No additional task details were provided.";
-}
-
-function getRequestLabel(task) {
-  return task.request_type === "direct_quote" || task.is_direct_request
-    ? "Direct Quote Request"
-    : "Marketplace Task";
-}
-
-function getRequestClass(task) {
-  return task.request_type === "direct_quote" || task.is_direct_request
-    ? "direct"
-    : "";
-}
-
-function getTaskUniqueId(task) {
-  return `${task.source_type || "task"}-${task.id}`;
-}
-
-function toggleTaskCardDetails(detailsId) {
-  const box =
-    document.getElementById(detailsId);
-
-  if (!box) {
-    return;
-  }
-
-  box.classList.toggle("open");
-}
- 
-function getTaskCategory(task) {
-  return getFirstAvailable(task, [
-    "category",
-    "task_category",
-    "service_type"
-  ], "Other");
-}
- 
-function getTaskCity(task) {
-  return getFirstAvailable(task, [
-    "city",
-    "task_city",
-    "service_city"
-  ], "City not listed");
-}
- 
-function getTaskState(task) {
-  return getFirstAvailable(task, [
-    "state",
-    "task_state",
-    "service_state"
-  ], "");
-}
- 
-function getCityState(task) {
-  const city = cleanText(getTaskCity(task), "City not listed");
-  const state = cleanText(getTaskState(task), "");
- 
-  if (state && state !== "Not specified") {
-    return `${city}, ${state}`;
-  }
- 
-  return city;
-}
- 
-function getFullAddress(task) {
-  return getFirstAvailable(task, [
-    "full_address",
-    "address",
-    "task_address",
-    "street_address",
-    "service_address"
-  ], "Full address not available yet");
-}
- 
-function getCustomerId(task) {
-  return getFirstAvailable(task, [
-    "customer_id",
-    "client_id",
-    "posted_by",
-    "created_by",
-    "user_id",
-    "profile_id"
-  ], "");
-}
- 
-function getTaskLat(task) {
-  return Number(getFirstAvailable(task, [
-    "latitude",
-    "lat",
-    "task_latitude",
-    "service_latitude"
-  ], NaN));
-}
- 
-function getTaskLng(task) {
-  return Number(getFirstAvailable(task, [
-    "longitude",
-    "lng",
-    "task_longitude",
-    "service_longitude"
-  ], NaN));
-}
- 
-function getWorkerLat() {
-  return Number(getFirstAvailable(currentWorkerProfile, [
-    "latitude",
-    "lat",
-    "worker_latitude",
-    "service_latitude"
-  ], NaN));
-}
- 
-function getWorkerLng() {
-  return Number(getFirstAvailable(currentWorkerProfile, [
-    "longitude",
-    "lng",
-    "worker_longitude",
-    "service_longitude"
-  ], NaN));
-}
- 
-function calculateMiles(lat1, lng1, lat2, lng2) {
-  if (
-    Number.isNaN(lat1) ||
-    Number.isNaN(lng1) ||
-    Number.isNaN(lat2) ||
-    Number.isNaN(lng2)
-  ) {
-    return null;
-  }
- 
-  const earthRadiusMiles = 3958.8;
-  const toRadians = value => value * Math.PI / 180;
- 
-  const dLat = toRadians(lat2 - lat1);
-  const dLng = toRadians(lng2 - lng1);
- 
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRadians(lat1)) *
-    Math.cos(toRadians(lat2)) *
-    Math.sin(dLng / 2) *
-    Math.sin(dLng / 2);
- 
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
- 
-  return earthRadiusMiles * c;
-}
- 
-function getMilesAway(task) {
-  const workerLat = getWorkerLat();
-  const workerLng = getWorkerLng();
-  const taskLat = getTaskLat(task);
-  const taskLng = getTaskLng(task);
- 
-  const miles = calculateMiles(workerLat, workerLng, taskLat, taskLng);
- 
-  if (miles === null) {
-    return "Mileage unavailable";
-  }
- 
-  return `${miles.toFixed(1)} miles away`;
-}
- 
-function getCustomerDisplayName(profile, task = null) {
-  const taskCustomerName = getFirstAvailable(task, [
-    "customer_name",
-    "customer_full_name",
-    "client_name",
-    "posted_by_name"
-  ], "");
-
-  if (taskCustomerName) {
-    return taskCustomerName;
-  }
-
-  const taskFirstName = getFirstAvailable(task, [
-    "customer_first_name",
-    "first_name"
-  ], "");
-
-  const taskLastName = getFirstAvailable(task, [
-    "customer_last_name",
-    "last_name"
-  ], "");
-
-  const taskNameFromParts = `${taskFirstName} ${taskLastName}`.trim();
-
-  if (taskNameFromParts) {
-    return taskNameFromParts;
-  }
-
-  if (!profile) {
-    return "Customer";
-  }
-
-  const fullName = getFirstAvailable(profile, [
-    "full_name"
-  ], "");
-
-  if (fullName) {
-    return fullName;
-  }
-
-  const firstName = getFirstAvailable(profile, [
-    "first_name",
-    "firstName"
-  ], "Customer");
-
-  const lastName = getFirstAvailable(profile, [
-    "last_name",
-    "lastName"
-  ], "");
-
-  return `${firstName} ${lastName}`.trim();
-}
- 
-function getCustomerPhoto(profile) {
-  return getFirstAvailable(profile, [
-    "profile_photo_url",
-    "photo_url",
-    "avatar_url"
-  ], DEFAULT_PROFILE_PHOTO);
-}
-
-async function updateCustomerNameFromProfile(customerId, elementId) {
-  if (!customerId || !elementId) {
-    return;
-  }
-
-  const nameElement =
-    document.getElementById(elementId);
-
-  if (!nameElement) {
-    return;
-  }
-
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("first_name, last_name, full_name")
-    .eq("id", customerId)
-    .maybeSingle();
-
-  if (!profile) {
-    return;
-  }
-
-  const fullName =
-    profile.full_name ||
-    `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
-
-  if (fullName) {
-    nameElement.innerText =
-      fullName;
-  }
-}
- 
-function isQuotePaidForWorker(task) {
-  const paidStatus = String(getFirstAvailable(task, [
-    "payment_status",
-    "quote_payment_status",
-    "escrow_status"
-  ], "")).toLowerCase();
- 
-  const acceptedWorkerId = String(getFirstAvailable(task, [
-    "accepted_worker_id",
-    "assigned_worker_id",
-    "worker_id"
-  ], ""));
- 
-  const paidQuoteId = getFirstAvailable(task, [
-    "accepted_quote_id",
-    "paid_quote_id",
-    "selected_quote_id"
-  ], "");
- 
-  const workerMatches =
-    acceptedWorkerId &&
-    currentWorkerId &&
-    acceptedWorkerId === String(currentWorkerId);
- 
-  const paymentLooksPaid =
-    paidStatus === "paid" ||
-    paidStatus === "escrowed" ||
-    paidStatus === "authorized" ||
-    paidStatus === "held";
- 
-  return workerMatches && (paymentLooksPaid || paidQuoteId);
-}
- 
-function isWithinSevenDays(task) {
-  const taskDateValue = getTaskDate(task);
- 
-  if (!taskDateValue) {
-    return false;
-  }
- 
-  const dateOnlyMatch =
-    String(taskDateValue).match(/^(\d{4})-(\d{2})-(\d{2})/);
-
-  let taskDate;
-
-  if (dateOnlyMatch) {
-    taskDate =
-      new Date(
-        Number(dateOnlyMatch[1]),
-        Number(dateOnlyMatch[2]) - 1,
-        Number(dateOnlyMatch[3])
-      );
-  } else {
-    taskDate =
-      new Date(taskDateValue);
-  }
-
-  if (Number.isNaN(taskDate.getTime())) {
-    return false;
-  }
- 
-  const now = new Date();
-  const differenceMs = taskDate.getTime() - now.getTime();
-  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
- 
-  return differenceMs <= sevenDaysMs;
-}
- 
-function canShowFullAddress(task) {
-  return isQuotePaidForWorker(task) && isWithinSevenDays(task);
-}
- 
-function getLocationForCard(task) {
-  if (canShowFullAddress(task)) {
-    return getFullAddress(task);
-  }
- 
-  return getCityState(task);
-}
- 
-function isWorkerApprovedForQuotes() {
-  const profileApproved =
-    currentWorkerProfile &&
-    (
-      currentWorkerProfile.is_worker_approved === true ||
-      currentWorkerProfile.is_approved === true ||
-      String(currentWorkerProfile.worker_status || "").toLowerCase() === "approved" ||
-      String(currentWorkerProfile.approval_status || "").toLowerCase() === "approved" ||
-      String(currentWorkerProfile.verification_status || "").toLowerCase() === "approved"
-    );
-
-  const workerRecordApproved =
-    currentWorkerRecord &&
-    (
-      currentWorkerRecord.is_worker_approved === true ||
-      currentWorkerRecord.is_approved === true ||
-      String(currentWorkerRecord.worker_status || "").toLowerCase() === "approved" ||
-      String(currentWorkerRecord.approval_status || "").toLowerCase() === "approved" ||
-      String(currentWorkerRecord.verification_status || "").toLowerCase() === "approved"
-    );
-
-  return profileApproved || workerRecordApproved;
-}
-
-async function loadCurrentWorker() {
-  const { data, error } = await supabaseClient.auth.getUser();
- 
-  if (error || !data || !data.user) {
-    window.location.href = "worker-login.html";
-    return false;
-  }
- 
-  currentUser = data.user;
- 
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("*")
-    .eq("id", currentUser.id)
-    .maybeSingle();
- 
-  currentWorkerProfile = profile || null;
- 
-  const { data: workerRecord } = await supabaseClient
-    .from("worker_profiles")
-    .select("*")
-    .eq("email", currentUser.email)
-    .maybeSingle();
- 
-  currentWorkerRecord = workerRecord || null;
-  currentWorkerId =
-    getFirstAvailable(currentWorkerRecord, ["id"], "") ||
-    getFirstAvailable(currentWorkerProfile, ["id"], "") ||
-    currentUser.id;
- 
-  return true;
-}
- 
-async function fetchCustomerProfiles(tasks) {
-  const customerIds = [
-    ...new Set(
-      tasks
-        .map(task => getCustomerId(task))
-        .filter(id => id && String(id).trim() !== "")
-    )
-  ];
- 
-  if (customerIds.length === 0) {
-    return {};
-  }
- 
-  const { data, error } = await supabaseClient
-    .from("profiles")
-    .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
-    .in("id", customerIds);
- 
-  if (error || !data) {
-    return {};
-  }
- 
-  const profileMap = {};
- 
-  data.forEach(profile => {
-    profileMap[String(profile.id)] = profile;
-  });
- 
-  return profileMap;
-}
- 
-
-async function fetchExistingWorkerQuotes(tasks) {
-  const quoteMap = {};
-
-  if (!currentWorkerId) {
-    return quoteMap;
-  }
-
-  const publicTaskIds = tasks
-    .filter(task => !task.is_direct_request)
-    .map(task => task.id)
-    .filter(Boolean);
-
-  const directTaskIds = tasks
-    .filter(task => task.is_direct_request)
-    .map(task => task.id)
-    .filter(Boolean);
-
-  if (publicTaskIds.length > 0) {
-    const { data: publicQuotes, error: publicError } = await supabaseClient
-      .from("worker_quotes")
-      .select("id, task_id, status, quote_amount, created_at")
-      .eq("worker_id", currentWorkerId)
-      .in("task_id", publicTaskIds);
-
-    if (!publicError && publicQuotes) {
-      publicQuotes.forEach(quote => {
-        if (quote.task_id) {
-          quoteMap[`public_task-${quote.task_id}`] = quote;
-        }
-      });
-    }
-  }
-
-  if (directTaskIds.length > 0) {
-    const { data: directQuotes, error: directError } = await supabaseClient
-      .from("worker_quotes")
-      .select("id, direct_request_id, status, quote_amount, created_at")
-      .eq("worker_id", currentWorkerId)
-      .in("direct_request_id", directTaskIds);
-
-    if (!directError && directQuotes) {
-      directQuotes.forEach(quote => {
-        if (quote.direct_request_id) {
-          quoteMap[`direct_task_request-${quote.direct_request_id}`] = quote;
-        }
-      });
-    }
-  }
-
-  return quoteMap;
-}
-
-function getExistingQuoteForTask(task, existingQuotes) {
-  return existingQuotes[getTaskUniqueId(task)] || null;
-}
-
-
-async function loadTasks() {
-  const container = document.getElementById("tasksList");
-
-  container.className = "card empty";
-  container.innerHTML = `
-    <div class="loading-spinner"></div>
-    Loading tasks and direct requests...
-  `;
-
-  if (!currentUser) {
-    const loaded = await loadCurrentWorker();
-
-    if (!loaded) {
-      return;
-    }
-  }
-
-  const selectedCategory =
-    document.getElementById("categoryFilter").value;
-
-  const selectedCity =
-    document.getElementById("cityFilter").value.trim().toLowerCase();
-
-  let publicQuery = supabaseClient
-    .from("tasks")
-    .select("*")
-    .eq("status", "open")
-    .or("quote_accepted.is.false,quote_accepted.is.null")
-    .order("created_at", { ascending: false });
-
-  if (selectedCategory) {
-    publicQuery = publicQuery.eq("category", selectedCategory);
-  }
-
-  const { data: publicTasks, error: publicError } =
-    await publicQuery;
-
-  if (publicError) {
-    console.error(publicError);
-    container.innerHTML = "<div class='empty'>Error loading marketplace tasks.</div>";
-    return;
-  }
-
-  const { data: directRequests, error: directError } =
-    await supabaseClient
-      .from("direct_task_requests")
-      .select("*")
-      .eq("worker_id", currentWorkerId)
-      .in("status", ["requested", "open", "pending"])
-      .order("created_at", { ascending: false });
-
-  if (directError) {
-    console.warn("Direct task requests are not ready yet.", directError);
-  }
-
-  const marketplaceTasks =
-    (publicTasks || []).map(task => ({
-      ...task,
-      source_type: "public_task",
-      request_type: "marketplace",
-      is_direct_request: false
-    }));
-
-  const directTasks =
-    (directRequests || []).map(task => ({
-      ...task,
-      source_type: "direct_task_request",
-      request_type: "direct_quote",
-      is_direct_request: true,
-      description: getDirectTaskDetails(task)
-    }));
-
-  let combinedTasks =
-    [...directTasks, ...marketplaceTasks];
-
-  combinedTasks =
-    combinedTasks.filter(task => {
-      const category = getTaskCategory(task);
-      const city = String(getTaskCity(task)).toLowerCase();
-
-      if (selectedCategory && category !== selectedCategory) {
-        return false;
-      }
-
-      if (selectedCity && !city.includes(selectedCity)) {
-        return false;
-      }
-
-      return true;
-    });
-
-  if (combinedTasks.length === 0) {
-    container.innerHTML = "<div class='empty'>No tasks or direct quote requests match your filters.</div>";
-    return;
-  }
-
-  const customerProfiles = await fetchCustomerProfiles(combinedTasks);
-  const existingQuotes = await fetchExistingWorkerQuotes(combinedTasks);
-
-  container.className = "";
-  container.innerHTML = `
-    <div class="count-line">
-      ${combinedTasks.length} request${combinedTasks.length === 1 ? "" : "s"} found
-    </div>
-  `;
-
-  combinedTasks.forEach(task => {
-    const customerId = getCustomerId(task);
-    const customerProfile = customerProfiles[String(customerId)] || null;
-    const category = getTaskCategory(task);
-    const taskDate = formatDate(getTaskDate(task));
-    const createdDate = formatDate(task.created_at);
-    const location = getLocationForCard(task);
-    const milesAway = getMilesAway(task);
-    const fullAddressVisible = canShowFullAddress(task);
-    const detailsId = `details-${getTaskUniqueId(task)}`;
-    const customerNameId = `customer-name-${getTaskUniqueId(task)}`;
-    const existingQuote = getExistingQuoteForTask(task, existingQuotes);
-    const alreadyQuoted = !!existingQuote;
-
-    const div = document.createElement("div");
-    div.className = "task-card";
-
-    div.innerHTML = `
-      <div class="task-top">
-        <div>
-          <div class="task-title">
-            ${escapeHTML(getTaskTitle(task))}
-          </div>
-
-          <div class="request-pill ${escapeHTML(getRequestClass(task))}">
-            ${escapeHTML(getRequestLabel(task))}
-          </div>
-        </div>
-
-        <div class="category-pill">
-          ${escapeHTML(category)}
-        </div>
-      </div>
-
-      <div class="customer-row">
-        <img
-          class="customer-photo"
-          src="${escapeHTML(getCustomerPhoto(customerProfile))}"
-          alt="Customer profile photo"
-          onerror="this.src='${DEFAULT_PROFILE_PHOTO}'"
-        >
-
-        <div>
-          <div class="customer-name" id="${customerNameId}">
-            ${escapeHTML(getCustomerDisplayName(customerProfile, task))}
-          </div>
-
-          <div class="customer-sub">
-            ${task.is_direct_request ? "Sent directly to you" : "Posted to marketplace"} • ${escapeHTML(createdDate)}
-          </div>
-        </div>
-      </div>
-
-      <div class="summary-box">
-        <div class="details-label">
-          ${task.is_direct_request ? "Direct Quote Summary" : "Marketplace Task Summary"}
-        </div>
-        <div class="details-text">
-          ${escapeHTML(getTaskTitle(task))}<br>
-          ${escapeHTML(category)} • ${escapeHTML(location)} • ${escapeHTML(taskDate)}
-        </div>
-      </div>
-
-      <div class="info-grid">
-        <div class="info-box">
-          <div class="info-label">Location</div>
-          <div class="info-value">${escapeHTML(location)}</div>
-        </div>
-
-        <div class="info-box">
-          <div class="info-label">Distance</div>
-          <div class="info-value">${escapeHTML(milesAway)}</div>
-        </div>
-
-        <div class="info-box">
-          <div class="info-label">Date Needed</div>
-          <div class="info-value">${escapeHTML(taskDate)}</div>
-        </div>
-
-        <div class="info-box">
-          <div class="info-label">Type</div>
-          <div class="info-value">${escapeHTML(getRequestLabel(task))}</div>
-        </div>
-      </div>
-
-      <div class="details-box" id="${detailsId}">
-        <div class="details-label">Full Task Information</div>
-        <div class="details-text">${escapeHTML(getSafeTaskDetails(task))}</div>
-      </div>
-
-      <div class="privacy-note">
-        ${task.is_direct_request
-          ? "This is a direct quote request. It was sent only to you and is not displayed in the public open task feed."
-          : fullAddressVisible
-            ? "Full address is visible because this task is assigned to you, the customer's quote payment is recorded, and the task is within 7 days."
-            : "Only city and state are shown until the customer accepts and pays your quote and the task is within 7 days of the scheduled date."
-        }
-      </div>
-
-      ${
-        alreadyQuoted
-          ? `
-            <div class="quote-sent-note">
-              You already sent a quote for this task.
-            </div>
-          `
-          : ""
-      }
-
-      <div class="button-grid">
-        <button class="secondary" onclick="messageCustomer('${task.id}', '${customerId}', '${task.source_type}')">
-          Message Customer
-        </button>
-
-        ${
-          alreadyQuoted
-            ? `
-              <button disabled>
-                Quote Already Sent
-              </button>
-            `
-            : `
-              <button onclick="sendQuote('${task.id}', '${task.source_type}')">
-                Send Quote
-              </button>
-            `
-        }
-
-        <button class="secondary full" onclick="toggleTaskCardDetails('${detailsId}')">
-          Expand Task Information
-        </button>
-      </div>
-    `;
-
-    container.appendChild(div);
-    updateCustomerNameFromProfile(customerId, customerNameId);
-  });
-}
-
-function viewTask(taskId) {
-  localStorage.setItem("selectedJobId", taskId);
-  localStorage.setItem("selectedTaskId", taskId);
-  window.location.href = "job-details.html";
-}
-
-async function sendQuote(taskId, sourceType = "public_task") {
-  if (!currentUser) {
-    const loaded = await loadCurrentWorker();
-
-    if (!loaded) {
-      return;
-    }
-  }
-
-  if (!isWorkerApprovedForQuotes()) {
-    alert("Your worker profile is pending TaskMint approval. You can send quotes after TaskMint approves your account.");
-    return;
-  }
-
-  localStorage.setItem("selectedQuoteTaskId", taskId);
-  localStorage.setItem("selectedTaskId", taskId);
-  localStorage.setItem("selectedQuoteSourceType", sourceType);
-  localStorage.setItem("quoteRequestType", sourceType === "direct_task_request" ? "direct_quote" : "marketplace_task");
-
-  window.location.href =
-    sourceType === "direct_task_request"
-      ? "send-direct-quote.html"
-      : "send-quote.html";
-}
-
-async function messageCustomer(taskId, customerId, sourceType = "public_task") {
-  if (!currentUser) {
-    const loaded = await loadCurrentWorker();
-
-    if (!loaded) {
-      return;
-    }
-  }
-
-  localStorage.setItem("selectedMessageTaskId", taskId);
-  localStorage.setItem("selectedTaskId", taskId);
-  localStorage.setItem("selectedCustomerId", customerId || "");
-  localStorage.setItem("messageContext", sourceType === "direct_task_request" ? "direct_quote" : "task");
-  localStorage.setItem("selectedQuoteSourceType", sourceType);
-
-  try {
-    await supabaseClient
-      .from("task_conversations")
-      .upsert({
-        task_id: taskId,
-        worker_id: currentWorkerId,
-        customer_id: customerId,
-        conversation_type: sourceType === "direct_task_request" ? "direct_quote" : "marketplace_task",
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: "task_id,worker_id,customer_id"
-      });
-  } catch (error) {
-    console.warn("Task conversation table not ready yet.", error);
-  }
-
-  window.location.href = "worker-task-message.html";
-}
-
-loadCurrentWorker().then(() => {
-  loadTasks();
-});
-</script>
- 
-</body>
-</html>
+i

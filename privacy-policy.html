@@ -3,108 +3,159 @@
 <head>
   <title>Privacy Policy - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    * { box-sizing: border-box; }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #ffffff;
+      --surface: #f2f7f4;
+      --surface2: #e6f4eb;
+      --border: #e2ebe5;
+      --accent: #0b7a28;
+      --text: #111111;
+      --muted: #6b7870;
+      --warning-bg: #fffbeb;
+      --warning-border: #f0c040;
+      --warning-text: #7a4f00;
+    }
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(25,182,76,0.16), transparent 32%),
-        linear-gradient(180deg, #eef8f1 0%, #f5f5f5 100%);
-      color: #111;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       padding-bottom: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .container {
-      max-width: 430px;
-      margin: 0 auto;
-      padding: 18px;
+      width: 100%;
+      max-width: 470px;
+      padding: 20px 16px 30px;
     }
 
     .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      width: 100%;
+      max-width: 470px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      padding: 13px 20px;
+      margin: -20px -16px 20px;
     }
 
     .back {
-      color: #0b7a28;
-      font-weight: 900;
+      color: var(--accent);
+      font-weight: 800;
       cursor: pointer;
       font-size: 14px;
       text-decoration: none;
     }
 
     .hero {
-      background: linear-gradient(135deg, #0b7a28, #19b64c);
+      background: var(--accent);
       color: white;
-      border-radius: 28px;
-      padding: 22px;
-      margin-bottom: 16px;
-      box-shadow: 0 14px 30px rgba(11,122,40,0.22);
+      border-radius: 22px;
+      padding: 24px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(11,122,40,0.22);
       position: relative;
       overflow: hidden;
+      opacity: 0;
+      animation: riseIn 0.35s 0.05s forwards;
     }
 
     .hero::before {
       content: "";
       position: absolute;
-      width: 170px;
-      height: 170px;
+      width: 155px;
+      height: 155px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.12);
-      top: -70px;
-      right: -60px;
+      background: rgba(255,255,255,0.10);
+      top: -65px;
+      right: -55px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      bottom: -45px;
+      left: -35px;
     }
 
     .hero h1 {
-      margin: 0 0 8px;
-      font-size: 30px;
-      line-height: 1.1;
+      margin: 0 0 7px;
+      font-size: 29px;
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.5px;
       position: relative;
       z-index: 2;
     }
 
     .hero p {
       margin: 0;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.5;
-      opacity: 0.96;
+      color: rgba(255,255,255,0.82);
       position: relative;
       z-index: 2;
     }
 
     .effective {
       font-size: 12px;
-      font-weight: 900;
+      font-weight: 800;
       color: white;
-      margin-top: 8px;
+      margin-top: 10px;
       position: relative;
       z-index: 2;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 999px;
+      display: inline-flex;
+      padding: 7px 10px;
     }
 
     .notice-card {
-      background: #fff7e6;
-      border: 1px solid #ffd27a;
-      color: #7a4b00;
-      border-radius: 18px;
-      padding: 14px;
-      font-size: 13px;
-      line-height: 1.45;
-      font-weight: 800;
-      margin-bottom: 14px;
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      color: var(--warning-text);
+      border-radius: 16px;
+      padding: 13px;
+      font-size: 12.5px;
+      line-height: 1.5;
+      font-weight: 700;
+      margin-bottom: 12px;
+      opacity: 0;
+      animation: riseIn 0.35s 0.1s forwards;
     }
 
     .policy-card {
-      background: white;
-      border: 1px solid #edf1ee;
-      border-radius: 22px;
-      padding: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-      margin-bottom: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 15px;
+      margin-bottom: 12px;
+      opacity: 0;
+      animation: riseIn 0.35s 0.12s forwards;
     }
 
     .policy-header {
@@ -116,24 +167,36 @@
     }
 
     .policy-title {
-      font-size: 16px;
-      font-weight: 900;
-      color: #111;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
       line-height: 1.3;
+      letter-spacing: -0.1px;
     }
 
     .policy-icon {
-      color: #0b7a28;
+      color: var(--accent);
       font-size: 22px;
-      font-weight: 900;
+      font-weight: 800;
+      transition: 0.18s;
+      flex-shrink: 0;
     }
 
     .policy-content {
       display: none;
       margin-top: 12px;
-      color: #333;
-      font-size: 13px;
-      line-height: 1.55;
+      color: var(--muted);
+      font-size: 12.8px;
+      line-height: 1.58;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 13px;
+    }
+
+    .policy-content strong {
+      color: var(--text);
+      font-weight: 800;
     }
 
     .policy-card.open .policy-content {
@@ -158,44 +221,84 @@
       flex-wrap: wrap;
       gap: 8px;
       margin: 12px 0;
+      opacity: 0;
+      animation: riseIn 0.35s 0.15s forwards;
     }
 
     .pill {
-      background: #e7f7ec;
-      color: #0b7a28;
+      background: var(--surface2);
+      color: var(--accent);
+      border: 1px solid #cfead7;
       border-radius: 999px;
-      padding: 7px 10px;
+      padding: 8px 10px;
       font-size: 11px;
-      font-weight: 900;
+      font-weight: 800;
     }
 
     .contact-box {
-      background: #0b7a28;
+      background: var(--accent);
       color: white;
       border-radius: 22px;
-      padding: 18px;
-      box-shadow: 0 8px 24px rgba(11,122,40,0.18);
-      margin-bottom: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(11,122,40,0.20);
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .contact-box::before {
+      content: "";
+      position: absolute;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      top: -55px;
+      right: -45px;
     }
 
     .contact-box h2 {
       margin: 0 0 8px;
       font-size: 20px;
+      font-weight: 800;
+      position: relative;
+      z-index: 2;
     }
 
     .contact-box p {
       margin: 0;
       font-size: 13px;
       line-height: 1.55;
-      opacity: 0.96;
+      color: rgba(255,255,255,0.86);
+      position: relative;
+      z-index: 2;
     }
 
     .small-note {
-      color: #666;
+      color: var(--muted);
       font-size: 12px;
-      line-height: 1.45;
+      line-height: 1.5;
       text-align: center;
       margin: 18px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 13px;
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 360px) {
+      .hero h1 {
+        font-size: 25px;
+      }
+
+      .policy-title {
+        font-size: 14px;
+      }
     }
   </style>
 </head>

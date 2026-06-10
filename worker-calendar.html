@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <title>Worker Calendar - TaskMint</title>
@@ -620,18 +620,56 @@ function formatDate(value) {
 }
 
 function getTaskTime(task) {
-  const timeValue =
+  const directTime =
+    getFirstAvailable(task, [
+      "scheduled_time",
+      "schedule_time",
+      "selected_time",
+      "task_time",
+      "time",
+      "time_needed",
+      "start_time",
+      "arrival_time"
+    ], "");
+
+  if (directTime) {
+    const directTimeText =
+      String(directTime).trim();
+
+    const timeOnlyMatch =
+      directTimeText.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+
+    if (timeOnlyMatch) {
+      const hour = Number(timeOnlyMatch[1]);
+      const minute = Number(timeOnlyMatch[2]);
+      const date = new Date();
+
+      date.setHours(hour, minute, 0, 0);
+
+      return date.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
+
+    const amPmMatch =
+      directTimeText.match(/\b\d{1,2}:\d{2}\s?(AM|PM)\b/i);
+
+    if (amPmMatch) {
+      return amPmMatch[0].toUpperCase();
+    }
+  }
+
+  const dateTimeValue =
     task.scheduled_start ||
     task.scheduled_for ||
     task.scheduled_date ||
-    task.task_time ||
-    task.time_needed ||
     task.task_date ||
     task.date_needed ||
     "";
 
   const date =
-    getDateObject(timeValue);
+    getDateObject(dateTimeValue);
 
   if (!date) {
     return "Time not listed";

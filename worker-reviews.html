@@ -529,13 +529,8 @@ async function renderReviews(reviews) {
     const task =
       await getTaskInfo(review.task_id);
 
-    const customerLookupId =
-      review.customer_id ||
-      task?.customer_id ||
-      "";
-
     const customer =
-      await getCustomerProfile(customerLookupId);
+      await getCustomerProfile(review.customer_id || task?.customer_id || "");
 
     const customerName =
       formatCustomerName(customer);
@@ -617,23 +612,23 @@ async function getCustomerProfile(customerId) {
     return null;
   }
 
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
+  const { data: customerProfile } = await supabaseClient
+    .from("customer_profiles")
+    .select("first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
     .eq("id", customerId)
     .maybeSingle();
 
-  if (profile) {
-    return profile;
+  if (customerProfile) {
+    return customerProfile;
   }
 
-  const { data: customerProfile } = await supabaseClient
-    .from("customer_profiles")
-    .select("id, auth_user_id, first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
-    .or(`id.eq.${customerId},auth_user_id.eq.${customerId}`)
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("first_name, last_name, full_name, profile_photo_url, photo_url, avatar_url")
+    .eq("id", customerId)
     .maybeSingle();
 
-  return customerProfile || null;
+  return profile || null;
 }
 
 async function getTaskInfo(taskId) {

@@ -325,6 +325,26 @@ function getFirstAvailable(record, keys, fallback = "") {
   return fallback;
 }
 
+function mergeProfileRecords(profileRecord, workerProfileRecord) {
+  const merged = {};
+
+  if (profileRecord) {
+    Object.assign(merged, profileRecord);
+  }
+
+  if (workerProfileRecord) {
+    Object.keys(workerProfileRecord).forEach(key => {
+      const value = workerProfileRecord[key];
+
+      if (value !== null && value !== undefined && String(value).trim() !== "") {
+        merged[key] = value;
+      }
+    });
+  }
+
+  return merged;
+}
+
 function getUrlWorkerId() {
   const params = new URLSearchParams(window.location.search);
   return params.get("worker_id") || params.get("workerId") || params.get("worker_profile_id") || params.get("profile_id") || params.get("id") || "";
@@ -404,19 +424,19 @@ async function loadWorkerProfile(workerId) {
       let profileRecord = null;
       if (workerProfileById.auth_user_id) { const { data: profileByAuthId } = await supabaseClient.from("profiles").select("*").eq("id", workerProfileById.auth_user_id).maybeSingle(); profileRecord = profileByAuthId || null; }
       if (!profileRecord && workerProfileById.email) { const { data: profileByEmail } = await supabaseClient.from("profiles").select("*").eq("email", workerProfileById.email).maybeSingle(); profileRecord = profileByEmail || null; }
-      return Object.assign({}, profileRecord || {}, workerProfileById || {}, { worker_table_id: workerProfileById.id, worker_profile_table_id: workerProfileById.id, profile_table_id: profileRecord?.id || "" });
+      return Object.assign(mergeProfileRecords(profileRecord, workerProfileById), { worker_table_id: workerProfileById.id, worker_profile_table_id: workerProfileById.id, profile_table_id: profileRecord?.id || "" });
     }
     const { data: workerProfileByAuthId } = await supabaseClient.from("worker_profiles").select("*").eq("auth_user_id", id).maybeSingle();
     if (workerProfileByAuthId) {
       let profileRecord = null;
       const { data: profileById } = await supabaseClient.from("profiles").select("*").eq("id", id).maybeSingle();
       profileRecord = profileById || null;
-      return Object.assign({}, profileRecord || {}, workerProfileByAuthId || {}, { worker_table_id: workerProfileByAuthId.id, worker_profile_table_id: workerProfileByAuthId.id, profile_table_id: profileRecord?.id || "" });
+      return Object.assign(mergeProfileRecords(profileRecord, workerProfileByAuthId), { worker_table_id: workerProfileByAuthId.id, worker_profile_table_id: workerProfileByAuthId.id, profile_table_id: profileRecord?.id || "" });
     }
     const { data: profileById } = await supabaseClient.from("profiles").select("*").eq("id", id).maybeSingle();
     if (profileById) {
       const { data: workerProfileByProfileEmail } = await supabaseClient.from("worker_profiles").select("*").eq("email", profileById.email).maybeSingle();
-      if (workerProfileByProfileEmail) return Object.assign({}, profileById || {}, workerProfileByProfileEmail || {}, { worker_table_id: workerProfileByProfileEmail.id, worker_profile_table_id: workerProfileByProfileEmail.id, profile_table_id: profileById.id || "" });
+      if (workerProfileByProfileEmail) return Object.assign(mergeProfileRecords(profileById, workerProfileByProfileEmail), { worker_table_id: workerProfileByProfileEmail.id, worker_profile_table_id: workerProfileByProfileEmail.id, profile_table_id: profileById.id || "" });
       return profileById;
     }
   }
@@ -669,4 +689,3 @@ loadPublicProfile();
 </script>
 
 </body>
-</html>

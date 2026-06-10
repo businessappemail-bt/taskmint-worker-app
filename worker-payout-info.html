@@ -3,6 +3,7 @@
 <head>
   <title>Payout Information - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
@@ -186,6 +187,13 @@
       box-shadow: 0 6px 14px rgba(11,122,40,0.10);
     }
 
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
     .secondary {
       background: white;
       border: 1px solid var(--border);
@@ -250,7 +258,7 @@
 
     <div class="status-box">
 
-      <div class="status-icon">
+      <div class="status-icon" id="payoutStatusIcon">
         💳
       </div>
 
@@ -264,8 +272,8 @@
 
     </div>
 
-    <button onclick="startStripePayoutSetup()">
-      Set Up / Update Payout Method
+    <button id="stripePayoutButton" onclick="startStripePayoutSetup()">
+      Set Up Payout Method
     </button>
 
     <button
@@ -288,28 +296,175 @@
 </div>
 
 <script>
+const SUPABASE_URL =
+  "https://dbcthtjmtlumidpbucrc.supabase.co";
+
+const SUPABASE_ANON_KEY =
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+let currentUser = null;
+let currentWorkerProfile = null;
+
+function payoutIsComplete(profile) {
+  if (!profile) {
+    return false;
+  }
+
+  return (
+    profile.stripe_onboarding_complete === true ||
+    profile.payout_setup_complete === true ||
+    profile.payout_status === "completed" ||
+    profile.payout_status === "verified" ||
+    profile.payout_status === "connected" ||
+    !!profile.stripe_account_id
+  );
+}
+
+async function checkLogin() {
+  const { data, error } =
+    await supabaseClient.auth.getUser();
+
+  if (error || !data || !data.user) {
+    alert("You must log in first.");
+    window.location.href = "worker-login.html";
+    return;
+  }
+
+  currentUser = data.user;
+
+  await loadPayoutStatus();
+}
+
 async function loadPayoutStatus() {
 
-  const stripeAccountId =
-    localStorage.getItem("stripeAccountId");
+  const { data, error } =
+    await supabaseClient
+      .from("worker_profiles")
+      .select("id, auth_user_id, email, stripe_account_id, stripe_onboarding_complete, payout_status")
+      .or(`id.eq.${currentUser.id},auth_user_id.eq.${currentUser.id}`)
+      .maybeSingle();
 
-  if (!stripeAccountId) {
+  if (error) {
+    console.error(error);
 
     document.getElementById("payoutStatus").innerText =
-      "No payout method connected yet.";
+      "Unable to check payout status.";
 
     return;
   }
 
-  document.getElementById("payoutStatus").innerText =
-    "Payout setup connected.";
+  currentWorkerProfile = data || null;
 
+  const localStripeAccountId =
+    localStorage.getItem("stripeAccountId");
+
+  if (
+    localStripeAccountId &&
+    (!currentWorkerProfile || !currentWorkerProfile.stripe_account_id)
+  ) {
+    await saveStripeAccountId(localStripeAccountId);
+    return;
+  }
+
+  if (payoutIsComplete(currentWorkerProfile)) {
+
+    document.getElementById("payoutStatusIcon").innerText =
+      "✅";
+
+    document.getElementById("payoutStatus").innerText =
+      "Payout setup completed. You can receive worker payouts and edit your payout method through Stripe.";
+
+    document.getElementById("stripePayoutButton").innerText =
+      "Edit Payout Method";
+
+    return;
+  }
+
+  document.getElementById("payoutStatusIcon").innerText =
+    "💳";
+
+  document.getElementById("payoutStatus").innerText =
+    "No payout method connected yet.";
+
+  document.getElementById("stripePayoutButton").innerText =
+    "Set Up Payout Method";
+}
+
+async function saveStripeAccountId(stripeAccountId) {
+  if (!stripeAccountId || !currentUser) {
+    return;
+  }
+
+  const payload = {
+    id: currentUser.id,
+    auth_user_id: currentUser.id,
+    email: currentUser.email,
+    stripe_account_id: stripeAccountId,
+    payout_status: "connected",
+    stripe_onboarding_complete: true
+  };
+
+  const { error: workerProfileError } =
+    await supabaseClient
+      .from("worker_profiles")
+      .upsert(payload);
+
+  if (workerProfileError) {
+    console.error(workerProfileError);
+
+    document.getElementById("payoutStatus").innerText =
+      workerProfileError.message;
+
+    return;
+  }
+
+  await supabaseClient
+    .from("profiles")
+    .upsert({
+      id: currentUser.id,
+      email: currentUser.email,
+      account_type: "worker",
+      payout_setup_complete: true,
+      payout_status: "connected"
+    });
+
+  currentWorkerProfile =
+    {
+      ...(currentWorkerProfile || {}),
+      ...payload
+    };
+
+  await loadPayoutStatus();
 }
 
 
 async function startStripePayoutSetup() {
 
   try {
+
+    if (!currentUser) {
+      alert("You must log in first.");
+      window.location.href = "worker-login.html";
+      return;
+    }
+
+    const stripePayoutButton =
+      document.getElementById("stripePayoutButton");
+
+    stripePayoutButton.disabled = true;
+    stripePayoutButton.innerText =
+      "Opening Stripe...";
+
+    const existingStripeAccountId =
+      currentWorkerProfile?.stripe_account_id ||
+      localStorage.getItem("stripeAccountId") ||
+      null;
 
     const response = await fetch(
       "https://task-app-mu-two.vercel.app/api/create-stripe-account-link",
@@ -319,9 +474,9 @@ async function startStripePayoutSetup() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-  email: "worker@test.com",
-  stripeAccountId: null
-})
+          email: currentUser.email,
+          stripeAccountId: existingStripeAccountId
+        })
       }
     );
 
@@ -332,13 +487,23 @@ async function startStripePayoutSetup() {
 
       alert(data.error || "Stripe setup failed.");
 
+      stripePayoutButton.disabled = false;
+      stripePayoutButton.innerText =
+        payoutIsComplete(currentWorkerProfile)
+          ? "Edit Payout Method"
+          : "Set Up Payout Method";
+
       return;
     }
 
-localStorage.setItem(
-  "stripeAccountId",
-  data.stripeAccountId
-);
+    if (data.stripeAccountId) {
+      localStorage.setItem(
+        "stripeAccountId",
+        data.stripeAccountId
+      );
+
+      await saveStripeAccountId(data.stripeAccountId);
+    }
 
     window.location.href =
       data.url;
@@ -349,10 +514,20 @@ localStorage.setItem(
 
     alert("Unable to connect to Stripe.");
 
+    const stripePayoutButton =
+      document.getElementById("stripePayoutButton");
+
+    stripePayoutButton.disabled = false;
+    stripePayoutButton.innerText =
+      payoutIsComplete(currentWorkerProfile)
+        ? "Edit Payout Method"
+        : "Set Up Payout Method";
+
   }
 
 }
-loadPayoutStatus();
+
+checkLogin();
 </script>
 
 </body>

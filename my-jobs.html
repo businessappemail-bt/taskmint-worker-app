@@ -604,59 +604,7 @@ function getFirstAvailable(record, keys, fallback = "") {
   return fallback;
 }
  
-function formatDate(value) {
-  if (!value) {
-    return "Not scheduled";
-  }
-
-  const rawValue =
-    String(value).trim();
-
-  const dateOnly =
-    rawValue.includes("T")
-      ? rawValue.split("T")[0]
-      : rawValue.slice(0, 10);
-
-  const parts =
-    dateOnly.split("-");
-
-  if (parts.length === 3) {
-    const year =
-      Number(parts[0]);
-
-    const month =
-      Number(parts[1]);
-
-    const day =
-      Number(parts[2]);
-
-    if (year && month && day) {
-      const date =
-        new Date(year, month - 1, day);
-
-      return date.toLocaleDateString([], {
-        year: "numeric",
-        month: "short",
-        day: "numeric"
-      });
-    }
-  }
-
-  const date =
-    new Date(rawValue);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString([], {
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  });
-}
-
-function getDateObject(value) {
+function parseTaskDateWithoutShift(value) {
   if (!value) {
     return null;
   }
@@ -664,27 +612,15 @@ function getDateObject(value) {
   const rawValue =
     String(value).trim();
 
-  const dateOnly =
-    rawValue.includes("T")
-      ? rawValue.split("T")[0]
-      : rawValue.slice(0, 10);
+  const match =
+    rawValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
 
-  const parts =
-    dateOnly.split("-");
-
-  if (parts.length === 3) {
-    const year =
-      Number(parts[0]);
-
-    const month =
-      Number(parts[1]);
-
-    const day =
-      Number(parts[2]);
-
-    if (year && month && day) {
-      return new Date(year, month - 1, day);
-    }
+  if (match) {
+    return new Date(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3])
+    );
   }
 
   const date =
@@ -695,6 +631,25 @@ function getDateObject(value) {
   }
 
   return date;
+}
+
+function formatDate(value) {
+  const date =
+    parseTaskDateWithoutShift(value);
+
+  if (!date) {
+    return value || "Not scheduled";
+  }
+
+  return date.toLocaleDateString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+
+function getDateObject(value) {
+  return parseTaskDateWithoutShift(value);
 }
 
 function isSameDay(dateOne, dateTwo) {
@@ -735,14 +690,31 @@ function getTaskTitle(task) {
 }
  
 function getTaskDetails(task) {
-  const detailsValue =
-    getFirstAvailable(task, [
-      "description",
-      "details",
-      "task_details",
-      "notes",
-      "special_instructions"
-    ], "");
+  const detailKeys = [
+    "description",
+    "details",
+    "task_details",
+    "notes",
+    "special_instructions"
+  ];
+
+  let detailsValue = "";
+
+  for (const key of detailKeys) {
+    if (
+      task &&
+      task[key] !== null &&
+      task[key] !== undefined &&
+      (
+        typeof task[key] === "object" ||
+        String(task[key]).trim() !== ""
+      )
+    ) {
+      detailsValue =
+        task[key];
+      break;
+    }
+  }
 
   if (
     detailsValue &&
@@ -764,7 +736,12 @@ function getTaskDetails(task) {
               .replaceAll("_", " ")
               .replace(/\b\w/g, letter => letter.toUpperCase());
 
-          return `${label}: ${value}`;
+          const displayValue =
+            Array.isArray(value)
+              ? value.join(", ")
+              : value;
+
+          return `${label}: ${displayValue}`;
         });
 
     return detailLines.length > 0

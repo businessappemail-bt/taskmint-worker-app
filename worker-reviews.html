@@ -533,7 +533,7 @@ async function renderReviews(reviews) {
       await getCustomerProfile(review.customer_id || task?.customer_id || "");
 
     const customerName =
-      formatCustomerName(customer);
+      getReviewCustomerName(review, customer);
 
     const customerPhoto =
       customer?.profile_photo_url ||
@@ -645,21 +645,32 @@ async function getTaskInfo(taskId) {
   return data;
 }
 
+function cleanDisplayName(value) {
+  const text =
+    String(value || "").trim();
+
+  if (!text || text.includes("@")) {
+    return "";
+  }
+
+  return text;
+}
+
 function formatCustomerName(customer) {
   if (!customer) {
-    return "Customer";
+    return "";
   }
 
   const fullName =
-    String(customer.full_name || "").trim();
+    cleanDisplayName(customer.full_name);
 
   const firstName =
-    String(customer.first_name || "").trim();
+    cleanDisplayName(customer.first_name);
 
   const lastName =
-    String(customer.last_name || "").trim();
+    cleanDisplayName(customer.last_name);
 
-  if (fullName && !fullName.includes("@")) {
+  if (fullName) {
     return fullName;
   }
 
@@ -675,7 +686,15 @@ function formatCustomerName(customer) {
     return lastName;
   }
 
-  return "Customer";
+  return "";
+}
+
+function getReviewCustomerName(review, customer) {
+  return (
+    cleanDisplayName(review.customer_name) ||
+    formatCustomerName(customer) ||
+    "Customer"
+  );
 }
 
 function renderStars(rating) {

@@ -1228,6 +1228,22 @@ async function fetchAcceptedQuotes() {
  
   return data || [];
 }
+
+async function fetchAcceptedDirectRequests() {
+  const { data, error } = await supabaseClient
+    .from("direct_task_requests")
+    .select("*")
+    .in("accepted_worker_id", currentWorkerIds)
+    .in("status", ["accepted", "in_progress", "worker_completed"])
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
+}
+
  
 async function fetchTasksForQuotes(quotes) {
   const taskIds = [...new Set(quotes.map(quote => quote.task_id).filter(Boolean))];
@@ -1354,35 +1370,39 @@ async function fetchCustomerProfiles(jobs) {
 }
 async function loadMyJobs() {
   setLoading();
- 
+
   const workerLoaded = await loadCurrentWorker();
- 
+
   if (!workerLoaded) {
     return;
   }
- 
+
   try {
     const quotes = await fetchAcceptedQuotes();
- 
-    if (!quotes || quotes.length === 0) {
+    const directRequests = await fetchAcceptedDirectRequests();
+
+    if (
+      (!quotes || quotes.length === 0) &&
+      (!directRequests || directRequests.length === 0)
+    ) {
       loadedJobs = [];
       updateSummary(loadedJobs);
       showEmpty("No accepted or active jobs yet.");
       return;
     }
- 
+
     const taskMap = await fetchTasksForQuotes(quotes);
     const taskIds = [...new Set(quotes.map(quote => quote.task_id).filter(Boolean))];
     const assignmentMap = await fetchAssignments(taskIds);
- 
-    loadedJobs = quotes
+
+    const quoteJobs = quotes
       .map(quote => {
         const task = taskMap[quote.task_id];
- 
+
         if (!task) {
           return null;
         }
- 
+
         return {
           quote: quote,
           task: task,
@@ -1390,11 +1410,41 @@ async function loadMyJobs() {
           customerProfile: null
         };
       })
-      .filter(Boolean)
-      .filter(job => !isCustomerCancelledTask(job.task, job.quote));
- 
+      .filter(Boolean);
+
+    const directJobs = (directRequests || [])
+      .map(request => {
+        const directQuote = {
+          id: request.accepted_quote_id || request.id,
+          task_id: request.id,
+          direct_request_id: request.id,
+          worker_id: request.accepted_worker_id || request.assigned_worker_id || request.worker_id,
+          customer_id: request.customer_id,
+          status: request.status,
+          quote_amount:
+            request.amount_paid ||
+            request.paid_amount ||
+            request.task_amount ||
+            0,
+          payment_status: request.payment_status,
+          escrow_status: request.escrow_status
+        };
+
+        return {
+          quote: directQuote,
+          task: request,
+          assignment: null,
+          customerProfile: null
+        };
+      });
+
+    loadedJobs = [
+      ...quoteJobs,
+      ...directJobs
+    ].filter(job => !isCustomerCancelledTask(job.task, job.quote));
+
     const customerProfiles = await fetchCustomerProfiles(loadedJobs);
- 
+
     loadedJobs = loadedJobs.map(job => {
       const customerId =
         String(getCustomerId(job.task, job.quote, job.assignment) || "");
@@ -1404,7 +1454,7 @@ async function loadMyJobs() {
 
       return job;
     });
- 
+
     updateSummary(loadedJobs);
     renderJobs();
   } catch (error) {
@@ -1412,7 +1462,7 @@ async function loadMyJobs() {
     showEmpty(`Error loading jobs: ${escapeHTML(error.message || "Unknown error")}`);
   }
 }
- 
+
 function jobMatchesFilters(job) {
   const selectedStatus = document.getElementById("statusFilter").value;
   const selectedDate = document.getElementById("dateFilter").value;

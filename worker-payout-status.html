@@ -524,17 +524,100 @@ function isAvailableEarning(row) {
 }
 
 async function loadAvailableBalance() {
-  const { data, error } = await supabaseClient.from("worker_earnings").select("*").in("worker_id", currentWorkerIds);
-  if (error || !data) {
-    availableBalance = 0;
-    document.getElementById("availableBalance").innerText = money(0);
-    document.getElementById("balanceSubtext").innerText = "No available earnings found yet.";
-    updatePayoutButtons();
-    return;
+  let earningsRows = [];
+  let directRows = [];
+  let taskRows = [];
+
+  const earningsResult =
+    await supabaseClient
+      .from("worker_earnings")
+      .select("*")
+      .in("worker_id", currentWorkerIds);
+
+  if (!earningsResult.error && earningsResult.data) {
+    earningsRows =
+      earningsResult.data;
   }
-  availableBalance = data.filter(row => isAvailableEarning(row)).reduce((total, row) => total + getEarningAmount(row), 0);
-  document.getElementById("availableBalance").innerText = money(availableBalance);
-  document.getElementById("balanceSubtext").innerText = availableBalance > 0 ? "You can request this available amount for payout." : "Completed and released jobs will show here.";
+
+  const workerFilter =
+    currentWorkerIds
+      .map(id => `accepted_worker_id.eq.${id},assigned_worker_id.eq.${id},worker_id.eq.${id}`)
+      .join(",");
+
+  const directResult =
+    await supabaseClient
+      .from("direct_task_requests")
+      .select("*")
+      .or(workerFilter)
+      .in("status", ["worker_completed", "completed", "paid"])
+      .in("payment_status", ["paid", "held", "escrowed", "released"]);
+
+  if (!directResult.error && directResult.data) {
+    directRows =
+      directResult.data;
+  }
+
+  const taskResult =
+    await supabaseClient
+      .from("tasks")
+      .select("*")
+      .or(workerFilter)
+      .in("status", ["worker_completed", "completed", "paid"])
+      .in("payment_status", ["paid", "held", "escrowed", "released"]);
+
+  if (!taskResult.error && taskResult.data) {
+    taskRows =
+      taskResult.data;
+  }
+
+  const requestedTaskIds =
+    new Set(
+      (earningsRows || [])
+        .filter(row => !isAvailableEarning(row))
+        .map(row => String(row.task_id || row.direct_request_id || ""))
+        .filter(Boolean)
+    );
+
+  const availableEarningsTotal =
+    (earningsRows || [])
+      .filter(row => isAvailableEarning(row))
+      .reduce((total, row) => total + getEarningAmount(row), 0);
+
+  const directJobsTotal =
+    (directRows || [])
+      .filter(row => !requestedTaskIds.has(String(row.id)))
+      .reduce((total, row) => {
+        return total + Number(
+          row.worker_payout_amount ||
+          row.worker_payout ||
+          row.payout_amount ||
+          0
+        );
+      }, 0);
+
+  const taskJobsTotal =
+    (taskRows || [])
+      .filter(row => !requestedTaskIds.has(String(row.id)))
+      .reduce((total, row) => {
+        return total + Number(
+          row.worker_payout_amount ||
+          row.worker_payout ||
+          row.payout_amount ||
+          0
+        );
+      }, 0);
+
+  availableBalance =
+    availableEarningsTotal + directJobsTotal + taskJobsTotal;
+
+  document.getElementById("availableBalance").innerText =
+    money(availableBalance);
+
+  document.getElementById("balanceSubtext").innerText =
+    availableBalance > 0
+      ? "You can request this available amount for payout."
+      : "Completed and released jobs will show here.";
+
   updatePayoutButtons();
 }
 
@@ -628,8 +711,9 @@ async function requestPayout(payoutSpeed) {
   const selectedSpeed = payoutSpeed === "instant" ? "instant" : "standard";
   const button = selectedSpeed === "instant" ? instantButton : standardButton;
   const originalText = button ? button.innerText : "";
-  const feeAmount = selectedSpeed === "instant" ? calculateInstantFee(availableBalance) : 0;
-  const netAmount = Math.max(availableBalance - feeAmount, 0);
+  const requestedAmount = Number(availableBalance || 0);
+  const feeAmount = selectedSpeed === "instant" ? calculateInstantFee(requestedAmount) : 0;
+  const netAmount = Math.max(requestedAmount - feeAmount, 0);
   if (availableBalance <= 0) { setActionMessage("No available balance to request.", "#b00020"); return; }
   if (selectedSpeed === "instant" && netAmount <= 0) { setActionMessage("Instant payout amount is too low after the fee.", "#b00020"); return; }
   const confirmMessage = selectedSpeed === "instant"
@@ -645,7 +729,7 @@ async function requestPayout(payoutSpeed) {
     const { data: requestRow, error: insertError } = await supabaseClient.from("worker_payouts").insert({
       worker_id: currentWorkerId,
       worker_email: currentUser.email,
-      amount: availableBalance,
+      amount: requestedAmount,
       payout_type: selectedSpeed,
       fee_amount: feeAmount,
       net_amount: netAmount,
@@ -669,7 +753,7 @@ async function requestPayout(payoutSpeed) {
     const stripeResponse = await fetch(`${SUPABASE_URL}/functions/v1/request-worker-payout`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
-      body: JSON.stringify({ worker_id: currentWorkerId, payout_request_id: requestRow.id, amount: availableBalance, payout_speed: selectedSpeed, fee_amount: feeAmount, net_amount: netAmount })
+      body: JSON.stringify({ worker_id: currentWorkerId, payout_request_id: requestRow.id, amount: requestedAmount, payout_speed: selectedSpeed, fee_amount: feeAmount, net_amount: netAmount })
     });
     if (!stripeResponse.ok) {
       setActionMessage("Payout request saved. Stripe processing backend still needs to be connected.", "#8a5300");

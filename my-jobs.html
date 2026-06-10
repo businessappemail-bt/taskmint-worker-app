@@ -1085,14 +1085,18 @@ function getArrivalSection(job) {
   const task = job.task;
   const quote = job.quote;
   const assignment = job.assignment;
- 
+
   if (
-    assignment &&
-    assignment.arrival_verified === true &&
+    task.worker_arrival_confirmed === true ||
+    task.arrival_verified === true ||
     (
-      assignment.arrived_at ||
-      task.worker_arrival_confirmed === true ||
-      task.arrival_verified === true
+      assignment &&
+      assignment.arrival_verified === true &&
+      (
+        assignment.arrived_at ||
+        task.worker_arrival_confirmed === true ||
+        task.arrival_verified === true
+      )
     )
   ) {
     return `
@@ -1115,22 +1119,22 @@ function getArrivalSection(job) {
       </div>
     `;
   }
- 
+
   if (!shouldShowArrivalBox(quote, assignment)) {
     return "";
   }
- 
+
   return `
     <button class="warning full" onclick="toggleArrivalBox('${task.id}')">
       Enter Arrival Code
     </button>
- 
+
     <div class="arrival-box" id="arrivalBox-${task.id}">
       <div class="arrival-title">Arrival Verification</div>
       <div class="arrival-text">
         Ask the customer for the arrival code assigned to this task. Entering the correct code starts the job.
       </div>
- 
+
       <input
         id="arrivalCode-${task.id}"
         type="text"
@@ -1138,7 +1142,7 @@ function getArrivalSection(job) {
         maxlength="6"
         inputmode="numeric"
       >
- 
+
       <button onclick="verifyArrivalCode('${task.id}', '${quote.id}')">
         Verify / Start Task
       </button>

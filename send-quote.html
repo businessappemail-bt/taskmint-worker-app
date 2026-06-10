@@ -483,8 +483,7 @@ async function isApprovedFromProfiles(workerUser) {
 
   return (
     profile.is_worker_approved === true &&
-    profile.can_send_quotes === true &&
-    String(profile.worker_verification_status || "").toLowerCase() === "approved"
+    profile.can_send_quotes === true
   );
 }
 

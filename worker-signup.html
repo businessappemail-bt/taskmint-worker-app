@@ -833,6 +833,8 @@ worker_zip: zipCode,
         is_worker_approved: false,
         worker_terms_accepted: true,
         privacy_policy_accepted: true,
+        worker_privacy_accepted: true,
+        worker_privacy_accepted_at: new Date().toISOString(),
         independent_contractor_acknowledged: true,
         worker_terms_accepted_at: new Date().toISOString()
       });
@@ -847,7 +849,7 @@ worker_zip: zipCode,
 
   const { error: workerError } =
     await supabaseClient
-      .from("workers")
+      .from("worker_profiles")
       .upsert({
         id: authUser.id,
         auth_user_id: authUser.id,

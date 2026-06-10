@@ -1228,12 +1228,17 @@ async function fetchAcceptedQuotes() {
  
   return data || [];
 }
-
+ 
 async function fetchAcceptedDirectRequests() {
+  const idFilter =
+    currentWorkerIds
+      .map(id => `accepted_worker_id.eq.${id},assigned_worker_id.eq.${id},worker_id.eq.${id}`)
+      .join(",");
+
   const { data, error } = await supabaseClient
     .from("direct_task_requests")
     .select("*")
-    .in("accepted_worker_id", currentWorkerIds)
+    .or(idFilter)
     .in("status", ["accepted", "in_progress", "worker_completed"])
     .order("created_at", { ascending: false });
 
@@ -1244,7 +1249,6 @@ async function fetchAcceptedDirectRequests() {
   return data || [];
 }
 
- 
 async function fetchTasksForQuotes(quotes) {
   const taskIds = [...new Set(quotes.map(quote => quote.task_id).filter(Boolean))];
  
@@ -1391,11 +1395,14 @@ async function loadMyJobs() {
       return;
     }
 
-    const taskMap = await fetchTasksForQuotes(quotes);
-    const taskIds = [...new Set(quotes.map(quote => quote.task_id).filter(Boolean))];
+    const regularQuotes =
+      (quotes || []).filter(quote => quote.task_id);
+
+    const taskMap = await fetchTasksForQuotes(regularQuotes);
+    const taskIds = [...new Set(regularQuotes.map(quote => quote.task_id).filter(Boolean))];
     const assignmentMap = await fetchAssignments(taskIds);
 
-    const quoteJobs = quotes
+    const regularJobs = regularQuotes
       .map(quote => {
         const task = taskMap[quote.task_id];
 
@@ -1407,39 +1414,42 @@ async function loadMyJobs() {
           quote: quote,
           task: task,
           assignment: assignmentMap[quote.task_id] || null,
-          customerProfile: null
+          customerProfile: null,
+          isDirectRequest: false
         };
       })
       .filter(Boolean);
 
-    const directJobs = (directRequests || [])
-      .map(request => {
+    const directJobs =
+      (directRequests || []).map(request => {
         const directQuote = {
           id: request.accepted_quote_id || request.id,
           task_id: request.id,
           direct_request_id: request.id,
           worker_id: request.accepted_worker_id || request.assigned_worker_id || request.worker_id,
           customer_id: request.customer_id,
-          status: request.status,
+          status: request.status || "accepted",
           quote_amount:
             request.amount_paid ||
             request.paid_amount ||
             request.task_amount ||
             0,
           payment_status: request.payment_status,
-          escrow_status: request.escrow_status
+          escrow_status: request.escrow_status,
+          is_direct_request: true
         };
 
         return {
           quote: directQuote,
           task: request,
           assignment: null,
-          customerProfile: null
+          customerProfile: null,
+          isDirectRequest: true
         };
       });
 
     loadedJobs = [
-      ...quoteJobs,
+      ...regularJobs,
       ...directJobs
     ].filter(job => !isCustomerCancelledTask(job.task, job.quote));
 
@@ -1629,6 +1639,41 @@ async function verifyArrivalCode(taskId, quoteId) {
     return;
   }
 
+  const job =
+    loadedJobs.find(item => String(item.task.id) === String(taskId));
+
+  const isDirectRequest =
+    job && job.isDirectRequest === true;
+
+  if (isDirectRequest) {
+    const validCode =
+      String(job.task.arrival_code || "").trim();
+
+    if (!validCode || validCode !== code) {
+      alert("Invalid arrival code.");
+      return;
+    }
+
+    const { error: directRequestError } =
+      await supabaseClient
+        .from("direct_task_requests")
+        .update({
+          status: "in_progress",
+          worker_arrival_confirmed: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", taskId);
+
+    if (directRequestError) {
+      alert(directRequestError.message);
+      return;
+    }
+
+    alert("Arrival verified. Task started.");
+    loadMyJobs();
+    return;
+  }
+
   let assignment = null;
   let assignmentError = null;
 
@@ -1734,6 +1779,28 @@ async function markWorkerTaskComplete(taskId, quoteId) {
     confirm("Mark this task complete from your side? The customer will still need to confirm completion.");
 
   if (!confirmed) {
+    return;
+  }
+
+  if (job.isDirectRequest === true) {
+    const { error: directRequestError } =
+      await supabaseClient
+        .from("direct_task_requests")
+        .update({
+          status: "worker_completed",
+          worker_completed: true,
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", taskId);
+
+    if (directRequestError) {
+      alert(directRequestError.message);
+      return;
+    }
+
+    alert("Task marked complete. Waiting for customer confirmation.");
+    loadMyJobs();
     return;
   }
 
@@ -1925,18 +1992,39 @@ async function cancelWorkerTask(taskId, quoteId, customerId) {
     return;
   }
 
-  const { error: taskError } =
-    await supabaseClient
-      .from("tasks")
-      .update({
-        status: "worker_cancelled",
-        task_status: "worker_cancelled",
-        payment_status: "refund_pending",
-        escrow_status: "refund_pending",
-        refund_amount: refundAmount,
-        updated_at: cancelledAt
-      })
-      .eq("id", taskId);
+  let taskError = null;
+
+  if (job.isDirectRequest === true) {
+    const directRequestUpdate =
+      await supabaseClient
+        .from("direct_task_requests")
+        .update({
+          status: "worker_cancelled",
+          payment_status: "refund_pending",
+          escrow_status: "refund_pending",
+          updated_at: cancelledAt
+        })
+        .eq("id", taskId);
+
+    taskError =
+      directRequestUpdate.error;
+  } else {
+    const taskUpdate =
+      await supabaseClient
+        .from("tasks")
+        .update({
+          status: "worker_cancelled",
+          task_status: "worker_cancelled",
+          payment_status: "refund_pending",
+          escrow_status: "refund_pending",
+          refund_amount: refundAmount,
+          updated_at: cancelledAt
+        })
+        .eq("id", taskId);
+
+    taskError =
+      taskUpdate.error;
+  }
 
   if (taskError) {
     alert(taskError.message);

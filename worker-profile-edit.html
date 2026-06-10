@@ -767,6 +767,19 @@ async function loadProfile() {
   if (error) { console.error(error); setMessage("statusMessage", "Error loading profile. Check your profiles table permissions.", "red"); updateCompletionUI(getLiveProfileSnapshot()); return; }
   if (!data) { updateCompletionUI(getLiveProfileSnapshot()); return; }
   currentProfile = { ...currentProfile, ...data };
+
+  const { data: workerProfileData, error: workerProfileError } =
+    await supabaseClient
+      .from("worker_profiles")
+      .select("stripe_account_id, stripe_onboarding_complete, payout_status")
+      .or(`id.eq.${currentUser.id},auth_user_id.eq.${currentUser.id}`)
+      .maybeSingle();
+
+  if (!workerProfileError && workerProfileData) {
+    currentProfile.stripe_account_id = workerProfileData.stripe_account_id || currentProfile.stripe_account_id || "";
+    currentProfile.payout_setup_complete = workerProfileData.stripe_onboarding_complete === true || currentProfile.payout_setup_complete === true;
+    currentProfile.payout_status = workerProfileData.payout_status || currentProfile.payout_status || "";
+  }
   document.getElementById("experienceDescription").value = data.experience || "";
   document.getElementById("servicesOffered").value = data.skills || "";
   document.getElementById("serviceArea").value = data.service_area || "";

@@ -452,6 +452,23 @@ async function loadAvailability(workerId, profile) {
 async function loadReviews(workerId) {
   const { data, error } = await supabaseClient.from("reviews").select("*").eq("worker_id", workerId).order("created_at", { ascending: false });
   if (error || !data) return [];
+
+  for (const review of data) {
+    if (!review.customer_name && review.customer_id) {
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("first_name,last_name,full_name")
+        .eq("id", review.customer_id)
+        .maybeSingle();
+
+      if (profile) {
+        review.customer_name =
+          profile.full_name ||
+          `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
+      }
+    }
+  }
+
   return data;
 }
 
@@ -505,7 +522,18 @@ function renderPendingPortfolio(pendingPortfolio, profile) {
   return `<div class="pending-photo-card">${pendingPortfolio.length} work photo${pendingPortfolio.length === 1 ? "" : "s"} pending TaskMint approval.</div>`;
 }
 
-function getReviewCustomerName(review) { return getFirstAvailable(review, ["customer_name","reviewer_name","first_name"], "Customer"); }
+function getReviewCustomerName(review) {
+  return getFirstAvailable(
+    review,
+    [
+      "customer_name",
+      "reviewer_name",
+      "first_name",
+      "full_name"
+    ],
+    "Customer not listed"
+  );
+}
 
 function renderReviews(reviews) {
   if (!reviews || reviews.length === 0) return `<div class="empty">No customer reviews yet.</div>`;

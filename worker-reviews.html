@@ -641,7 +641,7 @@ function formatCustomerName(customer) {
     return "Customer";
   }
 
-  if (customer.full_name) {
+  if (customer.full_name && !customer.full_name.includes("@")) {
     return customer.full_name;
   }
 
@@ -651,6 +651,10 @@ function formatCustomerName(customer) {
 
   if (customer.first_name) {
     return customer.first_name;
+  }
+
+  if (customer.last_name) {
+    return customer.last_name;
   }
 
   return "Customer";

@@ -252,32 +252,29 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      position: relative;
-    }
-
-    .profile-preview-wrap::before {
-      content: "👤";
-      font-size: 44px;
-      color: var(--accent);
-      line-height: 1;
     }
 
     .profile-preview {
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      object-fit: cover;
-      display: none;
-      position: absolute;
-      inset: 0;
-      background: var(--surface2);
+      background-color: var(--surface2);
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .profile-preview.has-photo {
-      display: block;
+    .profile-preview::before {
+      content: "👤";
+      font-size: 44px;
+      line-height: 1;
+      color: var(--accent);
     }
 
-    .profile-preview-wrap.has-photo::before {
+    .profile-preview.has-photo::before {
       display: none;
     }
 
@@ -546,7 +543,7 @@
     <div class="section-title">Profile Photo</div>
     <div class="profile-photo-section">
       <div class="profile-preview-wrap">
-        <img id="profilePreview" class="profile-preview" alt="">
+        <div id="profilePreview" class="profile-preview"></div>
       </div>
       <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(event)">
       <button type="button" class="secondary" onclick="document.getElementById('profilePhotoInput').click()">Upload Profile Picture</button>
@@ -669,8 +666,7 @@ function setChecklistState(id, done, doneText) {
 }
 
 function getLiveProfileSnapshot() {
-  const previewSrc = document.getElementById("profilePreview").getAttribute("src") || "";
-  const photoUrl = hasValue(currentProfile.profile_photo_url) ? currentProfile.profile_photo_url : previewSrc;
+  const photoUrl = hasValue(currentProfile.profile_photo_url) ? currentProfile.profile_photo_url : "";
   return {
     profile_photo_url: photoUrl, experience: getInputValue("experienceDescription"),
     skills: getInputValue("servicesOffered"), service_area: getInputValue("serviceArea"),
@@ -783,10 +779,8 @@ async function loadProfile() {
   document.getElementById("legalName").value = legalName;
   if (hasValue(data.profile_photo_url)) {
     const profilePreview = document.getElementById("profilePreview");
-    const profilePreviewWrap = document.querySelector(".profile-preview-wrap");
-    profilePreview.src = data.profile_photo_url;
+    profilePreview.style.backgroundImage = `url("${data.profile_photo_url}")`;
     profilePreview.classList.add("has-photo");
-    profilePreviewWrap.classList.add("has-photo");
   }
   updateCompletionUI(getLiveProfileSnapshot());
 }
@@ -815,10 +809,8 @@ async function uploadProfilePhoto(event) {
   const { data } = supabaseClient.storage.from("profile-photos").getPublicUrl(filePath);
   const publicUrl = data.publicUrl;
   const profilePreview = document.getElementById("profilePreview");
-  const profilePreviewWrap = document.querySelector(".profile-preview-wrap");
-  profilePreview.src = publicUrl;
+  profilePreview.style.backgroundImage = `url("${publicUrl}")`;
   profilePreview.classList.add("has-photo");
-  profilePreviewWrap.classList.add("has-photo");
   const { error: updateError } = await supabaseClient.from("profiles").upsert({ id: currentUser.id, email: currentUser.email, profile_photo_url: publicUrl, account_type: "worker" });
   await supabaseClient.from("worker_profiles").upsert({ id: currentUser.id, auth_user_id: currentUser.id, email: currentUser.email, profile_photo_url: publicUrl });
   if (updateError) { console.error(updateError); setMessage("photoStatusMessage", "Photo uploaded, but there was an error saving it to your profile.", "red"); return; }

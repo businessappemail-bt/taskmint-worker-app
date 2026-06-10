@@ -446,6 +446,14 @@
       transform: none;
     }
 
+    .locked-input:disabled {
+      background: #f0f0f0;
+      color: var(--muted);
+      border-color: var(--border);
+      cursor: not-allowed;
+      font-weight: 800;
+    }
+
     .empty {
       text-align: center;
       color: var(--muted);
@@ -991,10 +999,32 @@ function getArrivalSection(job) {
   const quote = job.quote;
   const assignment = job.assignment;
  
-  if (assignment && assignment.arrival_verified === true) {
+  if (
+    assignment &&
+    assignment.arrival_verified === true &&
+    (
+      assignment.arrived_at ||
+      task.worker_arrival_confirmed === true ||
+      task.arrival_verified === true
+    )
+  ) {
     return `
-      <div class="verified-box">
-        Arrival verified. This job is marked in progress.
+      <div class="arrival-box" style="display:block;">
+        <div class="arrival-title">Arrival Verification</div>
+        <div class="arrival-text">
+          Approval code accepted. This job is marked in progress.
+        </div>
+
+        <input
+          type="text"
+          value="Approval code accepted"
+          disabled
+          class="locked-input"
+        >
+
+        <button disabled>
+          Arrival Verified
+        </button>
       </div>
     `;
   }

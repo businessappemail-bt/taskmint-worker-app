@@ -608,34 +608,95 @@ function formatDate(value) {
   if (!value) {
     return "Not scheduled";
   }
- 
-  const date = new Date(value);
- 
+
+  const rawValue =
+    String(value).trim();
+
+  const dateOnly =
+    rawValue.includes("T")
+      ? rawValue.split("T")[0]
+      : rawValue.slice(0, 10);
+
+  const parts =
+    dateOnly.split("-");
+
+  if (parts.length === 3) {
+    const year =
+      Number(parts[0]);
+
+    const month =
+      Number(parts[1]);
+
+    const day =
+      Number(parts[2]);
+
+    if (year && month && day) {
+      const date =
+        new Date(year, month - 1, day);
+
+      return date.toLocaleDateString([], {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      });
+    }
+  }
+
+  const date =
+    new Date(rawValue);
+
   if (Number.isNaN(date.getTime())) {
     return value;
   }
- 
+
   return date.toLocaleDateString([], {
     year: "numeric",
     month: "short",
     day: "numeric"
   });
 }
- 
+
 function getDateObject(value) {
   if (!value) {
     return null;
   }
- 
-  const date = new Date(value);
- 
+
+  const rawValue =
+    String(value).trim();
+
+  const dateOnly =
+    rawValue.includes("T")
+      ? rawValue.split("T")[0]
+      : rawValue.slice(0, 10);
+
+  const parts =
+    dateOnly.split("-");
+
+  if (parts.length === 3) {
+    const year =
+      Number(parts[0]);
+
+    const month =
+      Number(parts[1]);
+
+    const day =
+      Number(parts[2]);
+
+    if (year && month && day) {
+      return new Date(year, month - 1, day);
+    }
+  }
+
+  const date =
+    new Date(rawValue);
+
   if (Number.isNaN(date.getTime())) {
     return null;
   }
- 
+
   return date;
 }
- 
+
 function isSameDay(dateOne, dateTwo) {
   return (
     dateOne.getFullYear() === dateTwo.getFullYear() &&
@@ -645,8 +706,16 @@ function isSameDay(dateOne, dateTwo) {
 }
  
 function getTaskDate(task) {
+  if (
+    task &&
+    task.task_date !== null &&
+    task.task_date !== undefined &&
+    String(task.task_date).trim() !== ""
+  ) {
+    return String(task.task_date).trim().slice(0, 10);
+  }
+
   return getFirstAvailable(task, [
-    "task_date",
     "date_needed",
     "needed_by",
     "scheduled_date",
@@ -666,13 +735,54 @@ function getTaskTitle(task) {
 }
  
 function getTaskDetails(task) {
-  return getFirstAvailable(task, [
-    "description",
-    "details",
-    "task_details",
-    "notes",
-    "special_instructions"
-  ], "No additional task details were provided.");
+  const detailsValue =
+    getFirstAvailable(task, [
+      "description",
+      "details",
+      "task_details",
+      "notes",
+      "special_instructions"
+    ], "");
+
+  if (
+    detailsValue &&
+    typeof detailsValue === "object" &&
+    !Array.isArray(detailsValue)
+  ) {
+    const detailLines =
+      Object.entries(detailsValue)
+        .filter(([key, value]) => {
+          return (
+            value !== null &&
+            value !== undefined &&
+            String(value).trim() !== ""
+          );
+        })
+        .map(([key, value]) => {
+          const label =
+            key
+              .replaceAll("_", " ")
+              .replace(/\b\w/g, letter => letter.toUpperCase());
+
+          return `${label}: ${value}`;
+        });
+
+    return detailLines.length > 0
+      ? detailLines.join("\n")
+      : "No additional task details were provided.";
+  }
+
+  if (Array.isArray(detailsValue)) {
+    return detailsValue
+      .filter(Boolean)
+      .join("\n") ||
+      "No additional task details were provided.";
+  }
+
+  return cleanText(
+    detailsValue,
+    "No additional task details were provided."
+  );
 }
  
 function getTaskCategory(task) {

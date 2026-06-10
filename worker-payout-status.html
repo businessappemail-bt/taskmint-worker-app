@@ -549,8 +549,7 @@ async function loadAvailableBalance() {
       .from("direct_task_requests")
       .select("*")
       .or(workerFilter)
-      .in("status", ["worker_completed", "completed", "paid"])
-      .in("payment_status", ["paid", "held", "escrowed", "released"]);
+      .in("status", ["worker_completed", "completed", "paid"]);
 
   if (!directResult.error && directResult.data) {
     directRows =
@@ -562,8 +561,7 @@ async function loadAvailableBalance() {
       .from("tasks")
       .select("*")
       .or(workerFilter)
-      .in("status", ["worker_completed", "completed", "paid"])
-      .in("payment_status", ["paid", "held", "escrowed", "released"]);
+      .in("status", ["worker_completed", "completed", "paid"]);
 
   if (!taskResult.error && taskResult.data) {
     taskRows =
@@ -583,29 +581,45 @@ async function loadAvailableBalance() {
       .filter(row => isAvailableEarning(row))
       .reduce((total, row) => total + getEarningAmount(row), 0);
 
+  function getCompletedJobPayout(row) {
+    const savedPayout =
+      Number(
+        row.worker_payout_amount ||
+        row.worker_payout ||
+        row.payout_amount ||
+        0
+      );
+
+    if (savedPayout > 0) {
+      return savedPayout;
+    }
+
+    const paidAmount =
+      Number(
+        row.amount_paid ||
+        row.paid_amount ||
+        row.task_amount ||
+        row.quote_amount ||
+        row.total_paid ||
+        0
+      );
+
+    if (paidAmount <= 0) {
+      return 0;
+    }
+
+    return Number((paidAmount * 0.85).toFixed(2));
+  }
+
   const directJobsTotal =
     (directRows || [])
       .filter(row => !requestedTaskIds.has(String(row.id)))
-      .reduce((total, row) => {
-        return total + Number(
-          row.worker_payout_amount ||
-          row.worker_payout ||
-          row.payout_amount ||
-          0
-        );
-      }, 0);
+      .reduce((total, row) => total + getCompletedJobPayout(row), 0);
 
   const taskJobsTotal =
     (taskRows || [])
       .filter(row => !requestedTaskIds.has(String(row.id)))
-      .reduce((total, row) => {
-        return total + Number(
-          row.worker_payout_amount ||
-          row.worker_payout ||
-          row.payout_amount ||
-          0
-        );
-      }, 0);
+      .reduce((total, row) => total + getCompletedJobPayout(row), 0);
 
   availableBalance =
     availableEarningsTotal + directJobsTotal + taskJobsTotal;

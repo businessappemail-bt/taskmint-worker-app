@@ -244,41 +244,41 @@
       width: 124px;
       height: 124px;
       margin: 0 auto 13px;
-      border-radius: 30px;
-      padding: 5px;
-      background: linear-gradient(135deg, var(--surface2), #ffffff);
-      border: 2px solid #cfead7;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 3px solid #cfead7;
       box-shadow: 0 8px 18px rgba(11,122,40,0.12);
-      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       overflow: hidden;
+      position: relative;
     }
 
     .profile-preview-wrap::before {
       content: "👤";
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 42px;
+      font-size: 44px;
       color: var(--accent);
-      z-index: 1;
+      line-height: 1;
     }
 
     .profile-preview {
-      width: 114px;
-      height: 114px;
-      border-radius: 25px;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
       object-fit: cover;
-      background: transparent;
-      border: none;
-      position: relative;
-      z-index: 2;
       display: none;
+      position: absolute;
+      inset: 0;
+      background: var(--surface2);
     }
 
     .profile-preview.has-photo {
       display: block;
+    }
+
+    .profile-preview-wrap.has-photo::before {
+      display: none;
     }
 
     label {
@@ -546,7 +546,7 @@
     <div class="section-title">Profile Photo</div>
     <div class="profile-photo-section">
       <div class="profile-preview-wrap">
-        <img id="profilePreview" class="profile-preview" src="" alt="">
+        <img id="profilePreview" class="profile-preview" alt="">
       </div>
       <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(event)">
       <button type="button" class="secondary" onclick="document.getElementById('profilePhotoInput').click()">Upload Profile Picture</button>
@@ -783,8 +783,10 @@ async function loadProfile() {
   document.getElementById("legalName").value = legalName;
   if (hasValue(data.profile_photo_url)) {
     const profilePreview = document.getElementById("profilePreview");
+    const profilePreviewWrap = document.querySelector(".profile-preview-wrap");
     profilePreview.src = data.profile_photo_url;
     profilePreview.classList.add("has-photo");
+    profilePreviewWrap.classList.add("has-photo");
   }
   updateCompletionUI(getLiveProfileSnapshot());
 }
@@ -813,8 +815,10 @@ async function uploadProfilePhoto(event) {
   const { data } = supabaseClient.storage.from("profile-photos").getPublicUrl(filePath);
   const publicUrl = data.publicUrl;
   const profilePreview = document.getElementById("profilePreview");
+  const profilePreviewWrap = document.querySelector(".profile-preview-wrap");
   profilePreview.src = publicUrl;
   profilePreview.classList.add("has-photo");
+  profilePreviewWrap.classList.add("has-photo");
   const { error: updateError } = await supabaseClient.from("profiles").upsert({ id: currentUser.id, email: currentUser.email, profile_photo_url: publicUrl, account_type: "worker" });
   await supabaseClient.from("worker_profiles").upsert({ id: currentUser.id, auth_user_id: currentUser.id, email: currentUser.email, profile_photo_url: publicUrl });
   if (updateError) { console.error(updateError); setMessage("photoStatusMessage", "Photo uploaded, but there was an error saving it to your profile.", "red"); return; }

@@ -580,7 +580,7 @@
   <div class="card">
     <div class="section-title">Service Area & Address</div>
     <label for="serviceArea">Primary Service Area</label>
-    <input id="serviceArea" type="text" oninput="handleLiveProfileUpdate()" placeholder="Douglasville, GA">
+    <input id="serviceArea" type="text" oninput="handleLiveProfileUpdate()" placeholder="Add your service areas">
     <div class="help-text">This is the public service area customers can see on your worker profile.</div>
     <div class="section-divider"></div>
     <label for="workerAddress">Edit Address</label>
@@ -777,6 +777,7 @@ async function loadProfile() {
   document.getElementById("workerZip").value = data.worker_zip || data.zip_code || data.zip || "";
   const legalName = data.full_name || `${data.first_name || ""} ${data.last_name || ""}`.trim() || currentUser.email || "Legal name not saved";
   document.getElementById("legalName").value = legalName;
+  document.getElementById("loginEmail").value = data.email || currentUser.email || "";
   if (hasValue(data.profile_photo_url)) {
     const profilePreview = document.getElementById("profilePreview");
     profilePreview.style.backgroundImage = `url("${data.profile_photo_url}")`;

@@ -639,6 +639,7 @@ let currentProfile = {
   worker_address: "", worker_city: "", worker_state: "", worker_zip: "",
   first_name: "", last_name: "", full_name: "", tax_setup_complete: false,
   payout_setup_complete: false, payout_status: "", stripe_account_id: "",
+  stripe_onboarding_complete: false,
   bank_account_last4: "", debit_card_last4: "", identity_verified: false,
   worker_verification_status: "", submitted_for_verification: false,
   verification_submitted_at: "", can_send_quotes: false, is_worker_approved: false
@@ -675,6 +676,7 @@ function getLiveProfileSnapshot() {
     worker_state: getInputValue("workerState"), worker_zip: getInputValue("workerZip"),
     tax_setup_complete: currentProfile.tax_setup_complete, tax_status: currentProfile.tax_status,
     payout_setup_complete: currentProfile.payout_setup_complete, payout_status: currentProfile.payout_status,
+    stripe_onboarding_complete: currentProfile.stripe_onboarding_complete,
     stripe_account_id: currentProfile.stripe_account_id, bank_account_last4: currentProfile.bank_account_last4,
     debit_card_last4: currentProfile.debit_card_last4, identity_verified: currentProfile.identity_verified,
     worker_verification_status: currentProfile.worker_verification_status,
@@ -688,7 +690,7 @@ function calculateCompletion(profile) {
   const servicesDone = hasValue(profile.skills);
   const areaDone = hasValue(profile.service_area) && hasValue(profile.service_radius) && hasValue(profile.worker_address) && hasValue(profile.worker_city) && hasValue(profile.worker_state) && hasValue(profile.worker_zip);
   const taxDone = profile.tax_setup_complete === true || profile.tax_status === "completed" || profile.tax_status === "verified";
-  const payoutDone = profile.payout_setup_complete === true || profile.payout_status === "completed" || profile.payout_status === "verified" || hasValue(profile.stripe_account_id) || hasValue(profile.bank_account_last4) || hasValue(profile.debit_card_last4);
+  const payoutDone = profile.payout_setup_complete === true || profile.stripe_onboarding_complete === true || profile.payout_status === "completed" || profile.payout_status === "verified" || profile.payout_status === "connected" || hasValue(profile.stripe_account_id) || hasValue(profile.bank_account_last4) || hasValue(profile.debit_card_last4);
   const verificationDone = profile.identity_verified === true || profile.worker_verification_status === "pending" || profile.worker_verification_status === "approved" || profile.submitted_for_verification === true;
   const items = [photoDone, experienceDone, areaDone, servicesDone, taxDone, payoutDone, verificationDone];
   const doneCount = items.filter(Boolean).length;
@@ -730,7 +732,7 @@ function updateCompletionUI(profile) {
   setChecklistState("serviceAreaCheck", result.areaDone, "Saved");
   setChecklistState("servicesCheck", result.servicesDone, "Done");
   setChecklistState("taxCheck", result.taxDone, "Done");
-  setChecklistState("payoutCheck", result.payoutDone, "Done");
+  setChecklistState("payoutCheck", result.payoutDone, "Completed");
   setChecklistState("verificationCheck", result.verificationDone, "Done");
   updateServicesPreview(profile.skills);
   updateSavedLocationCard(profile.service_area, profile.service_radius, profile.worker_address, profile.worker_city, profile.worker_state, profile.worker_zip);
@@ -776,9 +778,18 @@ async function loadProfile() {
       .maybeSingle();
 
   if (!workerProfileError && workerProfileData) {
-    currentProfile.stripe_account_id = workerProfileData.stripe_account_id || currentProfile.stripe_account_id || "";
-    currentProfile.payout_setup_complete = workerProfileData.stripe_onboarding_complete === true || currentProfile.payout_setup_complete === true;
-    currentProfile.payout_status = workerProfileData.payout_status || currentProfile.payout_status || "";
+    currentProfile.stripe_account_id =
+      workerProfileData.stripe_account_id || currentProfile.stripe_account_id || "";
+
+    currentProfile.stripe_onboarding_complete =
+      workerProfileData.stripe_onboarding_complete === true;
+
+    currentProfile.payout_setup_complete =
+      workerProfileData.stripe_onboarding_complete === true ||
+      currentProfile.payout_setup_complete === true;
+
+    currentProfile.payout_status =
+      workerProfileData.payout_status || currentProfile.payout_status || "";
   }
   document.getElementById("experienceDescription").value = data.experience || "";
   document.getElementById("servicesOffered").value = data.skills || "";

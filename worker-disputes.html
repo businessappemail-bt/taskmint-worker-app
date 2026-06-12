@@ -536,19 +536,33 @@ async function init() {
     ids.push(profile.id);
   }
 
-  const { data: workerProfile } = await supabaseClient
+  const { data: workerProfileByEmail } = await supabaseClient
     .from("worker_profiles")
-    .select("id, auth_user_id")
+    .select("id, auth_user_id, email")
     .eq("email", currentUser.email)
     .maybeSingle();
 
-  if (workerProfile && workerProfile.id) {
-    ids.push(workerProfile.id);
-  }
+  const { data: workerProfileByAuthId } = await supabaseClient
+    .from("worker_profiles")
+    .select("id, auth_user_id, email")
+    .eq("auth_user_id", currentUser.id)
+    .maybeSingle();
 
-  if (workerProfile && workerProfile.auth_user_id) {
-    ids.push(workerProfile.auth_user_id);
-  }
+  const workerProfiles =
+    [
+      workerProfileByEmail,
+      workerProfileByAuthId
+    ].filter(Boolean);
+
+  workerProfiles.forEach(workerProfile => {
+    if (workerProfile.id) {
+      ids.push(workerProfile.id);
+    }
+
+    if (workerProfile.auth_user_id) {
+      ids.push(workerProfile.auth_user_id);
+    }
+  });
 
   currentWorkerIds =
     [...new Set(ids.filter(Boolean).map(String))];
@@ -603,6 +617,10 @@ async function loadTasks() {
       `;
     }
   });
+
+  if (selectedTaskId) {
+    select.value = selectedTaskId;
+  }
 }
 
 async function uploadEvidence(file) {
@@ -688,23 +706,56 @@ async function loadDisputes() {
   const activeBox = document.getElementById("activeDisputes");
   const historyBox = document.getElementById("historyDisputes");
 
-  let query =
-    supabaseClient
-      .from("disputes")
-      .select("*")
-      .order("created_at", {
-        ascending: false
-      });
+  let disputes = [];
+  let loadError = null;
 
   if (currentWorkerIds.length > 0) {
-    query =
-      query.in("worker_id", currentWorkerIds);
+    const workerDisputes =
+      await supabaseClient
+        .from("disputes")
+        .select("*")
+        .in("worker_id", currentWorkerIds)
+        .order("created_at", {
+          ascending: false
+        });
+
+    if (workerDisputes.error) {
+      loadError = workerDisputes.error;
+    } else {
+      disputes = disputes.concat(workerDisputes.data || []);
+    }
   }
 
-  const { data, error } =
-    await query;
+  if (selectedTaskId) {
+    const taskDisputes =
+      await supabaseClient
+        .from("disputes")
+        .select("*")
+        .eq("task_id", selectedTaskId)
+        .order("created_at", {
+          ascending: false
+        });
 
-  if (error) {
+    if (taskDisputes.error) {
+      loadError = loadError || taskDisputes.error;
+    } else {
+      disputes = disputes.concat(taskDisputes.data || []);
+    }
+  }
+
+  const disputeMap = {};
+
+  disputes.forEach(dispute => {
+    if (dispute && dispute.id) {
+      disputeMap[dispute.id] = dispute;
+    }
+  });
+
+  const data =
+    Object.values(disputeMap)
+      .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+  if (loadError && data.length === 0) {
     activeBox.innerHTML =
       `<div class="empty">Error loading disputes.</div>`;
 

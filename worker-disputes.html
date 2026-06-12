@@ -534,6 +534,7 @@ let currentUser = null;
 let currentWorkerId = null;
 let currentWorkerIds = [];
 let eligibleTasks = [];
+let workerTaskIds = [];
 let unreadDisputeIds = new Set();
 
 const params =
@@ -737,6 +738,16 @@ async function loadTasks() {
   }
 
   eligibleTasks = data;
+  workerTaskIds =
+    [
+      ...new Set(
+        (data || [])
+          .map(item => item.task_id || (item.tasks && item.tasks.id))
+          .filter(Boolean)
+          .map(String)
+      )
+    ];
+
   select.innerHTML = `<option value="">Select a job</option>`;
 
   data.forEach(item => {
@@ -857,12 +868,12 @@ async function loadDisputes() {
     }
   }
 
-  if (selectedTaskId) {
+  if (workerTaskIds.length > 0) {
     const taskDisputes =
       await supabaseClient
         .from("disputes")
         .select("*")
-        .eq("task_id", selectedTaskId)
+        .in("task_id", workerTaskIds)
         .order("created_at", {
           ascending: false
         });
@@ -871,6 +882,23 @@ async function loadDisputes() {
       loadError = loadError || taskDisputes.error;
     } else {
       disputes = disputes.concat(taskDisputes.data || []);
+    }
+  }
+
+  if (selectedTaskId && !workerTaskIds.includes(String(selectedTaskId))) {
+    const selectedTaskDisputes =
+      await supabaseClient
+        .from("disputes")
+        .select("*")
+        .eq("task_id", selectedTaskId)
+        .order("created_at", {
+          ascending: false
+        });
+
+    if (selectedTaskDisputes.error) {
+      loadError = loadError || selectedTaskDisputes.error;
+    } else {
+      disputes = disputes.concat(selectedTaskDisputes.data || []);
     }
   }
 

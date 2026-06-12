@@ -250,6 +250,87 @@
       border-left: 4px solid var(--accent);
     }
 
+    .dispute-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .dispute-title-area {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .dispute-title-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .unread-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--danger);
+      flex-shrink: 0;
+    }
+
+    .dispute-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .dispute-info-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .dispute-info-label {
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .dispute-info-value {
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .dispute-details-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 11px;
+      margin-top: 10px;
+      font-size: 12.8px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-weight: 600;
+      white-space: pre-wrap;
+    }
+
+    .evidence-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 11px;
+      margin-top: 10px;
+    }
+
     .small-text {
       font-size: 12.8px;
       color: var(--muted);
@@ -453,6 +534,7 @@ let currentUser = null;
 let currentWorkerId = null;
 let currentWorkerIds = [];
 let eligibleTasks = [];
+let unreadDisputeIds = new Set();
 
 const params =
   new URLSearchParams(window.location.search);
@@ -512,6 +594,55 @@ function getDisputeOrderNumber(dispute) {
         : "Not linked"
     )
   );
+}
+
+function formatDisputeDate(value) {
+  if (!value) {
+    return "Not listed";
+  }
+
+  const date =
+    new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString();
+}
+
+async function loadUnreadDisputeDots(disputes) {
+  unreadDisputeIds = new Set();
+
+  const disputeIds =
+    (disputes || [])
+      .map(dispute => dispute.id)
+      .filter(Boolean);
+
+  if (disputeIds.length === 0) {
+    return;
+  }
+
+  const { data, error } =
+    await supabaseClient
+      .from("dispute_messages")
+      .select("dispute_id, sender_type, sender_role, visible_to, is_read")
+      .in("dispute_id", disputeIds)
+      .in("visible_to", ["worker"])
+      .eq("is_read", false);
+
+  if (error || !data) {
+    return;
+  }
+
+  data.forEach(message => {
+    const sender =
+      String(message.sender_role || message.sender_type || "").toLowerCase();
+
+    if (sender !== "worker") {
+      unreadDisputeIds.add(String(message.dispute_id));
+    }
+  });
 }
 
 async function init() {
@@ -773,6 +904,8 @@ async function loadDisputes() {
     ["resolved", "rejected", "closed", "cancelled"].includes(String(d.status || ""))
   );
 
+  await loadUnreadDisputeDots(data);
+
   renderDisputes(activeBox, active, true);
   renderDisputes(historyBox, history, false);
 }
@@ -786,32 +919,55 @@ function renderDisputes(container, disputes, allowReplies) {
   container.innerHTML = "";
 
   disputes.forEach(dispute => {
+    const hasUnread =
+      unreadDisputeIds.has(String(dispute.id));
+
     container.innerHTML += `
       <div class="card dispute-card">
-        <div class="section-title">
-          ${escapeHTML(dispute.reason)}
+        <div class="dispute-header-row">
+          <div class="dispute-title-area">
+            <div class="dispute-title-line">
+              ${hasUnread ? `<span class="unread-dot"></span>` : ""}
+              <div class="section-title" style="margin-bottom:0;">
+                ${escapeHTML(dispute.reason || "Dispute")}
+              </div>
+            </div>
+
+            <div class="small-text">
+              Order # ${escapeHTML(getDisputeOrderNumber(dispute))}
+            </div>
+          </div>
+
+          <div class="status ${escapeHTML(dispute.status || "open")}">
+            ${escapeHTML(dispute.status || "open")}
+          </div>
         </div>
 
-        <div class="small-text">
-          Order # ${escapeHTML(getDisputeOrderNumber(dispute))}
+        <div class="dispute-info-grid">
+          <div class="dispute-info-box">
+            <div class="dispute-info-label">Submitted</div>
+            <div class="dispute-info-value">${escapeHTML(formatDisputeDate(dispute.created_at))}</div>
+          </div>
+
+          <div class="dispute-info-box">
+            <div class="dispute-info-label">Task ID</div>
+            <div class="dispute-info-value">${escapeHTML(dispute.task_id || "Not linked")}</div>
+          </div>
         </div>
 
-        <div class="small-text">
-          ${escapeHTML(getDisputeDetails(dispute))}
+        <div class="dispute-details-box">
+          ${escapeHTML(getDisputeDetails(dispute) || "No dispute details listed.")}
         </div>
 
-        <div class="small-text">
-          Submitted:
-          ${new Date(dispute.created_at).toLocaleDateString()}
-        </div>
-
-        <div class="status ${escapeHTML(dispute.status)}">
-          ${escapeHTML(dispute.status)}
-        </div>
-
-        ${dispute.evidence_url
-          ? `<img src="${escapeHTML(dispute.evidence_url)}" alt="Dispute evidence">`
-          : ""
+        ${
+          dispute.evidence_url
+            ? `
+              <div class="evidence-section">
+                <div class="thread-title">Evidence</div>
+                <img src="${escapeHTML(dispute.evidence_url)}" alt="Dispute evidence">
+              </div>
+            `
+            : ""
         }
 
         <div class="message-thread">
@@ -826,10 +982,11 @@ function renderDisputes(container, disputes, allowReplies) {
 
         ${allowReplies
           ? `
+            <label for="reply-${dispute.id}">Reply to TaskMint</label>
+
             <textarea
               id="reply-${dispute.id}"
               placeholder="Reply to TaskMint support..."
-              style="margin-top:12px;"
             ></textarea>
 
             <button onclick="sendWorkerReply('${dispute.id}')">
@@ -900,6 +1057,15 @@ async function loadDisputeMessages(disputeId, containerId) {
       </div>
     `;
   });
+
+  await supabaseClient
+    .from("dispute_messages")
+    .update({ is_read: true })
+    .eq("dispute_id", disputeId)
+    .in("visible_to", ["worker"])
+    .neq("sender_type", "worker");
+
+  unreadDisputeIds.delete(String(disputeId));
 }
 
 async function sendWorkerReply(disputeId) {

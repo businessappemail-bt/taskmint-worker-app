@@ -765,47 +765,6 @@ async function loadTasks() {
   }
 }
 
-async function loadWorkerTaskIdsForDisputes() {
-  const ids =
-    new Set(workerTaskIds.map(String));
-
-  if (currentWorkerIds.length > 0) {
-    const { data: quoteRows } =
-      await supabaseClient
-        .from("worker_quotes")
-        .select("task_id")
-        .in("worker_id", currentWorkerIds);
-
-    (quoteRows || []).forEach(row => {
-      if (row.task_id) {
-        ids.add(String(row.task_id));
-      }
-    });
-
-    const directFilter =
-      currentWorkerIds
-        .map(id => `accepted_worker_id.eq.${id},assigned_worker_id.eq.${id},worker_id.eq.${id}`)
-        .join(",");
-
-    if (directFilter) {
-      const { data: directRows } =
-        await supabaseClient
-          .from("direct_task_requests")
-          .select("id")
-          .or(directFilter);
-
-      (directRows || []).forEach(row => {
-        if (row.id) {
-          ids.add(String(row.id));
-        }
-      });
-    }
-  }
-
-  workerTaskIds =
-    [...ids];
-}
-
 async function uploadEvidence(file) {
   if (!file) return null;
 
@@ -885,11 +844,60 @@ async function submitDispute() {
   }
 }
 
+async function refreshWorkerTaskIdsForDisputes() {
+  const ids =
+    new Set(
+      (workerTaskIds || [])
+        .filter(Boolean)
+        .map(String)
+    );
+
+  if (currentWorkerIds.length === 0) {
+    workerTaskIds =
+      [...ids];
+    return;
+  }
+
+  const { data: quoteRows } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("task_id")
+      .in("worker_id", currentWorkerIds);
+
+  (quoteRows || []).forEach(row => {
+    if (row.task_id) {
+      ids.add(String(row.task_id));
+    }
+  });
+
+  const directFilter =
+    currentWorkerIds
+      .map(id => `accepted_worker_id.eq.${id},assigned_worker_id.eq.${id},worker_id.eq.${id}`)
+      .join(",");
+
+  if (directFilter) {
+    const { data: directRows } =
+      await supabaseClient
+        .from("direct_task_requests")
+        .select("id")
+        .or(directFilter);
+
+    (directRows || []).forEach(row => {
+      if (row.id) {
+        ids.add(String(row.id));
+      }
+    });
+  }
+
+  workerTaskIds =
+    [...ids];
+}
+
 async function loadDisputes() {
   const activeBox = document.getElementById("activeDisputes");
   const historyBox = document.getElementById("historyDisputes");
 
-  await loadWorkerTaskIdsForDisputes();
+  await refreshWorkerTaskIdsForDisputes();
 
   let disputes = [];
   let loadError = null;
@@ -943,6 +951,43 @@ async function loadDisputes() {
     } else {
       disputes = disputes.concat(selectedTaskDisputes.data || []);
     }
+  }
+
+  const { data: readableDisputes } =
+    await supabaseClient
+      .from("disputes")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
+
+  if (readableDisputes && readableDisputes.length > 0) {
+    const workerIdSet =
+      new Set(currentWorkerIds.map(String));
+
+    const taskIdSet =
+      new Set(workerTaskIds.map(String));
+
+    const matchedReadableDisputes =
+      readableDisputes.filter(dispute => {
+        const disputeWorkerId =
+          String(dispute.worker_id || "");
+
+        const disputeTaskId =
+          String(dispute.task_id || "");
+
+        return (
+          workerIdSet.has(disputeWorkerId) ||
+          taskIdSet.has(disputeTaskId) ||
+          (
+            selectedTaskId &&
+            disputeTaskId === String(selectedTaskId)
+          )
+        );
+      });
+
+    disputes =
+      disputes.concat(matchedReadableDisputes);
   }
 
   const disputeMap = {};

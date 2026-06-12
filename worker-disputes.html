@@ -451,7 +451,20 @@ const supabaseClient =
 
 let currentUser = null;
 let currentWorkerId = null;
+let currentWorkerIds = [];
 let eligibleTasks = [];
+
+const params =
+  new URLSearchParams(window.location.search);
+
+let selectedDisputeId =
+  params.get("dispute_id") || "";
+
+let selectedTaskId =
+  params.get("task_id") || "";
+
+let selectedOrderNumber =
+  params.get("order_number") || "";
 
 const blockedWords = [
   "fuck",
@@ -479,6 +492,28 @@ function containsBlockedWords(text) {
   return blockedWords.some(word => lower.includes(word));
 }
 
+function getDisputeDetails(dispute) {
+  return (
+    dispute.details ||
+    dispute.description ||
+    dispute.additional_notes ||
+    ""
+  );
+}
+
+function getDisputeOrderNumber(dispute) {
+  return (
+    dispute.order_number ||
+    dispute.task_order_number ||
+    selectedOrderNumber ||
+    (
+      dispute.task_id
+        ? "TM-" + String(dispute.task_id).slice(0, 8).toUpperCase()
+        : "Not linked"
+    )
+  );
+}
+
 async function init() {
   const { data } = await supabaseClient.auth.getUser();
 
@@ -489,19 +524,43 @@ async function init() {
 
   currentUser = data.user;
 
+  const ids = [currentUser.id];
+
   const { data: profile, error } = await supabaseClient
     .from("profiles")
     .select("id")
     .eq("email", currentUser.email)
     .maybeSingle();
 
-  if (error || !profile) {
+  if (profile && profile.id) {
+    ids.push(profile.id);
+  }
+
+  const { data: workerProfile } = await supabaseClient
+    .from("worker_profiles")
+    .select("id, auth_user_id")
+    .eq("email", currentUser.email)
+    .maybeSingle();
+
+  if (workerProfile && workerProfile.id) {
+    ids.push(workerProfile.id);
+  }
+
+  if (workerProfile && workerProfile.auth_user_id) {
+    ids.push(workerProfile.auth_user_id);
+  }
+
+  currentWorkerIds =
+    [...new Set(ids.filter(Boolean).map(String))];
+
+  currentWorkerId =
+    currentWorkerIds[0] || "";
+
+  if (!currentWorkerId) {
     document.getElementById("activeDisputes").innerHTML =
       `<div class="empty">Worker profile not found.</div>`;
     return;
   }
-
-  currentWorkerId = profile.id;
 
   await loadTasks();
   await loadDisputes();
@@ -519,7 +578,7 @@ async function loadTasks() {
         title
       )
     `)
-    .eq("worker_id", currentWorkerId)
+    .in("worker_id", currentWorkerIds)
     .in("status", [
       "accepted",
       "in_progress",
@@ -600,6 +659,7 @@ async function submitDispute() {
         opened_by: "worker",
         reason: reason,
         details: details,
+        description: details,
         evidence_url: evidenceUrl,
         status: "open"
       });
@@ -628,13 +688,21 @@ async function loadDisputes() {
   const activeBox = document.getElementById("activeDisputes");
   const historyBox = document.getElementById("historyDisputes");
 
-  const { data, error } = await supabaseClient
-    .from("disputes")
-    .select("*")
-    .eq("worker_id", currentWorkerId)
-    .order("created_at", {
-      ascending: false
-    });
+  let query =
+    supabaseClient
+      .from("disputes")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
+
+  if (currentWorkerIds.length > 0) {
+    query =
+      query.in("worker_id", currentWorkerIds);
+  }
+
+  const { data, error } =
+    await query;
 
   if (error) {
     activeBox.innerHTML =
@@ -647,13 +715,11 @@ async function loadDisputes() {
   }
 
   const active = (data || []).filter(d =>
-    d.status === "open" ||
-    d.status === "reviewing"
+    ["open", "reviewing", "pending", "in_review", "waiting_on_customer", "waiting_on_worker"].includes(String(d.status || "open"))
   );
 
   const history = (data || []).filter(d =>
-    d.status === "resolved" ||
-    d.status === "rejected"
+    ["resolved", "rejected", "closed", "cancelled"].includes(String(d.status || ""))
   );
 
   renderDisputes(activeBox, active, true);
@@ -676,7 +742,11 @@ function renderDisputes(container, disputes, allowReplies) {
         </div>
 
         <div class="small-text">
-          ${escapeHTML(dispute.details)}
+          Order # ${escapeHTML(getDisputeOrderNumber(dispute))}
+        </div>
+
+        <div class="small-text">
+          ${escapeHTML(getDisputeDetails(dispute))}
         </div>
 
         <div class="small-text">
@@ -743,7 +813,7 @@ async function loadDisputeMessages(disputeId, containerId) {
     .from("dispute_messages")
     .select("*")
     .eq("dispute_id", disputeId)
-    .eq("visible_to", "worker")
+    .in("visible_to", ["worker"])
     .order("created_at", {
       ascending: true
     });

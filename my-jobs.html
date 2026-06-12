@@ -355,6 +355,18 @@
       font-weight: 700;
     }
 
+    .dispute-alert {
+      background: #fff2f2;
+      border: 1px solid #ffb7b7;
+      color: #8b0018;
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+
     .arrival-box {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -567,6 +579,7 @@ let currentUser = null;
 let currentWorkerIds = [];
 let currentWorkerId = null;
 let loadedJobs = [];
+let taskDisputesByTaskId = {};
  
 function cleanText(value, fallback = "Not specified") {
   if (value === null || value === undefined) {
@@ -768,6 +781,13 @@ function getTaskCategory(task) {
     "task_category",
     "service_type"
   ], "Not listed");
+}
+
+function getTaskOrderNumber(task) {
+  return getFirstAvailable(task, [
+    "order_number",
+    "task_order_number"
+  ], "") || `TM-${String(task.id || "").slice(0, 8).toUpperCase()}`;
 }
  
 function getCityState(task) {
@@ -1227,6 +1247,116 @@ function getWorkerCompleteSection(job) {
   `;
 }
 
+function getDisputeForTask(taskId) {
+  return taskDisputesByTaskId[String(taskId)] || null;
+}
+
+function getDisputeSection(job) {
+  const dispute =
+    getDisputeForTask(job.task.id);
+
+  if (!dispute) {
+    return "";
+  }
+
+  return `
+    <div class="dispute-alert">
+      A dispute is open for this task.
+    </div>
+  `;
+}
+
+function getDisputeButton(job) {
+  const task =
+    job.task;
+
+  const dispute =
+    getDisputeForTask(task.id);
+
+  const orderNumber =
+    getTaskOrderNumber(task);
+
+  const buttonText =
+    dispute
+      ? "View Dispute"
+      : "Dispute Task";
+
+  const disputeId =
+    dispute ? dispute.id : "";
+
+  return `
+    <button
+      class="secondary full"
+      onclick="openWorkerDispute('${escapeHTML(task.id)}', '${escapeHTML(orderNumber)}', '${escapeHTML(disputeId)}')">
+      ${buttonText}
+    </button>
+  `;
+}
+
+function openWorkerDispute(taskId, orderNumber, disputeId) {
+  const params =
+    new URLSearchParams();
+
+  params.set("task_id", taskId || "");
+  params.set("order_number", orderNumber || "");
+  params.set("worker_id", currentWorkerId || "");
+
+  if (disputeId) {
+    params.set("dispute_id", disputeId);
+  }
+
+  window.location.href =
+    `worker-disputes.html?${params.toString()}`;
+}
+
+async function fetchDisputesForJobs(jobs) {
+  taskDisputesByTaskId = {};
+
+  const taskIds =
+    [
+      ...new Set(
+        (jobs || [])
+          .map(job => job.task && job.task.id)
+          .filter(Boolean)
+          .map(String)
+      )
+    ];
+
+  if (taskIds.length === 0 || currentWorkerIds.length === 0) {
+    return;
+  }
+
+  const { data, error } =
+    await supabaseClient
+      .from("disputes")
+      .select("*")
+      .in("task_id", taskIds)
+      .in("worker_id", currentWorkerIds)
+      .in("status", [
+        "open",
+        "reviewing",
+        "pending",
+        "in_review",
+        "waiting_on_customer",
+        "waiting_on_worker"
+      ])
+      .order("created_at", { ascending: false });
+
+  if (error) {
+    console.warn("Disputes could not be loaded.", error);
+    return;
+  }
+
+  (data || []).forEach(dispute => {
+    const key =
+      String(dispute.task_id || "");
+
+    if (key && !taskDisputesByTaskId[key]) {
+      taskDisputesByTaskId[key] = dispute;
+    }
+  });
+}
+
 function setLoading() {
   const jobsList = document.getElementById("jobsList");
  
@@ -1555,6 +1685,8 @@ async function loadMyJobs() {
 
       return job;
     });
+
+    await fetchDisputesForJobs(loadedJobs);
 
     updateSummary(loadedJobs);
     renderJobs();

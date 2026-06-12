@@ -1107,4 +1107,91 @@ async function loadDisputeMessages(disputeId, containerId) {
     container.innerHTML =
       "<div class='small-text'>No TaskMint responses yet.</div>";
     return;
-0
+  }
+
+  container.innerHTML = "";
+
+  data.forEach(message => {
+    container.innerHTML += `
+      <div class="support-message">
+        <div class="response-title">
+          TaskMint Support
+        </div>
+
+        <div>
+          ${escapeHTML(message.message)}
+        </div>
+
+        <div class="small-text">
+          ${new Date(message.created_at).toLocaleString()}
+        </div>
+      </div>
+    `;
+  });
+
+  await supabaseClient
+    .from("dispute_messages")
+    .update({ is_read: true })
+    .eq("dispute_id", disputeId)
+    .in("visible_to", ["worker"])
+    .neq("sender_type", "worker");
+
+  unreadDisputeIds.delete(String(disputeId));
+}
+
+async function sendWorkerReply(disputeId) {
+  const input = document.getElementById(`reply-${disputeId}`);
+  const status = document.getElementById(`replyStatus-${disputeId}`);
+
+  if (!input) return;
+
+  const message = input.value.trim();
+
+  if (!message) {
+    alert("Enter a message.");
+    return;
+  }
+
+  if (containsBlockedWords(message)) {
+    alert("Please remove inappropriate language.");
+    return;
+  }
+
+  if (status) {
+    status.style.color = "#666";
+    status.innerText = "Sending reply...";
+  }
+
+  const { error } = await supabaseClient
+    .from("dispute_messages")
+    .insert({
+      dispute_id: disputeId,
+      sender_type: "worker",
+      visible_to: "admin",
+      message: message
+    });
+
+  if (error) {
+    if (status) {
+      status.style.color = "#b00020";
+      status.innerText = error.message;
+    } else {
+      alert(error.message);
+    }
+
+    return;
+  }
+
+  input.value = "";
+
+  if (status) {
+    status.style.color = "#0b7a28";
+    status.innerText = "Reply sent to TaskMint support.";
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>

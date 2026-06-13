@@ -241,6 +241,17 @@
       display: block;
     }
 
+    .government-id-image {
+      width: 100%;
+      max-height: 260px;
+      object-fit: contain;
+      background: white;
+      border: 1px solid #dfece3;
+      border-radius: 14px;
+      margin-top: 8px;
+      display: block;
+    }
+
     .action-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -466,6 +477,96 @@ function renderDocs(docs) {
   return html;
 }
 
+function getWorkerAddress(profile) {
+  const street =
+    profile.worker_address ||
+    profile.address ||
+    profile.street_address ||
+    "";
+
+  const city =
+    profile.worker_city ||
+    profile.city ||
+    "";
+
+  const state =
+    profile.worker_state ||
+    profile.state ||
+    "";
+
+  const zip =
+    profile.worker_zip ||
+    profile.zip_code ||
+    profile.zipcode ||
+    profile.zip ||
+    "";
+
+  const lineOne =
+    String(street || "").trim();
+
+  const lineTwo =
+    [city, state, zip]
+      .filter(hasValue)
+      .join(" ")
+      .trim();
+
+  if (lineOne && lineTwo) {
+    return `${lineOne}<br>${lineTwo}`;
+  }
+
+  return lineOne || lineTwo || "Not listed";
+}
+
+function formatAdminDate(value) {
+  if (!value) {
+    return "Not listed";
+  }
+
+  const date =
+    new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString();
+}
+
+function getGovernmentIdPreview(profile) {
+  const url =
+    profile.government_id_url ||
+    profile.government_id_photo_url ||
+    profile.id_document_url ||
+    "";
+
+  if (!url) {
+    return "Not uploaded";
+  }
+
+  const lower =
+    String(url).toLowerCase();
+
+  if (lower.includes(".pdf")) {
+    return `
+      <div class="doc-links">
+        <a href="${url}" target="_blank">
+          Open Government ID
+        </a>
+      </div>
+    `;
+  }
+
+  return `
+    <a href="${url}" target="_blank">
+      <img
+        src="${url}"
+        class="government-id-image"
+        alt="Government ID"
+      >
+    </a>
+  `;
+}
+
 async function loadWorkers() {
   setPageMessage("Loading workers...", "#0b7a28");
 
@@ -574,6 +675,26 @@ async function loadWorkers() {
 
         <div class="details">
           <div class="detail-box">
+            <strong>Address:</strong><br>
+            ${getWorkerAddress(worker)}
+          </div>
+
+          <div class="detail-box">
+            <strong>Birthday:</strong><br>
+            ${formatAdminDate(worker.birthday)}
+          </div>
+
+          <div class="detail-box">
+            <strong>Sign Up Date:</strong><br>
+            ${formatAdminDate(worker.created_at)}
+          </div>
+
+          <div class="detail-box">
+            <strong>Government ID Upload:</strong><br>
+            ${getGovernmentIdPreview(worker)}
+          </div>
+
+          <div class="detail-box">
             <strong>Experience:</strong><br>
             ${worker.experience || "Not listed"}
           </div>
@@ -646,6 +767,78 @@ async function loadWorkers() {
   }
 }
 
+async function getWorkerEmailInfo(workerId) {
+  const { data, error } =
+    await supabaseClient
+      .from("profiles")
+      .select("email, first_name, full_name, worker_denial_reason, denial_reason, taskmint_denial_note")
+      .eq("id", workerId)
+      .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data;
+}
+
+function getFirstNameForEmail(worker) {
+  if (!worker) {
+    return "";
+  }
+
+  if (worker.first_name) {
+    return worker.first_name;
+  }
+
+  if (worker.full_name) {
+    return String(worker.full_name).trim().split(" ")[0] || "";
+  }
+
+  return "";
+}
+
+async function sendWorkerApprovedEmail(workerId) {
+  const worker =
+    await getWorkerEmailInfo(workerId);
+
+  if (!worker || !worker.email) {
+    return;
+  }
+
+  await fetch("https://dbcthtjmtlumidpbucrc.supabase.co/functions/v1/send-worker-approved-email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      email: worker.email,
+      first_name: getFirstNameForEmail(worker)
+    })
+  });
+}
+
+async function sendWorkerDeniedEmail(workerId, note) {
+  const worker =
+    await getWorkerEmailInfo(workerId);
+
+  if (!worker || !worker.email) {
+    return;
+  }
+
+  await fetch("https://dbcthtjmtlumidpbucrc.supabase.co/functions/v1/send-worker-denied-email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      email: worker.email,
+      first_name: getFirstNameForEmail(worker),
+      reason: note
+    })
+  });
+}
+
 async function approveWorker(workerId) {
   if (!workerId) {
     return;
@@ -682,6 +875,8 @@ async function approveWorker(workerId) {
       reviewed_at: new Date().toISOString()
     })
     .eq("worker_id", workerId);
+
+  await sendWorkerApprovedEmail(workerId);
 
   setPageMessage("Worker approved. Quote access is unlocked.", "green");
 
@@ -737,6 +932,8 @@ async function denyWorker(workerId) {
       reviewed_at: new Date().toISOString()
     })
     .eq("worker_id", workerId);
+
+  await sendWorkerDeniedEmail(workerId, note);
 
   setPageMessage("Worker denied. The denial note is saved for the worker.", "green");
 

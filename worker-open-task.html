@@ -370,6 +370,51 @@
       font-weight: 800;
     }
 
+    .flexible-date-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .flexible-date-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .flexible-date-help {
+      font-size: 11.5px;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-bottom: 9px;
+      font-weight: 700;
+    }
+
+    .flexible-date-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 10px;
+      margin-top: 8px;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .flexible-date-option input {
+      width: auto;
+      margin: 0;
+      accent-color: var(--accent);
+      box-shadow: none;
+    }
+
     .button-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -756,6 +801,84 @@ function getRequestClass(task) {
   return task.request_type === "direct_quote" || task.is_direct_request
     ? "direct"
     : "";
+}
+
+function getFlexibleDateOptions(task) {
+  const details =
+    task && task.task_details && typeof task.task_details === "object"
+      ? task.task_details
+      : {};
+
+  return [
+    details.flexible_date_1 || task.flexible_date_1 || "",
+    details.flexible_date_2 || task.flexible_date_2 || "",
+    details.flexible_date_3 || task.flexible_date_3 || ""
+  ]
+    .map(value => String(value || "").trim())
+    .filter(value => value !== "");
+}
+
+function isFlexibleDateTask(task) {
+  const details =
+    task && task.task_details && typeof task.task_details === "object"
+      ? task.task_details
+      : {};
+
+  return (
+    task.date_flexible === true ||
+    String(task.date_needed || "").toLowerCase() === "flexible" ||
+    String(details.date_flexible || "").toLowerCase() === "yes"
+  );
+}
+
+function renderFlexibleDateOptions(task, alreadyQuoted) {
+  if (!isFlexibleDateTask(task)) {
+    return "";
+  }
+
+  const dates =
+    getFlexibleDateOptions(task);
+
+  if (dates.length === 0) {
+    return "";
+  }
+
+  const groupName =
+    `quoteDate-${getTaskUniqueId(task)}`;
+
+  return `
+    <div class="flexible-date-box">
+      <div class="flexible-date-title">
+        Flexible Date Options
+      </div>
+
+      <div class="flexible-date-help">
+        Choose the date that works best for you before sending your quote.
+      </div>
+
+      ${dates.map((dateValue, index) => `
+        <label class="flexible-date-option">
+          <input
+            type="radio"
+            name="${escapeHTML(groupName)}"
+            value="${escapeHTML(dateValue)}"
+            ${alreadyQuoted ? "disabled" : ""}
+          >
+          Option ${index + 1}: ${escapeHTML(formatDate(dateValue))}
+        </label>
+      `).join("")}
+    </div>
+  `;
+}
+
+function getSelectedFlexibleQuoteDate(taskId, sourceType) {
+  const selector =
+    `input[name="quoteDate-${sourceType}-${taskId}"]:checked`;
+
+  const selected =
+    document.querySelector(selector);
+
+  return selected ? selected.value : "";
 }
 
 function getTaskUniqueId(task) {
@@ -1480,6 +1603,8 @@ async function loadTasks() {
           }
         </div>
 
+        ${renderFlexibleDateOptions(task, alreadyQuoted)}
+
         ${
           alreadyQuoted
             ? `
@@ -1503,7 +1628,7 @@ async function loadTasks() {
                   </button>
                 `
               : `
-                  <button onclick="sendQuote('${task.id}', '${task.source_type}')">
+                  <button onclick="sendQuote('${task.id}', '${task.source_type}', ${isFlexibleDateTask(task) ? "true" : "false"})">
                     Send Quote
                   </button>
                 `
@@ -1533,7 +1658,7 @@ function viewTask(taskId) {
   window.location.href = "job-details.html";
 }
 
-async function sendQuote(taskId, sourceType = "public_task") {
+async function sendQuote(taskId, sourceType = "public_task", requiresFlexibleDate = false) {
   if (!currentUser) {
     const loaded = await loadCurrentWorker();
 
@@ -1545,6 +1670,20 @@ async function sendQuote(taskId, sourceType = "public_task") {
   if (!isWorkerApprovedForQuotes()) {
     alert("Your worker profile is pending TaskMint approval. You can send quotes after TaskMint approves your account.");
     return;
+  }
+
+  if (requiresFlexibleDate) {
+    const selectedFlexibleDate =
+      getSelectedFlexibleQuoteDate(taskId, sourceType);
+
+    if (!selectedFlexibleDate) {
+      alert("Select one of the customer's flexible dates before sending a quote.");
+      return;
+    }
+
+    localStorage.setItem("selectedQuoteFlexibleDate", selectedFlexibleDate);
+  } else {
+    localStorage.removeItem("selectedQuoteFlexibleDate");
   }
 
   localStorage.setItem("selectedQuoteTaskId", taskId);

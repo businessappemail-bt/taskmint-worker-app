@@ -733,6 +733,39 @@ function getQuoteAmount(quote) {
   return Number(quote?.quote_amount || quote?.amount || quote?.price || 0);
 }
 
+function getDirectRequestCalendarJob(request) {
+  return {
+    quote: {
+      status: request.status || "accepted",
+      quote_amount:
+        request.quote_amount ||
+        request.amount ||
+        request.price ||
+        request.accepted_amount ||
+        0
+    },
+    task: {
+      ...request,
+      source_type: "direct_quote",
+      is_direct_request: true,
+      task_date:
+        request.task_date ||
+        request.scheduled_date ||
+        request.date_needed ||
+        "",
+      task_time:
+        request.task_time ||
+        request.scheduled_time ||
+        request.time_needed ||
+        "",
+      payment_status:
+        request.payment_status ||
+        request.escrow_status ||
+        "Not listed"
+    }
+  };
+}
+
 function formatMoney(value) {
   const numberValue = Number(value || 0);
   if (Number.isNaN(numberValue)) return "$0.00";
@@ -823,6 +856,27 @@ async function fetchScheduledTasks() {
   return data || [];
 }
 
+async function fetchAcceptedDirectRequests() {
+  const { data, error } =
+    await supabaseClient
+      .from("direct_task_requests")
+      .select("*")
+      .in("worker_id", currentWorkerIds)
+      .in("status", [
+        "accepted",
+        "scheduled",
+        "in_progress",
+        "worker_completed",
+        "completed",
+        "paid"
+      ])
+      .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return data || [];
+}
+
 async function fetchTasksForQuotes(quotes) {
   const taskIds = [...new Set(quotes.map(quote => quote.task_id).filter(Boolean))];
 
@@ -857,6 +911,7 @@ async function loadCalendarJobs() {
     const quotes = await fetchAcceptedQuotes();
     const taskMap = await fetchTasksForQuotes(quotes);
     const scheduledTasks = await fetchScheduledTasks();
+    const directRequests = await fetchAcceptedDirectRequests();
 
     const quoteJobs =
       quotes
@@ -894,8 +949,12 @@ async function loadCalendarJobs() {
           };
         });
 
+    const directRequestJobs =
+      directRequests
+        .map(request => getDirectRequestCalendarJob(request));
+
     loadedJobs =
-      [...quoteJobs, ...taskJobs];
+      [...quoteJobs, ...taskJobs, ...directRequestJobs];
 
     renderCalendar();
     renderSelectedJobs();

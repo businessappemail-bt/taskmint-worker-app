@@ -2706,10 +2706,19 @@ async function sendMessage() {
       return;
     }
 
+    const { data: currentConversationData } =
+      await supabaseClient
+        .from("task_conversations")
+        .select("customer_unread_count")
+        .eq("id", currentConversationId)
+        .maybeSingle();
+
     await supabaseClient
       .from("task_conversations")
       .update({
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        customer_unread_count:
+          Number(currentConversationData?.customer_unread_count || 0) + 1
       })
       .eq("id", currentConversationId);
 

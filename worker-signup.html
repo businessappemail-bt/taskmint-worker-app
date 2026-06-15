@@ -648,6 +648,29 @@
 
   </label>
 
+  <label
+    class="terms-check"
+    style="margin-top:12px;">
+
+    <input
+      type="checkbox"
+      id="agreeWorkerAcknowledgement"
+      disabled>
+
+    <span>
+      I have read and agree to the
+
+      <a
+        href="worker-acknowledgement.html"
+        onclick="openWorkerAcknowledgement(event)">
+
+        Worker Acknowledgement
+
+      </a>.
+    </span>
+
+  </label>
+
 </div>
     <button id="signupButton" onclick="createWorkerAccount()">
       Create Worker Account
@@ -670,6 +693,38 @@ const supabaseClient = window.supabase.createClient(
   "https://dbcthtjmtlumidpbucrc.supabase.co",
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
+
+function openWorkerAcknowledgement(event) {
+  event.preventDefault();
+
+  localStorage.removeItem("workerAcknowledgementAccepted");
+
+  window.open(
+    "worker-acknowledgement.html",
+    "workerAcknowledgement",
+    "width=900,height=800"
+  );
+}
+
+function syncWorkerAcknowledgementAcceptance() {
+  const acknowledgementCheckbox =
+    document.getElementById("agreeWorkerAcknowledgement");
+
+  if (!acknowledgementCheckbox) {
+    return;
+  }
+
+  if (
+    localStorage.getItem("workerAcknowledgementAccepted") === "true"
+  ) {
+    acknowledgementCheckbox.checked = true;
+  } else {
+    acknowledgementCheckbox.checked = false;
+  }
+}
+
+window.addEventListener("load", syncWorkerAcknowledgementAcceptance);
+window.addEventListener("focus", syncWorkerAcknowledgementAcceptance);
 
 function togglePassword() {
   const passwordInput =
@@ -710,6 +765,8 @@ async function createWorkerAccount() {
   const governmentIdFile = document.getElementById("governmentId").files[0];
   const agreeTerms = document.getElementById("agreeTerms").checked;
   const agreeIndependent = document.getElementById("agreeIndependent").checked;
+  const agreeWorkerAcknowledgement =
+    document.getElementById("agreeWorkerAcknowledgement").checked;
 
   if (
     !firstName ||
@@ -726,7 +783,8 @@ async function createWorkerAccount() {
     !ssnLast4 ||
     !governmentIdFile ||
     !agreeTerms ||
-    !agreeIndependent
+    !agreeIndependent ||
+    !agreeWorkerAcknowledgement
   ) {
     status.className = "error";
     status.innerText =
@@ -836,6 +894,8 @@ worker_zip: zipCode,
         worker_privacy_accepted: true,
         worker_privacy_accepted_at: new Date().toISOString(),
         independent_contractor_acknowledged: true,
+        worker_acknowledgement_accepted: true,
+        worker_acknowledgement_accepted_at: new Date().toISOString(),
         worker_terms_accepted_at: new Date().toISOString()
       });
 
@@ -868,7 +928,9 @@ worker_zip: zipCode,
         experience_details: experienceDetails,
         phone_verified: false,
         email_verified: false,
-        is_approved: false
+        is_approved: false,
+        worker_acknowledgement_accepted: true,
+        worker_acknowledgement_accepted_at: new Date().toISOString()
       });
 
   if (workerError) {
@@ -894,6 +956,7 @@ worker_zip: zipCode,
 
   localStorage.setItem("taskmintUserId", authUser.id);
   localStorage.setItem("taskmintWorkerEmail", email);
+  localStorage.removeItem("workerAcknowledgementAccepted");
 
   status.className = "success";
   status.innerText =

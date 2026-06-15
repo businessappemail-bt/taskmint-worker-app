@@ -673,12 +673,32 @@ function isSameDay(dateOne, dateTwo) {
   );
 }
  
-function getTaskDate(task) {
+function getTaskDate(task, quote = null) {
+  const selectedFlexibleDate =
+    quote &&
+    (
+      quote.selected_flexible_date ||
+      quote.flexible_date_selected ||
+      quote.worker_selected_date ||
+      quote.proposed_date ||
+      quote.selected_date ||
+      quote.scheduled_date
+    );
+
+  if (
+    selectedFlexibleDate !== null &&
+    selectedFlexibleDate !== undefined &&
+    String(selectedFlexibleDate).trim() !== ""
+  ) {
+    return String(selectedFlexibleDate).trim().slice(0, 10);
+  }
+
   if (
     task &&
     task.task_date !== null &&
     task.task_date !== undefined &&
-    String(task.task_date).trim() !== ""
+    String(task.task_date).trim() !== "" &&
+    String(task.task_date).trim() !== "Flexible"
   ) {
     return String(task.task_date).trim().slice(0, 10);
   }
@@ -702,7 +722,52 @@ function getTaskTitle(task) {
   ], "Untitled Job");
 }
  
-function getTaskDetails(task) {
+function removeHiddenAddressDetails(textValue) {
+  const text =
+    cleanText(textValue, "");
+
+  if (!text) {
+    return "";
+  }
+
+  return text
+    .split("\n")
+    .filter(line => {
+      const lowered =
+        String(line || "").toLowerCase().trim();
+
+      return !(
+        lowered.startsWith("task address:") ||
+        lowered.startsWith("address:") ||
+        lowered.startsWith("street address:") ||
+        lowered.startsWith("full address:") ||
+        lowered.startsWith("location address:") ||
+        lowered.startsWith("unit:") ||
+        lowered.startsWith("apt:") ||
+        lowered.startsWith("apartment:") ||
+        lowered.startsWith("suite:") ||
+        lowered.startsWith("drop-off address:") ||
+        lowered.startsWith("dropoff address:") ||
+        lowered.startsWith("drop off address:") ||
+        lowered.startsWith("drop-off unit:") ||
+        lowered.startsWith("dropoff unit:") ||
+        lowered.startsWith("drop off unit:") ||
+        lowered.startsWith("drop-off city:") ||
+        lowered.startsWith("dropoff city:") ||
+        lowered.startsWith("drop off city:") ||
+        lowered.startsWith("drop-off state:") ||
+        lowered.startsWith("dropoff state:") ||
+        lowered.startsWith("drop off state:") ||
+        lowered.startsWith("drop-off zip:") ||
+        lowered.startsWith("dropoff zip:") ||
+        lowered.startsWith("drop off zip:")
+      );
+    })
+    .join("\n")
+    .trim();
+}
+
+function getTaskDetails(task, quote = null) {
   const detailKeys = [
     "description",
     "details",
@@ -737,6 +802,25 @@ function getTaskDetails(task) {
     const detailLines =
       Object.entries(detailsValue)
         .filter(([key, value]) => {
+          const loweredKey =
+            String(key || "").toLowerCase();
+
+          if (
+            !canShowFullAddress(task, quote) &&
+            (
+              loweredKey.includes("address") ||
+              loweredKey.includes("unit") ||
+              loweredKey.includes("apt") ||
+              loweredKey.includes("apartment") ||
+              loweredKey.includes("suite") ||
+              loweredKey.includes("dropoff") ||
+              loweredKey.includes("drop_off") ||
+              loweredKey.includes("drop-off")
+            )
+          ) {
+            return false;
+          }
+
           return (
             value !== null &&
             value !== undefined &&
@@ -763,16 +847,25 @@ function getTaskDetails(task) {
   }
 
   if (Array.isArray(detailsValue)) {
-    return detailsValue
-      .filter(Boolean)
-      .join("\n") ||
-      "No additional task details were provided.";
+    const joinedDetails =
+      detailsValue
+        .filter(Boolean)
+        .join("\n");
+
+    return canShowFullAddress(task, quote)
+      ? joinedDetails || "No additional task details were provided."
+      : removeHiddenAddressDetails(joinedDetails) || "No additional task details were provided.";
   }
 
-  return cleanText(
-    detailsValue,
-    "No additional task details were provided."
-  );
+  const cleanedDetails =
+    cleanText(
+      detailsValue,
+      "No additional task details were provided."
+    );
+
+  return canShowFullAddress(task, quote)
+    ? cleanedDetails
+    : removeHiddenAddressDetails(cleanedDetails) || "No additional task details were provided.";
 }
  
 function getTaskCategory(task) {
@@ -916,7 +1009,7 @@ function getCustomerPhoto(profile) {
 }
  
 function getDaysUntil(task) {
-  const taskDate = getDateObject(getTaskDate(task));
+  const taskDate = getDateObject(getTaskDate(task, quote));
  
   if (!taskDate) {
     return null;
@@ -1386,7 +1479,7 @@ function updateSummary(jobs) {
   const today = new Date();
  
   const todayJobs = jobs.filter(job => {
-    const taskDate = getDateObject(getTaskDate(job.task));
+    const taskDate = getDateObject(getTaskDate(job.task, job.quote));
     return taskDate && isSameDay(taskDate, today);
   }).length;
  
@@ -1712,7 +1805,7 @@ function jobMatchesFilters(job) {
     return true;
   }
  
-  const taskDate = getDateObject(getTaskDate(job.task));
+  const taskDate = getDateObject(getTaskDate(job.task, job.quote));
  
   if (!taskDate) {
     return false;
@@ -1758,7 +1851,7 @@ function renderJobs() {
     const customerName = getCustomerDisplayName(job.customerProfile, customerFallbackName);
     const customerPhoto = getCustomerPhoto(job.customerProfile);
     const status = assignment && assignment.arrival_verified === true ? "in_progress" : quote.status;
-    const taskDate = formatDate(getTaskDate(task));
+    const taskDate = formatDate(getTaskDate(task, quote));
     const countdown = getCountdownText(task);
     const quoteAmount = quote.quote_amount || quote.amount || "0";
  
@@ -1813,7 +1906,7 @@ function renderJobs() {
       </span>
  
       <div class="details-box" id="details-${task.id}">
-        ${escapeHTML(getTaskDetails(task))}
+        ${escapeHTML(getTaskDetails(task, quote))}
       </div>
  
       <div class="button-grid">

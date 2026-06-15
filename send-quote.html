@@ -446,6 +446,50 @@ function preventNegative(input) {
   }
 }
 
+function removeHiddenAddressDetails(textValue) {
+  const text =
+    String(textValue || "");
+
+  if (!text) {
+    return "";
+  }
+
+  return text
+    .split("\n")
+    .filter(line => {
+      const lowered =
+        String(line || "").toLowerCase().trim();
+
+      return !(
+        lowered.startsWith("task address:") ||
+        lowered.startsWith("address:") ||
+        lowered.startsWith("street address:") ||
+        lowered.startsWith("full address:") ||
+        lowered.startsWith("unit:") ||
+        lowered.startsWith("apt:") ||
+        lowered.startsWith("apartment:") ||
+        lowered.startsWith("suite:") ||
+        lowered.startsWith("drop-off address:") ||
+        lowered.startsWith("dropoff address:") ||
+        lowered.startsWith("drop off address:") ||
+        lowered.startsWith("drop-off unit:") ||
+        lowered.startsWith("dropoff unit:") ||
+        lowered.startsWith("drop off unit:") ||
+        lowered.startsWith("drop-off city:") ||
+        lowered.startsWith("dropoff city:") ||
+        lowered.startsWith("drop off city:") ||
+        lowered.startsWith("drop-off state:") ||
+        lowered.startsWith("dropoff state:") ||
+        lowered.startsWith("drop off state:") ||
+        lowered.startsWith("drop-off zip:") ||
+        lowered.startsWith("dropoff zip:") ||
+        lowered.startsWith("drop off zip:")
+      );
+    })
+    .join("\n")
+    .trim();
+}
+
 async function getCurrentWorkerUser() {
   const { data } =
     await supabaseClient.auth.getSession();
@@ -661,12 +705,11 @@ async function loadTask() {
     task.title || task.category || "Task";
 
   document.getElementById("taskDescription").innerText =
-    task.description || task.additional_notes || "";
+    removeHiddenAddressDetails(task.description || task.additional_notes || "");
 
   document.getElementById("taskLocation").innerText =
     [task.city, task.state].filter(Boolean).join(", ") ||
-    task.location ||
-    "Not specified";
+    "Location hidden until customer accepts your quote.";
 
   document.getElementById("taskDate").innerText =
     task.date_flexible

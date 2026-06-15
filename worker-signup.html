@@ -694,16 +694,88 @@ const supabaseClient = window.supabase.createClient(
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
 
+function saveWorkerSignupDraft() {
+  const draft = {
+    firstName: document.getElementById("firstName").value,
+    lastName: document.getElementById("lastName").value,
+    email: document.getElementById("email").value,
+    password: document.getElementById("password").value,
+    phone: document.getElementById("phone").value,
+    address: document.getElementById("address").value,
+    city: document.getElementById("city").value,
+    state: document.getElementById("state").value,
+    zipCode: document.getElementById("zipCode").value,
+    birthday: document.getElementById("birthday").value,
+    gender: document.getElementById("gender").value,
+    ssnLast4: document.getElementById("ssnLast4").value,
+    experienceDetails: document.getElementById("experienceDetails").value,
+    agreeTerms: document.getElementById("agreeTerms").checked,
+    agreeIndependent: document.getElementById("agreeIndependent").checked
+  };
+
+  sessionStorage.setItem(
+    "workerSignupDraft",
+    JSON.stringify(draft)
+  );
+}
+
+function restoreWorkerSignupDraft() {
+  const savedDraft =
+    sessionStorage.getItem("workerSignupDraft");
+
+  if (!savedDraft) {
+    return;
+  }
+
+  try {
+    const draft =
+      JSON.parse(savedDraft);
+
+    Object.keys(draft).forEach(key => {
+      const field =
+        document.getElementById(key);
+
+      if (!field) {
+        return;
+      }
+
+      if (field.type === "checkbox") {
+        field.checked = Boolean(draft[key]);
+        return;
+      }
+
+      field.value = draft[key] || "";
+    });
+  } catch (error) {
+    sessionStorage.removeItem("workerSignupDraft");
+  }
+}
+
 function openWorkerAcknowledgement(event) {
   event.preventDefault();
 
-  localStorage.removeItem("workerAcknowledgementAccepted");
+  saveWorkerSignupDraft();
 
-  window.open(
-    "worker-acknowledgement.html",
-    "workerAcknowledgement",
-    "width=900,height=800"
+  localStorage.setItem(
+    "workerAcknowledgementOpened",
+    "true"
   );
+
+  localStorage.removeItem(
+    "workerAcknowledgementAccepted"
+  );
+
+  const acknowledgementWindow =
+    window.open(
+      "worker-acknowledgement.html",
+      "workerAcknowledgement",
+      "width=900,height=800"
+    );
+
+  if (!acknowledgementWindow) {
+    window.location.href =
+      "worker-acknowledgement.html";
+  }
 }
 
 function syncWorkerAcknowledgementAcceptance() {
@@ -715,6 +787,7 @@ function syncWorkerAcknowledgementAcceptance() {
   }
 
   if (
+    localStorage.getItem("workerAcknowledgementOpened") === "true" &&
     localStorage.getItem("workerAcknowledgementAccepted") === "true"
   ) {
     acknowledgementCheckbox.checked = true;
@@ -723,8 +796,58 @@ function syncWorkerAcknowledgementAcceptance() {
   }
 }
 
-window.addEventListener("load", syncWorkerAcknowledgementAcceptance);
-window.addEventListener("focus", syncWorkerAcknowledgementAcceptance);
+window.addEventListener("message", function(event) {
+  if (!event || !event.data) {
+    return;
+  }
+
+  if (event.data === "workerAcknowledgementAccepted") {
+    localStorage.setItem(
+      "workerAcknowledgementOpened",
+      "true"
+    );
+
+    localStorage.setItem(
+      "workerAcknowledgementAccepted",
+      "true"
+    );
+
+    restoreWorkerSignupDraft();
+    syncWorkerAcknowledgementAcceptance();
+  }
+});
+
+window.addEventListener("load", function() {
+  restoreWorkerSignupDraft();
+
+  const params =
+    new URLSearchParams(window.location.search);
+
+  if (params.get("worker_ack") === "accepted") {
+    localStorage.setItem(
+      "workerAcknowledgementOpened",
+      "true"
+    );
+
+    localStorage.setItem(
+      "workerAcknowledgementAccepted",
+      "true"
+    );
+
+    window.history.replaceState(
+      {},
+      document.title,
+      window.location.pathname
+    );
+  }
+
+  syncWorkerAcknowledgementAcceptance();
+});
+
+window.addEventListener("focus", function() {
+  restoreWorkerSignupDraft();
+  syncWorkerAcknowledgementAcceptance();
+});
 
 function togglePassword() {
   const passwordInput =
@@ -768,6 +891,12 @@ async function createWorkerAccount() {
   const agreeWorkerAcknowledgement =
     document.getElementById("agreeWorkerAcknowledgement").checked;
 
+  const workerAcknowledgementOpened =
+    localStorage.getItem("workerAcknowledgementOpened") === "true";
+
+  const workerAcknowledgementAccepted =
+    localStorage.getItem("workerAcknowledgementAccepted") === "true";
+
   if (
     !firstName ||
     !lastName ||
@@ -784,7 +913,9 @@ async function createWorkerAccount() {
     !governmentIdFile ||
     !agreeTerms ||
     !agreeIndependent ||
-    !agreeWorkerAcknowledgement
+    !agreeWorkerAcknowledgement ||
+    !workerAcknowledgementOpened ||
+    !workerAcknowledgementAccepted
   ) {
     status.className = "error";
     status.innerText =
@@ -957,6 +1088,8 @@ worker_zip: zipCode,
   localStorage.setItem("taskmintUserId", authUser.id);
   localStorage.setItem("taskmintWorkerEmail", email);
   localStorage.removeItem("workerAcknowledgementAccepted");
+  localStorage.removeItem("workerAcknowledgementOpened");
+  sessionStorage.removeItem("workerSignupDraft");
 
   status.className = "success";
   status.innerText =

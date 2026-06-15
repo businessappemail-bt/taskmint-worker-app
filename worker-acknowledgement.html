@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Worker Acknowledgement - TaskMint</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#f5f7f6;color:#111;padding:20px}
+.container{max-width:820px;margin:auto}
+.card{background:#fff;border-radius:22px;padding:30px;border:1px solid #e2ebe5;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.logo{text-align:center;margin-bottom:20px}
+.logo img{max-width:220px;width:100%;height:auto}
+h1{font-size:32px;color:#0b7a28;text-align:center;margin-bottom:10px}
+.subtitle{text-align:center;color:#666;margin-bottom:25px;line-height:1.5}
+.notice{background:#fff9e8;border-left:5px solid #f0b400;padding:15px;border-radius:12px;margin-bottom:25px;font-weight:800;line-height:1.6}
+.section{margin-bottom:28px}
+.section h2{font-size:20px;color:#0b7a28;margin-bottom:10px}
+.section p,.section li{font-size:15px;line-height:1.8;color:#222}
+ul{padding-left:22px}
+.bottom-box{margin-top:35px;padding-top:24px;border-top:1px solid #ddd}
+button{width:100%;padding:16px;border:none;border-radius:13px;font-size:16px;font-weight:800;cursor:pointer;margin-top:12px}
+#acceptBtn{background:#0b7a28;color:white;opacity:.4;cursor:not-allowed}
+#acceptBtn.enabled{opacity:1;cursor:pointer}
+#declineBtn{background:#b00020;color:white}
+.progress{position:fixed;top:0;left:0;height:6px;background:#0b7a28;width:0%;z-index:9999}
+.footer{text-align:center;margin-top:25px;color:#777;font-size:13px}
+</style>
+</head>
+
+<body>
+
+<div class="progress" id="progressBar"></div>
+
+<div class="container">
+<div class="card">
+
+<div class="logo">
+<img src="taskmintlogo-transparent.png" alt="TaskMint">
+</div>
+
+<h1>TaskMint Worker Acknowledgement Agreement</h1>
+
+<div class="subtitle">
+Before using TaskMint to send quotes, accept tasks, or perform services, you must read and agree to this Worker Acknowledgement.
+</div>
+
+<div class="notice">
+By selecting “I Have Read and Accept,” you acknowledge that you understand and agree to the expectations, fees, payout rules, tax responsibilities, safety guidelines, and platform policies listed below.
+</div>
+
+<div class="section">
+<h2>1. Independent Contractor Status</h2>
+<p>
+I understand that I am an independent contractor and not an employee, partner, agent, or representative of TaskMint.
+</p>
+<p>
+I am solely responsible for my own work performance, tools, equipment, transportation, business decisions, and any licenses, permits, or certifications required for the services I provide.
+</p>
+</div>
+
+<div class="section">
+<h2>2. Off-Platform Payments Are Prohibited</h2>
+<p>I agree that I will not:</p>
+<ul>
+<li>Request or accept payment outside of TaskMint.</li>
+<li>Encourage customers to cancel a TaskMint booking to avoid platform fees.</li>
+<li>Exchange payment information for the purpose of completing work outside the platform.</li>
+<li>Attempt to move current or future TaskMint customers off the platform.</li>
+<li>Ask customers to pay through Cash App, Venmo, Zelle, PayPal, cash, check, or any other outside payment method.</li>
+</ul>
+<p>
+Violations may result in immediate account suspension, permanent removal from TaskMint, loss of unpaid earnings when permitted by law, and additional legal action when appropriate.
+</p>
+</div>
+
+<div class="section">
+<h2>3. Platform Service Fee</h2>
+<p>
+I understand that TaskMint charges a 15% platform fee on completed tasks.
+</p>
+<p>
+The platform fee helps support payment processing, customer support, platform maintenance, safety and security systems, worker tools, customer tools, and operating costs.
+</p>
+<p>
+I understand this fee is deducted automatically from eligible payouts.
+</p>
+</div>
+
+<div class="section">
+<h2>4. Payout Information</h2>
+<p>I understand that:</p>
+<ul>
+<li>I must complete payout setup before receiving payments.</li>
+<li>Payments are processed through Stripe or another approved TaskMint payment provider.</li>
+<li>Payout timing may vary depending on banking institutions and payment providers.</li>
+<li>TaskMint may temporarily delay payouts while investigating disputes, fraud, safety concerns, policy violations, chargebacks, account issues, or legal obligations.</li>
+<li>I must keep my payout information accurate and up to date.</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>5. Taxes</h2>
+<p>
+I understand that I am responsible for my own taxes.
+</p>
+<p>I acknowledge that:</p>
+<ul>
+<li>TaskMint does not withhold federal, state, or local taxes on my behalf unless required by law.</li>
+<li>I am responsible for reporting my income.</li>
+<li>I may receive tax documentation if legally required.</li>
+<li>I should consult a qualified tax professional regarding my personal tax obligations.</li>
+<li>I am responsible for maintaining my own records of income, expenses, mileage, tools, supplies, and business-related costs.</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>6. Safety</h2>
+<p>
+I understand that my personal safety is my responsibility.
+</p>
+<p>I agree to:</p>
+<ul>
+<li>Use good judgment before accepting tasks.</li>
+<li>Leave any situation that appears dangerous or unsafe.</li>
+<li>Contact emergency services if immediate danger exists.</li>
+<li>Never enter a location where I feel threatened.</li>
+<li>Avoid carrying weapons or engaging in illegal activity while using TaskMint.</li>
+<li>Review task details before accepting work.</li>
+<li>Communicate through TaskMint whenever possible.</li>
+</ul>
+<p>
+I understand that customers and workers should conduct their own due diligence regarding safety.
+</p>
+</div>
+
+<div class="section">
+<h2>7. Professional Conduct</h2>
+<p>I agree to:</p>
+<ul>
+<li>Treat customers respectfully.</li>
+<li>Perform work honestly and professionally.</li>
+<li>Communicate through TaskMint whenever possible.</li>
+<li>Arrive on time or provide notice if delayed.</li>
+<li>Follow all applicable laws and regulations.</li>
+<li>Provide accurate quotes and task information.</li>
+<li>Complete accepted work to the best of my ability.</li>
+</ul>
+<p>I will not:</p>
+<ul>
+<li>Harass, threaten, intimidate, or abuse customers.</li>
+<li>Discriminate against customers.</li>
+<li>Submit fraudulent quotes or false information.</li>
+<li>Damage customer property intentionally.</li>
+<li>Engage in illegal activity.</li>
+<li>Use inappropriate, offensive, or threatening language.</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>8. Insurance and Liability</h2>
+<p>
+I understand that I am responsible for my own actions and conduct.
+</p>
+<p>I acknowledge that:</p>
+<ul>
+<li>TaskMint is a technology platform that connects customers and workers.</li>
+<li>TaskMint does not supervise or control how work is performed.</li>
+<li>I am responsible for obtaining any insurance coverage I believe is necessary.</li>
+<li>I may be personally responsible for damage, injury, losses, or legal claims resulting from my actions.</li>
+<li>I should not accept work that I am not qualified, prepared, or legally permitted to perform.</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>9. Account Suspension or Removal</h2>
+<p>
+TaskMint may suspend or permanently remove my account for reasons including but not limited to:
+</p>
+<ul>
+<li>Fraud.</li>
+<li>Off-platform payment attempts.</li>
+<li>Repeated cancellations.</li>
+<li>Safety violations.</li>
+<li>Harassment or abuse.</li>
+<li>Illegal activity.</li>
+<li>False documentation.</li>
+<li>Serious policy violations.</li>
+<li>Misuse of customer information.</li>
+<li>Failure to comply with TaskMint policies.</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>10. Customer and Worker Information</h2>
+<p>
+I understand that I may receive access to customer information only as necessary to complete a task.
+</p>
+<p>I agree not to:</p>
+<ul>
+<li>Sell or distribute customer information.</li>
+<li>Misuse customer contact information.</li>
+<li>Use customer information for unauthorized purposes.</li>
+<li>Contact customers outside TaskMint for unrelated reasons.</li>
+<li>Share customer addresses, phone numbers, messages, or personal details with others.</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>11. Support</h2>
+<p>
+If I experience problems, disputes, safety concerns, payment issues, or technical difficulties, I will contact TaskMint Support.
+</p>
+<p>
+<strong>TaskMint Support:</strong><br>
+support@trytaskmint.com
+</p>
+<p>
+Emergency situations should always be reported to local emergency services first.
+</p>
+</div>
+
+<div class="section">
+<h2>12. Acknowledgement</h2>
+<p>By selecting “I Have Read and Accept,” I acknowledge that:</p>
+<ul>
+<li>I have read this agreement.</li>
+<li>I understand my responsibilities.</li>
+<li>I agree to follow TaskMint policies.</li>
+<li>I understand the 15% platform fee.</li>
+<li>I understand my tax responsibilities.</li>
+<li>I understand that off-platform payments are prohibited.</li>
+<li>I understand that violations may result in suspension or permanent removal from TaskMint.</li>
+<li>I voluntarily agree to these terms as a condition of using the TaskMint platform.</li>
+</ul>
+</div>
+
+<div class="bottom-box">
+<p style="font-weight:800;text-align:center;line-height:1.5;">
+Scroll to the bottom of this page to enable the acceptance button.
+</p>
+
+<button id="acceptBtn" disabled>
+I Have Read and Accept
+</button>
+
+<button id="declineBtn">
+Decline
+</button>
+</div>
+
+<div class="footer">
+© TaskMint
+</div>
+
+</div>
+</div>
+
+<script>
+const acceptBtn = document.getElementById("acceptBtn");
+const progressBar = document.getElementById("progressBar");
+
+function checkScrollProgress() {
+  const scrollTop =
+    document.body.scrollTop || document.documentElement.scrollTop;
+
+  const scrollHeight =
+    document.documentElement.scrollHeight - document.documentElement.clientHeight;
+
+  const scrolled =
+    scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 100;
+
+  progressBar.style.width = scrolled + "%";
+
+  if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 20) {
+    acceptBtn.disabled = false;
+    acceptBtn.classList.add("enabled");
+  }
+}
+
+window.addEventListener("scroll", checkScrollProgress);
+window.addEventListener("load", checkScrollProgress);
+
+acceptBtn.addEventListener("click", function () {
+  localStorage.setItem("workerAcknowledgementAccepted", "true");
+  window.location.href = "worker-signup.html";
+});
+
+document.getElementById("declineBtn").addEventListener("click", function () {
+  localStorage.removeItem("workerAcknowledgementAccepted");
+  window.location.href = "worker-signup.html";
+});
+</script>
+
+</body>
+</html>

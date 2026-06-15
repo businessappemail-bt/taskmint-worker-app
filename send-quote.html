@@ -401,6 +401,9 @@ const supabaseClient = window.supabase.createClient(
 const selectedTaskId =
   localStorage.getItem("selectedQuoteTaskId");
 
+const selectedQuoteFlexibleDate =
+  localStorage.getItem("selectedQuoteFlexibleDate") || "";
+
 let selectedTaskCustomerId = null;
 let currentWorkerUser = null;
 let currentWorkerProfile = null;
@@ -755,7 +758,8 @@ async function submitQuote() {
     status: "pending",
     worker_display_name: workerDisplayName,
     worker_first_name: firstName,
-    worker_last_initial: lastInitial
+    worker_last_initial: lastInitial,
+    selected_flexible_date: selectedQuoteFlexibleDate || null
   };
 
   const { data: existingQuote } =
@@ -796,6 +800,8 @@ async function submitQuote() {
     showError(error.message + " | worker_id sent: " + workerProfileId);
     return;
   }
+
+  localStorage.removeItem("selectedQuoteFlexibleDate");
 
   alert("Quote submitted successfully.");
 

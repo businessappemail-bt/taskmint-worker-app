@@ -532,15 +532,9 @@ function formatAdminDate(value) {
   return date.toLocaleDateString();
 }
 
-function getGovernmentIdPreview(profile) {
-  const url =
-    profile.government_id_url ||
-    profile.government_id_photo_url ||
-    profile.id_document_url ||
-    "";
-
+function renderGovernmentIdUrl(url, label) {
   if (!url) {
-    return "Not uploaded";
+    return "";
   }
 
   const lower =
@@ -550,7 +544,7 @@ function getGovernmentIdPreview(profile) {
     return `
       <div class="doc-links">
         <a href="${url}" target="_blank">
-          Open Government ID
+          ${label}
         </a>
       </div>
     `;
@@ -561,10 +555,57 @@ function getGovernmentIdPreview(profile) {
       <img
         src="${url}"
         class="government-id-image"
-        alt="Government ID"
+        alt="${label}"
+        onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;small-note&quot;>Image preview unavailable. Open the document link below.</div><div class=&quot;doc-links&quot;><a href=&quot;${url}&quot; target=&quot;_blank&quot;>${label}</a></div>';"
       >
     </a>
   `;
+}
+
+function getGovernmentIdPreview(profile, docs) {
+  let html = "";
+
+  const profileUrl =
+    profile.government_id_url ||
+    profile.government_id_photo_url ||
+    profile.id_document_url ||
+    "";
+
+  if (profileUrl) {
+    html +=
+      renderGovernmentIdUrl(
+        profileUrl,
+        "Open Government ID"
+      );
+  }
+
+  (docs || []).forEach((doc, index) => {
+    if (doc.front_document_url) {
+      html +=
+        renderGovernmentIdUrl(
+          doc.front_document_url,
+          `Open Front ID ${index + 1}`
+        );
+    }
+
+    if (doc.back_document_url) {
+      html +=
+        renderGovernmentIdUrl(
+          doc.back_document_url,
+          `Open Back ID ${index + 1}`
+        );
+    }
+
+    if (doc.document_url) {
+      html +=
+        renderGovernmentIdUrl(
+          doc.document_url,
+          `Open Document ${index + 1}`
+        );
+    }
+  });
+
+  return html || "Not uploaded";
 }
 
 async function loadWorkers() {
@@ -691,7 +732,7 @@ async function loadWorkers() {
 
           <div class="detail-box">
             <strong>Government ID Upload:</strong><br>
-            ${getGovernmentIdPreview(worker)}
+            ${getGovernmentIdPreview(worker, docs)}
           </div>
 
           <div class="detail-box">

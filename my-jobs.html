@@ -2082,6 +2082,62 @@ async function verifyArrivalCode(taskId, quoteId) {
 }
  
 
+
+async function reportWorkerTaskIssue(taskId, quoteId, sourceType, issueType) {
+  const notes =
+    prompt("Describe the issue:");
+
+  if (notes === null) {
+    return;
+  }
+
+  const tableName =
+    sourceType === "direct_request"
+      ? "direct_task_requests"
+      : "tasks";
+
+  const updateData = {
+    issue_status: issueType,
+    issue_notes: notes,
+    updated_at: new Date().toISOString()
+  };
+
+  if (issueType === "customer_no_show") {
+    updateData.no_show_reported_by = "worker";
+    updateData.no_show_reported_at = new Date().toISOString();
+  }
+
+  if (issueType === "worker_needs_help") {
+    updateData.incomplete_work_reported_by = "worker";
+    updateData.incomplete_work_reported_at = new Date().toISOString();
+  }
+
+  const { error } =
+    await supabaseClient
+      .from(tableName)
+      .update(updateData)
+      .eq("id", taskId);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  if (quoteId) {
+    await supabaseClient
+      .from("worker_quotes")
+      .update({
+        issue_status: issueType,
+        issue_notes: notes,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", quoteId);
+  }
+
+  alert("Issue reported successfully.");
+  loadMyJobs();
+}
+
 async function markWorkerTaskComplete(taskId, quoteId) {
   const job =
     loadedJobs.find(item => item.task.id === taskId);

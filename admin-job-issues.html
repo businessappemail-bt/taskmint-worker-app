@@ -1,0 +1,2440 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Jobs - TaskMint</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+ 
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #ffffff;
+      --surface: #f2f7f4;
+      --surface2: #e6f4eb;
+      --border: #e2ebe5;
+      --accent: #0b7a28;
+      --text: #111111;
+      --muted: #6b7870;
+      --danger: #b00020;
+      --warning-bg: #fffbeb;
+      --warning-border: #f0c040;
+      --warning-text: #7a4f00;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 90px;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 470px;
+      padding: 20px 16px 30px;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      width: 100%;
+      max-width: 470px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 13px 20px;
+      margin: -20px -16px 20px;
+    }
+
+    .back,
+    .refresh-link {
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .refresh-link {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 11px;
+      font-size: 12px;
+    }
+
+    .hero {
+      background: var(--accent);
+      color: white;
+      border-radius: 22px;
+      padding: 24px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(11,122,40,0.22);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: riseIn 0.35s 0.05s forwards;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 155px;
+      height: 155px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      top: -65px;
+      right: -55px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      bottom: -45px;
+      left: -35px;
+    }
+
+    .hero-title {
+      font-size: 29px;
+      font-weight: 800;
+      margin-bottom: 7px;
+      letter-spacing: -0.5px;
+      line-height: 1.08;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-sub {
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.82);
+      position: relative;
+      z-index: 2;
+    }
+
+    .summary-card,
+    .filter-card,
+    .job-card,
+    .empty {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 15px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      opacity: 0;
+      animation: riseIn 0.35s 0.12s forwards;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .summary-box {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+
+    .summary-number {
+      color: var(--accent);
+      font-size: 22px;
+      line-height: 1;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .summary-label {
+      font-size: 10.5px;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    select,
+    input,
+    textarea {
+      width: 100%;
+      padding: 13px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      outline: none;
+      background: white;
+      color: var(--text);
+    }
+
+    select:focus,
+    input:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
+    }
+
+    .job-card {
+      background: #fff;
+    }
+
+    .job-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .job-title {
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.25;
+      color: var(--text);
+      margin-bottom: 4px;
+      letter-spacing: -0.1px;
+    }
+
+    .job-sub {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      text-transform: capitalize;
+    }
+
+    .pill.green {
+      background: var(--surface2);
+      color: var(--accent);
+    }
+
+    .pill.orange {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border: 1px solid var(--warning-border);
+    }
+
+    .pill.gray {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .customer-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 10px;
+    }
+
+    .customer-photo {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      object-fit: cover;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .customer-name {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .customer-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .job-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .info-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 11px;
+      min-height: 68px;
+    }
+
+    .info-label {
+      color: var(--accent);
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+    }
+
+    .info-value {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .details-toggle {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      margin: 8px 0;
+      display: inline-block;
+    }
+
+    .details-box {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .address-note {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      color: var(--warning-text);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .dispute-alert {
+      background: #fff2f2;
+      border: 1px solid #ffb7b7;
+      color: #8b0018;
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+
+    .arrival-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .arrival-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .arrival-text {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+
+    .verified-box {
+      background: var(--surface2);
+      border: 1px solid #bde8ca;
+      color: var(--accent);
+      border-radius: 16px;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 13px;
+      background: var(--accent);
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: opacity 0.18s, transform 0.18s, box-shadow 0.18s;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(11,122,40,0.10);
+    }
+
+    button.secondary {
+      background: white;
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+
+    button.warning {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border: 1px solid var(--warning-border);
+    }
+
+    button.cancel-task {
+      background: var(--danger);
+      color: white;
+    }
+
+    button.full {
+      grid-column: 1 / -1;
+    }
+
+    button:disabled {
+      background: #b9b9b9;
+      color: white;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .locked-input:disabled {
+      background: #f0f0f0;
+      color: var(--muted);
+      border-color: var(--border);
+      cursor: not-allowed;
+      font-weight: 800;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    .loading-spinner {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 360px) {
+      .hero-title {
+        font-size: 25px;
+      }
+
+      .filter-row,
+      .job-grid,
+      .button-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+ 
+<div class="container">
+ 
+  <div class="top-bar">
+    <a class="back" href="worker-dashboard.html">← Back</a>
+    <div class="refresh-link" onclick="loadMyJobs()">Refresh</div>
+  </div>
+ 
+  <div class="hero">
+    <div class="hero-title">My Jobs</div>
+    <div class="hero-sub">
+      Track accepted jobs, verify arrival codes, message customers, and manage active work.
+    </div>
+  </div>
+ 
+  <div class="summary-card">
+    <div class="summary-grid">
+      <div class="summary-box">
+        <div class="summary-number" id="activeCount">0</div>
+        <div class="summary-label">Active</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-number" id="todayCount">0</div>
+        <div class="summary-label">Today</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-number" id="pendingPayCount">0</div>
+        <div class="summary-label">Pending Pay</div>
+      </div>
+    </div>
+  </div>
+ 
+  <div class="filter-card">
+    <div class="filter-row">
+      <select id="statusFilter" onchange="renderJobs()">
+        <option value="">All Jobs</option>
+        <option value="accepted">Accepted</option>
+        <option value="in_progress">In Progress</option>
+        <option value="worker_completed">Worker Completed</option>
+      </select>
+ 
+      <select id="dateFilter" onchange="renderJobs()">
+        <option value="">Any Date</option>
+        <option value="today">Today</option>
+        <option value="upcoming">Upcoming</option>
+        <option value="past">Past</option>
+      </select>
+    </div>
+  </div>
+ 
+  <div id="jobsList" class="empty">
+    <div class="loading-spinner"></div>
+    Loading jobs...
+  </div>
+ 
+</div>
+ 
+<script>
+const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+);
+ 
+const DEFAULT_PROFILE_PHOTO =
+  "https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true";
+ 
+let currentUser = null;
+let currentWorkerIds = [];
+let currentWorkerId = null;
+let loadedJobs = [];
+let taskDisputesByTaskId = {};
+ 
+function cleanText(value, fallback = "Not specified") {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+ 
+  const text = String(value).trim();
+  return text === "" ? fallback : text;
+}
+ 
+function escapeHTML(value) {
+  return cleanText(value, "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+ 
+function getFirstAvailable(record, keys, fallback = "") {
+  if (!record) {
+    return fallback;
+  }
+ 
+  for (const key of keys) {
+    if (
+      record[key] !== null &&
+      record[key] !== undefined &&
+      String(record[key]).trim() !== ""
+    ) {
+      return record[key];
+    }
+  }
+ 
+  return fallback;
+}
+ 
+function parseTaskDateWithoutShift(value) {
+  if (!value) {
+    return null;
+  }
+
+  const rawValue =
+    String(value).trim();
+
+  const match =
+    rawValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+  if (match) {
+    return new Date(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3])
+    );
+  }
+
+  const date =
+    new Date(rawValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
+}
+
+function formatDate(value) {
+  const date =
+    parseTaskDateWithoutShift(value);
+
+  if (!date) {
+    return value || "Not scheduled";
+  }
+
+  return date.toLocaleDateString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+
+function getDateObject(value) {
+  return parseTaskDateWithoutShift(value);
+}
+
+function isSameDay(dateOne, dateTwo) {
+  return (
+    dateOne.getFullYear() === dateTwo.getFullYear() &&
+    dateOne.getMonth() === dateTwo.getMonth() &&
+    dateOne.getDate() === dateTwo.getDate()
+  );
+}
+ 
+function getTaskDate(task, quote = null) {
+  const selectedFlexibleDate =
+    quote &&
+    (
+      quote.selected_flexible_date ||
+      quote.flexible_date_selected ||
+      quote.worker_selected_date ||
+      quote.proposed_date ||
+      quote.selected_date ||
+      quote.scheduled_date
+    );
+
+  if (
+    selectedFlexibleDate !== null &&
+    selectedFlexibleDate !== undefined &&
+    String(selectedFlexibleDate).trim() !== ""
+  ) {
+    return String(selectedFlexibleDate).trim().slice(0, 10);
+  }
+
+  if (
+    task &&
+    task.task_date !== null &&
+    task.task_date !== undefined &&
+    String(task.task_date).trim() !== "" &&
+    String(task.task_date).trim() !== "Flexible"
+  ) {
+    return String(task.task_date).trim().slice(0, 10);
+  }
+
+  return getFirstAvailable(task, [
+    "date_needed",
+    "needed_by",
+    "scheduled_date",
+    "scheduled_start",
+    "due_date"
+  ], "");
+}
+ 
+function getTaskTitle(task) {
+  return getFirstAvailable(task, [
+    "title",
+    "task_title",
+    "job_title",
+    "category",
+    "service_type"
+  ], "Untitled Job");
+}
+ 
+function removeHiddenAddressDetails(textValue) {
+  const text =
+    cleanText(textValue, "");
+
+  if (!text) {
+    return "";
+  }
+
+  return text
+    .split("\n")
+    .filter(line => {
+      const lowered =
+        String(line || "").toLowerCase().trim();
+
+      return !(
+        lowered.startsWith("task address:") ||
+        lowered.startsWith("address:") ||
+        lowered.startsWith("street address:") ||
+        lowered.startsWith("full address:") ||
+        lowered.startsWith("location address:") ||
+        lowered.startsWith("unit:") ||
+        lowered.startsWith("apt:") ||
+        lowered.startsWith("apartment:") ||
+        lowered.startsWith("suite:") ||
+        lowered.startsWith("drop-off address:") ||
+        lowered.startsWith("dropoff address:") ||
+        lowered.startsWith("drop off address:") ||
+        lowered.startsWith("drop-off unit:") ||
+        lowered.startsWith("dropoff unit:") ||
+        lowered.startsWith("drop off unit:") ||
+        lowered.startsWith("drop-off city:") ||
+        lowered.startsWith("dropoff city:") ||
+        lowered.startsWith("drop off city:") ||
+        lowered.startsWith("drop-off state:") ||
+        lowered.startsWith("dropoff state:") ||
+        lowered.startsWith("drop off state:") ||
+        lowered.startsWith("drop-off zip:") ||
+        lowered.startsWith("dropoff zip:") ||
+        lowered.startsWith("drop off zip:")
+      );
+    })
+    .join("\n")
+    .trim();
+}
+
+function getTaskDetails(task, quote = null) {
+  const detailKeys = [
+    "description",
+    "details",
+    "task_details",
+    "notes",
+    "special_instructions"
+  ];
+
+  let detailsValue = "";
+
+  for (const key of detailKeys) {
+    if (
+      task &&
+      task[key] !== null &&
+      task[key] !== undefined &&
+      (
+        typeof task[key] === "object" ||
+        String(task[key]).trim() !== ""
+      )
+    ) {
+      detailsValue =
+        task[key];
+      break;
+    }
+  }
+
+  if (
+    detailsValue &&
+    typeof detailsValue === "object" &&
+    !Array.isArray(detailsValue)
+  ) {
+    const detailLines =
+      Object.entries(detailsValue)
+        .filter(([key, value]) => {
+          const loweredKey =
+            String(key || "").toLowerCase();
+
+          if (
+            !canShowFullAddress(task, quote) &&
+            (
+              loweredKey.includes("address") ||
+              loweredKey.includes("unit") ||
+              loweredKey.includes("apt") ||
+              loweredKey.includes("apartment") ||
+              loweredKey.includes("suite") ||
+              loweredKey.includes("dropoff") ||
+              loweredKey.includes("drop_off") ||
+              loweredKey.includes("drop-off")
+            )
+          ) {
+            return false;
+          }
+
+          return (
+            value !== null &&
+            value !== undefined &&
+            String(value).trim() !== ""
+          );
+        })
+        .map(([key, value]) => {
+          const label =
+            key
+              .replaceAll("_", " ")
+              .replace(/\b\w/g, letter => letter.toUpperCase());
+
+          const displayValue =
+            Array.isArray(value)
+              ? value.join(", ")
+              : value;
+
+          return `${label}: ${displayValue}`;
+        });
+
+    return detailLines.length > 0
+      ? detailLines.join("\n")
+      : "No additional task details were provided.";
+  }
+
+  if (Array.isArray(detailsValue)) {
+    const joinedDetails =
+      detailsValue
+        .filter(Boolean)
+        .join("\n");
+
+    return canShowFullAddress(task, quote)
+      ? joinedDetails || "No additional task details were provided."
+      : removeHiddenAddressDetails(joinedDetails) || "No additional task details were provided.";
+  }
+
+  const cleanedDetails =
+    cleanText(
+      detailsValue,
+      "No additional task details were provided."
+    );
+
+  return canShowFullAddress(task, quote)
+    ? cleanedDetails
+    : removeHiddenAddressDetails(cleanedDetails) || "No additional task details were provided.";
+}
+ 
+function getTaskCategory(task) {
+  return getFirstAvailable(task, [
+    "category",
+    "task_category",
+    "service_type"
+  ], "Not listed");
+}
+
+function getTaskOrderNumber(task) {
+  return getFirstAvailable(task, [
+    "order_number",
+    "task_order_number"
+  ], "") || `TM-${String(task.id || "").slice(0, 8).toUpperCase()}`;
+}
+ 
+function getCityState(task) {
+  const city = getFirstAvailable(task, [
+    "city",
+    "task_city",
+    "service_city"
+  ], "City not listed");
+ 
+  const state = getFirstAvailable(task, [
+    "state",
+    "task_state",
+    "service_state"
+  ], "");
+ 
+  return state ? `${city}, ${state}` : city;
+}
+ 
+function getFullAddress(task) {
+  const street = getFirstAvailable(task, [
+  "location_address",
+  "street_address",
+  "full_address",
+  "address",
+  "task_address",
+  "service_address"
+], "Address not listed");
+ 
+  const unit = getFirstAvailable(task, ["unit", "apt", "apartment", "suite"], "");
+  const city = getFirstAvailable(task, ["city", "task_city", "service_city"], "");
+  const state = getFirstAvailable(task, ["state", "task_state", "service_state"], "");
+  const zip = getFirstAvailable(task, ["zip_code", "zip", "postal_code"], "");
+ 
+  const unitLine = unit ? `, Unit ${unit}` : "";
+  const locationLine = [city, state, zip].filter(Boolean).join(" ");
+ 
+  return `${street}${unitLine}${locationLine ? `<br>${locationLine}` : ""}`;
+}
+ 
+function getCustomerId(task, quote, assignment) {
+  return getFirstAvailable(assignment, [
+    "customer_id",
+    "customer_user_id",
+    "client_id"
+  ], "") ||
+    getFirstAvailable(quote, [
+      "customer_id",
+      "customer_user_id",
+      "client_id"
+    ], "") ||
+    getFirstAvailable(task, [
+      "customer_id",
+      "customer_user_id",
+      "client_id",
+      "posted_by",
+      "created_by",
+      "user_id",
+      "profile_id"
+    ], "");
+}
+function getCustomerNameFromRecords(task, quote, assignment) {
+  return getFirstAvailable(assignment, [
+    "customer_name",
+    "customer_full_name",
+    "client_name",
+    "client_full_name"
+  ], "") ||
+    getFirstAvailable(quote, [
+      "customer_name",
+      "customer_full_name",
+      "client_name",
+      "client_full_name"
+    ], "") ||
+    getFirstAvailable(task, [
+      "customer_name",
+      "customer_full_name",
+      "client_name",
+      "client_full_name",
+      "posted_by_name",
+      "created_by_name"
+    ], "");
+}
+
+function getCustomerDisplayName(profile, fallbackName = "Customer") {
+  const fallback =
+    cleanText(fallbackName, "Customer");
+
+  if (!profile) {
+    return fallback;
+  }
+
+  const directName = getFirstAvailable(profile, [
+    "full_name",
+    "name",
+    "display_name",
+    "customer_name",
+    "customer_full_name"
+  ], "");
+
+  if (directName) {
+    return directName;
+  }
+
+  const firstName =
+    profile.first_name ||
+    profile.firstName ||
+    "";
+
+  const lastName =
+    profile.last_name ||
+    profile.lastName ||
+    "";
+
+  const fullName =
+    `${firstName} ${lastName}`.trim();
+
+  return fullName || fallback;
+}
+ 
+function getCustomerPhoto(profile) {
+  return getFirstAvailable(profile, [
+    "profile_photo_url",
+    "photo_url",
+    "avatar_url"
+  ], DEFAULT_PROFILE_PHOTO);
+}
+ 
+function getDaysUntil(task) {
+  const taskDate = getDateObject(getTaskDate(task, quote));
+ 
+  if (!taskDate) {
+    return null;
+  }
+ 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+ 
+  taskDate.setHours(0, 0, 0, 0);
+ 
+  const difference = taskDate.getTime() - today.getTime();
+  return Math.ceil(difference / (1000 * 60 * 60 * 24));
+}
+ 
+function getCountdownText(task) {
+  const daysUntil = getDaysUntil(task);
+ 
+  if (daysUntil === null) {
+    return "Date not set";
+  }
+ 
+  if (daysUntil === 0) {
+    return "Today";
+  }
+ 
+  if (daysUntil === 1) {
+    return "Tomorrow";
+  }
+ 
+  if (daysUntil > 1) {
+    return `In ${daysUntil} days`;
+  }
+ 
+  return `${Math.abs(daysUntil)} day${Math.abs(daysUntil) === 1 ? "" : "s"} ago`;
+}
+ 
+function normalizeStatus(value) {
+  return cleanText(value, "accepted").toLowerCase().replaceAll(" ", "_");
+}
+
+function isCustomerCancelledTask(task, quote) {
+  const taskStatus =
+    normalizeStatus(task.status);
+
+  const taskStatusValue =
+    normalizeStatus(task.task_status);
+
+  const quoteStatus =
+    normalizeStatus(quote.status);
+
+  return [
+    "cancelled",
+    "canceled",
+    "customer_cancelled",
+    "customer_canceled"
+  ].includes(taskStatus) ||
+    [
+      "cancelled",
+      "canceled",
+      "customer_cancelled",
+      "customer_canceled"
+    ].includes(taskStatusValue) ||
+    [
+      "customer_cancelled",
+      "customer_canceled"
+    ].includes(quoteStatus);
+}
+
+ 
+function prettyStatus(value) {
+  return normalizeStatus(value).replaceAll("_", " ");
+}
+ 
+function isPaymentRecorded(task, quote) {
+  const paymentStatus = String(getFirstAvailable(task, [
+    "payment_status",
+    "quote_payment_status",
+    "escrow_status"
+  ], "")).toLowerCase();
+ 
+  const quotePaymentStatus = String(getFirstAvailable(quote, [
+    "payment_status",
+    "escrow_status"
+  ], "")).toLowerCase();
+ 
+  const acceptedQuoteId = getFirstAvailable(task, [
+    "accepted_quote_id",
+    "paid_quote_id",
+    "selected_quote_id"
+  ], "");
+ 
+  return ["paid", "escrowed", "authorized", "held"].includes(paymentStatus) ||
+    ["paid", "escrowed", "authorized", "held"].includes(quotePaymentStatus) ||
+    acceptedQuoteId;
+}
+ 
+function canShowFullAddress(task, quote) {
+  const daysUntil = getDaysUntil(task);
+ 
+  return (
+    daysUntil !== null &&
+    daysUntil <= 7 &&
+    isPaymentRecorded(task, quote)
+  );
+}
+ 
+function getAddressSection(task, quote) {
+  if (canShowFullAddress(task, quote)) {
+    return `
+      <div class="info-box">
+        <div class="info-label">Address</div>
+        <div class="info-value">${getFullAddress(task)}</div>
+      </div>
+    `;
+  }
+ 
+  return `
+    <div class="info-box">
+      <div class="info-label">Location</div>
+      <div class="info-value">${escapeHTML(getCityState(task))}</div>
+    </div>
+  `;
+}
+ 
+function getAddressNote(task, quote) {
+  if (canShowFullAddress(task, quote)) {
+    return `
+      <div class="address-note">
+        Full address is visible because the job is within 7 days.
+      </div>
+    `;
+  }
+ 
+  return `
+    <div class="address-note">
+      Full address unlocks when payment is recorded and the job is within 7 days. Until then, only city and state are shown.
+    </div>
+  `;
+}
+ 
+function getStatusPill(status, assignment) {
+  const normalized = normalizeStatus(status);
+ 
+  if (assignment && assignment.arrival_verified === true) {
+    return `<div class="pill green">In Progress</div>`;
+  }
+ 
+  if (normalized === "worker_cancelled" || normalized === "worker_canceled") {
+    return `<div class="pill gray">Worker Cancelled</div>`;
+  }
+
+  if (normalized === "paid") {
+    return `<div class="pill green">Paid</div>`;
+  }
+ 
+  if (normalized === "worker_completed") {
+    return `<div class="pill orange">Awaiting Customer Confirmation</div>`;
+  }
+
+  if (normalized === "completed") {
+    return `<div class="pill orange">Awaiting Pay</div>`;
+  }
+ 
+  if (normalized === "in_progress") {
+    return `<div class="pill green">In Progress</div>`;
+  }
+ 
+  return `<div class="pill gray">${escapeHTML(prettyStatus(status))}</div>`;
+}
+ 
+function shouldShowArrivalBox(quote, assignment) {
+  const status = normalizeStatus(quote.status);
+ 
+  if (["worker_completed", "completed", "paid"].includes(status)) {
+    return false;
+  }
+ 
+  if (assignment && assignment.arrival_verified === true) {
+    return false;
+  }
+ 
+  return true;
+}
+ 
+function getArrivalSection(job) {
+  const task = job.task;
+  const quote = job.quote;
+  const assignment = job.assignment;
+
+  if (
+    task.worker_arrival_confirmed === true ||
+    task.arrival_verified === true ||
+    (
+      assignment &&
+      assignment.arrival_verified === true &&
+      (
+        assignment.arrived_at ||
+        task.worker_arrival_confirmed === true ||
+        task.arrival_verified === true
+      )
+    )
+  ) {
+    return `
+      <div class="arrival-box" style="display:block;">
+        <div class="arrival-title">Arrival Verification</div>
+        <div class="arrival-text">
+          Approval code accepted. This job is marked in progress.
+        </div>
+
+        <input
+          type="text"
+          value="Approval code accepted"
+          disabled
+          class="locked-input"
+        >
+
+        <button disabled>
+          Arrival Verified
+        </button>
+      </div>
+    `;
+  }
+
+  if (!shouldShowArrivalBox(quote, assignment)) {
+    return "";
+  }
+
+  return `
+    <button class="warning full" onclick="toggleArrivalBox('${task.id}')">
+      Enter Arrival Code
+    </button>
+
+    <div class="arrival-box" id="arrivalBox-${task.id}">
+      <div class="arrival-title">Arrival Verification</div>
+      <div class="arrival-text">
+        Ask the customer for the arrival code assigned to this task. Entering the correct code starts the job.
+      </div>
+
+      <input
+        id="arrivalCode-${task.id}"
+        type="text"
+        placeholder="Enter arrival code"
+        maxlength="6"
+        inputmode="numeric"
+      >
+
+      <button onclick="verifyArrivalCode('${task.id}', '${quote.id}')">
+        Verify / Start Task
+      </button>
+    </div>
+  `;
+}
+ 
+
+function canMarkWorkerComplete(task, quote, assignment) {
+  const taskDate =
+    getDateObject(getTaskDate(task));
+
+  if (!taskDate) {
+    return false;
+  }
+
+  const today =
+    new Date();
+
+  today.setHours(0, 0, 0, 0);
+  taskDate.setHours(0, 0, 0, 0);
+
+  const status =
+    normalizeStatus(quote.status);
+
+  const dateReached =
+    taskDate.getTime() <= today.getTime();
+
+  const started =
+    status === "in_progress" ||
+    (
+      assignment &&
+      assignment.arrival_verified === true
+    ) ||
+    task.worker_arrival_confirmed === true ||
+    task.arrival_verified === true;
+
+  return (
+    dateReached &&
+    started &&
+    !["worker_completed", "completed", "paid"].includes(status)
+  );
+}
+
+function getWorkerCompleteSection(job) {
+  const task =
+    job.task;
+
+  const quote =
+    job.quote;
+
+  const assignment =
+    job.assignment;
+
+  const status =
+    normalizeStatus(quote.status);
+
+  if (["paid", "completed"].includes(status)) {
+    return "";
+  }
+
+  if (status === "worker_completed") {
+    return `
+      <button class="secondary full" disabled>
+        Waiting for Customer Completion
+      </button>
+    `;
+  }
+
+  if (canMarkWorkerComplete(task, quote, assignment)) {
+    return `
+      <button class="full" onclick="markWorkerTaskComplete('${task.id}', '${quote.id}')">
+        Mark Task Complete
+      </button>
+    `;
+  }
+
+  return `
+    <button class="secondary full" disabled>
+      Task Complete Unlocks On Task Date After Arrival Code
+    </button>
+  `;
+}
+
+function getDisputeForTask(taskId) {
+  return taskDisputesByTaskId[String(taskId)] || null;
+}
+
+function getDisputeSection(job) {
+  const dispute =
+    getDisputeForTask(job.task.id);
+
+  if (!dispute) {
+    return "";
+  }
+
+  return `
+    <div class="dispute-alert">
+      A dispute is open for this task.
+    </div>
+  `;
+}
+
+function getDisputeButton(job) {
+  const task =
+    job.task;
+
+  const dispute =
+    getDisputeForTask(task.id);
+
+  const orderNumber =
+    getTaskOrderNumber(task);
+
+  const buttonText =
+    dispute
+      ? "View Dispute"
+      : "Dispute Task";
+
+  const disputeId =
+    dispute ? dispute.id : "";
+
+  return `
+    <button
+      class="secondary full"
+      onclick="openWorkerDispute('${escapeHTML(task.id)}', '${escapeHTML(orderNumber)}', '${escapeHTML(disputeId)}')">
+      ${buttonText}
+    </button>
+  `;
+}
+
+function openWorkerDispute(taskId, orderNumber, disputeId) {
+  const params =
+    new URLSearchParams();
+
+  params.set("task_id", taskId || "");
+  params.set("order_number", orderNumber || "");
+  params.set("worker_id", currentWorkerId || "");
+
+  if (disputeId) {
+    params.set("dispute_id", disputeId);
+  }
+
+  window.location.href =
+    `worker-disputes.html?${params.toString()}`;
+}
+
+async function fetchDisputesForJobs(jobs) {
+  taskDisputesByTaskId = {};
+
+  const taskIds =
+    [
+      ...new Set(
+        (jobs || [])
+          .map(job => job.task && job.task.id)
+          .filter(Boolean)
+          .map(String)
+      )
+    ];
+
+  if (taskIds.length === 0) {
+    return;
+  }
+
+  try {
+    const { data, error } =
+      await supabaseClient
+        .from("disputes")
+        .select("*")
+        .in("task_id", taskIds)
+        .in("status", [
+          "open",
+          "reviewing",
+          "pending",
+          "in_review",
+          "waiting_on_customer",
+          "waiting_on_worker"
+        ])
+        .order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("Disputes could not be loaded.", error);
+      return;
+    }
+
+    (data || []).forEach(dispute => {
+      const key =
+        String(dispute.task_id || "");
+
+      if (key && !taskDisputesByTaskId[key]) {
+        taskDisputesByTaskId[key] = dispute;
+      }
+    });
+  } catch (error) {
+    console.warn("Disputes could not be loaded.", error);
+  }
+}
+
+function setLoading() {
+  const jobsList = document.getElementById("jobsList");
+ 
+  jobsList.className = "empty";
+  jobsList.innerHTML = `
+    <div class="loading-spinner"></div>
+    Loading jobs...
+  `;
+}
+ 
+function showEmpty(message) {
+  const jobsList = document.getElementById("jobsList");
+ 
+  jobsList.className = "empty";
+  jobsList.innerHTML = message;
+}
+ 
+function updateSummary(jobs) {
+  const active = jobs.filter(job => {
+    const status = normalizeStatus(job.quote.status);
+    return ["accepted", "in_progress", "worker_completed"].includes(status);
+  }).length;
+ 
+  const today = new Date();
+ 
+  const todayJobs = jobs.filter(job => {
+    const taskDate = getDateObject(getTaskDate(job.task, job.quote));
+    return taskDate && isSameDay(taskDate, today);
+  }).length;
+ 
+  const pendingPay = jobs.filter(job => {
+    const status = normalizeStatus(job.quote.status);
+    return status === "worker_completed" || status === "completed";
+  }).length;
+ 
+  document.getElementById("activeCount").innerText = active;
+  document.getElementById("todayCount").innerText = todayJobs;
+  document.getElementById("pendingPayCount").innerText = pendingPay;
+}
+ 
+async function loadCurrentWorker() {
+  const { data, error } = await supabaseClient.auth.getUser();
+ 
+  if (error || !data || !data.user) {
+    showEmpty("No active worker session found. Please log in again.");
+    return false;
+  }
+ 
+  currentUser = data.user;
+ 
+  const ids = [currentUser.id];
+ 
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("id, email")
+    .eq("email", currentUser.email)
+    .maybeSingle();
+ 
+  if (profile && profile.id) {
+    ids.push(profile.id);
+  }
+ 
+  const { data: workerRecord } = await supabaseClient
+    .from("worker_profiles")
+    .select("id, email")
+    .eq("email", currentUser.email)
+    .maybeSingle();
+ 
+  if (workerRecord && workerRecord.id) {
+    ids.push(workerRecord.id);
+  }
+ 
+  currentWorkerIds = [...new Set(ids.filter(Boolean).map(String))];
+  currentWorkerId = currentWorkerIds[0];
+ 
+  return true;
+}
+ 
+async function fetchAcceptedQuotes() {
+  const { data, error } = await supabaseClient
+    .from("worker_quotes")
+    .select("*")
+    .in("worker_id", currentWorkerIds)
+    .in("status", ["accepted", "in_progress", "worker_completed"])
+    .order("created_at", { ascending: false });
+ 
+  if (error) {
+    throw error;
+  }
+ 
+  return data || [];
+}
+ 
+async function fetchAcceptedDirectRequests() {
+  const idFilter =
+    currentWorkerIds
+      .map(id => `accepted_worker_id.eq.${id},assigned_worker_id.eq.${id},worker_id.eq.${id}`)
+      .join(",");
+
+  const { data, error } = await supabaseClient
+    .from("direct_task_requests")
+    .select("*")
+    .or(idFilter)
+    .in("status", ["accepted", "in_progress", "worker_completed"])
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
+}
+
+async function fetchTasksForQuotes(quotes) {
+  const taskIds = [...new Set(quotes.map(quote => quote.task_id).filter(Boolean))];
+ 
+  if (taskIds.length === 0) {
+    return {};
+  }
+ 
+  const { data, error } = await supabaseClient
+    .from("tasks")
+    .select("*")
+    .in("id", taskIds);
+ 
+  if (error) {
+    throw error;
+  }
+ 
+  const taskMap = {};
+ 
+  (data || []).forEach(task => {
+    taskMap[task.id] = task;
+  });
+ 
+  return taskMap;
+}
+ 
+async function fetchAssignments(taskIds) {
+  if (taskIds.length === 0) {
+    return {};
+  }
+ 
+  let data = null;
+  let error = null;
+ 
+  const firstAttempt = await supabaseClient
+    .from("task_assignments")
+    .select("*")
+    .in("task_id", taskIds)
+    .in("worker_user_id", currentWorkerIds);
+ 
+  if (!firstAttempt.error) {
+    data = firstAttempt.data;
+  } else {
+    error = firstAttempt.error;
+ 
+    const secondAttempt = await supabaseClient
+      .from("task_assignments")
+      .select("*")
+      .in("task_id", taskIds)
+      .in("worker_id", currentWorkerIds);
+ 
+    if (!secondAttempt.error) {
+      data = secondAttempt.data;
+      error = null;
+    }
+  }
+ 
+  if (error) {
+    console.warn("Task assignments could not be loaded.", error);
+    return {};
+  }
+ 
+  const assignmentMap = {};
+ 
+  (data || []).forEach(assignment => {
+    assignmentMap[assignment.task_id] = assignment;
+  });
+ 
+  return assignmentMap;
+}
+ 
+async function fetchCustomerProfiles(jobs) {
+  const customerIds = [
+    ...new Set(
+      jobs
+        .map(job => getCustomerId(job.task, job.quote, job.assignment))
+        .filter(Boolean)
+        .map(String)
+    )
+  ];
+
+  if (customerIds.length === 0) {
+    return {};
+  }
+
+  const profileMap = {};
+
+  const addProfilesToMap = profiles => {
+    (profiles || []).forEach(profile => {
+      const possibleIds = [
+        profile.id,
+        profile.user_id,
+        profile.customer_id,
+        profile.profile_id
+      ]
+        .filter(Boolean)
+        .map(String);
+
+      possibleIds.forEach(id => {
+        profileMap[id] = profile;
+      });
+    });
+  };
+
+  const idAttempt = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .in("id", customerIds);
+
+  if (!idAttempt.error) {
+    addProfilesToMap(idAttempt.data);
+  }
+
+  const userIdAttempt = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .in("user_id", customerIds);
+
+  if (!userIdAttempt.error) {
+    addProfilesToMap(userIdAttempt.data);
+  }
+
+  return profileMap;
+}
+async function loadMyJobs() {
+  setLoading();
+
+  const workerLoaded = await loadCurrentWorker();
+
+  if (!workerLoaded) {
+    return;
+  }
+
+  try {
+    const quotes = await fetchAcceptedQuotes();
+    const directRequests = await fetchAcceptedDirectRequests();
+
+    if (
+      (!quotes || quotes.length === 0) &&
+      (!directRequests || directRequests.length === 0)
+    ) {
+      loadedJobs = [];
+      updateSummary(loadedJobs);
+      showEmpty("No accepted or active jobs yet.");
+      return;
+    }
+
+    const regularQuotes =
+      (quotes || []).filter(quote => quote.task_id);
+
+    const taskMap = await fetchTasksForQuotes(regularQuotes);
+    const taskIds = [...new Set(regularQuotes.map(quote => quote.task_id).filter(Boolean))];
+    const assignmentMap = await fetchAssignments(taskIds);
+
+    const regularJobs = regularQuotes
+      .map(quote => {
+        const task = taskMap[quote.task_id];
+
+        if (!task) {
+          return null;
+        }
+
+        return {
+          quote: quote,
+          task: task,
+          assignment: assignmentMap[quote.task_id] || null,
+          customerProfile: null,
+          isDirectRequest: false
+        };
+      })
+      .filter(Boolean);
+
+    const directJobs =
+      (directRequests || []).map(request => {
+        const directQuote = {
+          id: request.accepted_quote_id || request.id,
+          task_id: request.id,
+          direct_request_id: request.id,
+          worker_id: request.accepted_worker_id || request.assigned_worker_id || request.worker_id,
+          customer_id: request.customer_id,
+          status: request.status || "accepted",
+          quote_amount:
+            request.amount_paid ||
+            request.paid_amount ||
+            request.task_amount ||
+            0,
+          payment_status: request.payment_status,
+          escrow_status: request.escrow_status,
+          is_direct_request: true
+        };
+
+        return {
+          quote: directQuote,
+          task: request,
+          assignment: null,
+          customerProfile: null,
+          isDirectRequest: true
+        };
+      });
+
+    loadedJobs = [
+      ...regularJobs,
+      ...directJobs
+    ].filter(job => !isCustomerCancelledTask(job.task, job.quote));
+
+    const customerProfiles = await fetchCustomerProfiles(loadedJobs);
+
+    loadedJobs = loadedJobs.map(job => {
+      const customerId =
+        String(getCustomerId(job.task, job.quote, job.assignment) || "");
+
+      job.customerProfile =
+        customerProfiles[customerId] || null;
+
+      return job;
+    });
+
+    await fetchDisputesForJobs(loadedJobs);
+
+    updateSummary(loadedJobs);
+    renderJobs();
+  } catch (error) {
+    console.error(error);
+    showEmpty(`Error loading jobs: ${escapeHTML(error.message || "Unknown error")}`);
+  }
+}
+
+function jobMatchesFilters(job) {
+  const selectedStatus = document.getElementById("statusFilter").value;
+  const selectedDate = document.getElementById("dateFilter").value;
+  const status = normalizeStatus(job.quote.status);
+ 
+  if (selectedStatus && status !== selectedStatus) {
+    return false;
+  }
+ 
+  if (!selectedDate) {
+    return true;
+  }
+ 
+  const taskDate = getDateObject(getTaskDate(job.task, job.quote));
+ 
+  if (!taskDate) {
+    return false;
+  }
+ 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  taskDate.setHours(0, 0, 0, 0);
+ 
+  if (selectedDate === "today") {
+    return isSameDay(taskDate, today);
+  }
+ 
+  if (selectedDate === "upcoming") {
+    return taskDate.getTime() > today.getTime();
+  }
+ 
+  if (selectedDate === "past") {
+    return taskDate.getTime() < today.getTime();
+  }
+ 
+  return true;
+}
+ 
+function renderJobs() {
+  const jobsList = document.getElementById("jobsList");
+  const jobs = loadedJobs.filter(jobMatchesFilters);
+ 
+  if (jobs.length === 0) {
+    showEmpty("No jobs match this filter.");
+    return;
+  }
+ 
+  jobsList.className = "";
+  jobsList.innerHTML = "";
+ 
+  jobs.forEach(job => {
+    const task = job.task;
+    const quote = job.quote;
+    const assignment = job.assignment;
+    const customerId = getCustomerId(task, quote, assignment);
+    const customerFallbackName = getCustomerNameFromRecords(task, quote, assignment);
+    const customerName = getCustomerDisplayName(job.customerProfile, customerFallbackName);
+    const customerPhoto = getCustomerPhoto(job.customerProfile);
+    const status = assignment && assignment.arrival_verified === true ? "in_progress" : quote.status;
+    const taskDate = formatDate(getTaskDate(task, quote));
+    const countdown = getCountdownText(task);
+    const quoteAmount = quote.quote_amount || quote.amount || "0";
+ 
+    const div = document.createElement("div");
+    div.className = "job-card";
+ 
+    div.innerHTML = `
+      <div class="job-head">
+        <div>
+          <div class="job-title">${escapeHTML(getTaskTitle(task))}</div>
+          <div class="job-sub">${escapeHTML(getTaskCategory(task))} • ${escapeHTML(countdown)}</div>
+        </div>
+        ${getStatusPill(status, assignment)}
+      </div>
+ 
+      <div class="customer-row">
+        <img
+          class="customer-photo"
+          src="${escapeHTML(customerPhoto)}"
+          alt="Customer profile photo"
+          onerror="this.src='${DEFAULT_PROFILE_PHOTO}'"
+        >
+        <div>
+          <div class="customer-name">${escapeHTML(customerName)}</div>
+          <div class="customer-meta">Customer for this task</div>
+        </div>
+      </div>
+ 
+      <div class="job-grid">
+        <div class="info-box">
+          <div class="info-label">Date</div>
+          <div class="info-value">${escapeHTML(taskDate)}</div>
+        </div>
+ 
+        <div class="info-box">
+          <div class="info-label">Quote</div>
+          <div class="info-value">$${escapeHTML(quoteAmount)}</div>
+        </div>
+ 
+        ${getAddressSection(task, quote)}
+ 
+        <div class="info-box">
+          <div class="info-label">Status</div>
+          <div class="info-value">${escapeHTML(prettyStatus(status))}</div>
+        </div>
+      </div>
+ 
+      ${getAddressNote(task, quote)}
+ 
+      <span class="details-toggle" onclick="toggleDetails('${task.id}')">
+        View task details
+      </span>
+ 
+      <div class="details-box" id="details-${task.id}">
+        ${escapeHTML(getTaskDetails(task, quote))}
+      </div>
+ 
+      <div class="button-grid">
+        <button class="secondary" onclick="messageCustomer('${task.id}', '${customerId}')">
+          Message
+        </button>
+
+        <button class="cancel-task" onclick="cancelWorkerTask('${task.id}', '${quote.id}', '${customerId}')">
+          Cancel Task
+        </button>
+
+        ${getDisputeButton(job)}
+
+ 
+        ${getArrivalSection(job)}
+
+        ${getWorkerCompleteSection(job)}
+      </div>
+    `;
+ 
+    jobsList.appendChild(div);
+  });
+}
+ 
+function toggleDetails(taskId) {
+  const details = document.getElementById(`details-${taskId}`);
+ 
+  if (!details) {
+    return;
+  }
+ 
+  details.style.display = details.style.display === "block" ? "none" : "block";
+}
+ 
+function toggleArrivalBox(taskId) {
+  const box = document.getElementById(`arrivalBox-${taskId}`);
+ 
+  if (!box) {
+    return;
+  }
+ 
+  box.style.display = box.style.display === "block" ? "none" : "block";
+}
+ 
+async function verifyArrivalCode(taskId, quoteId) {
+  const codeInput = document.getElementById(`arrivalCode-${taskId}`);
+  const code = codeInput ? codeInput.value.trim() : "";
+
+  if (!code) {
+    alert("Enter the arrival code from the customer.");
+    return;
+  }
+
+  const job =
+    loadedJobs.find(item => String(item.task.id) === String(taskId));
+
+  const isDirectRequest =
+    job && job.isDirectRequest === true;
+
+  if (isDirectRequest) {
+    const validCode =
+      String(job.task.arrival_code || "").trim();
+
+    if (!validCode || validCode !== code) {
+      alert("Invalid arrival code.");
+      return;
+    }
+
+    const { error: directRequestError } =
+      await supabaseClient
+        .from("direct_task_requests")
+        .update({
+          status: "in_progress",
+          worker_arrival_confirmed: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", taskId);
+
+    if (directRequestError) {
+      alert(directRequestError.message);
+      return;
+    }
+
+    alert("Arrival verified. Task started.");
+    loadMyJobs();
+    return;
+  }
+
+  let assignment = null;
+  let assignmentError = null;
+
+  const firstAttempt = await supabaseClient
+    .from("task_assignments")
+    .select("*")
+    .eq("task_id", taskId)
+    .in("worker_user_id", currentWorkerIds)
+    .eq("arrival_code", code)
+    .maybeSingle();
+
+  if (!firstAttempt.error && firstAttempt.data) {
+    assignment = firstAttempt.data;
+  } else {
+    assignmentError = firstAttempt.error;
+
+    const secondAttempt = await supabaseClient
+      .from("task_assignments")
+      .select("*")
+      .eq("task_id", taskId)
+      .in("worker_id", currentWorkerIds)
+      .eq("arrival_code", code)
+      .maybeSingle();
+
+    if (!secondAttempt.error && secondAttempt.data) {
+      assignment = secondAttempt.data;
+      assignmentError = null;
+    }
+  }
+
+  if (assignment) {
+    const { error: updateAssignmentError } = await supabaseClient
+      .from("task_assignments")
+      .update({
+        arrival_verified: true,
+        assignment_status: "in_progress",
+        arrived_at: new Date().toISOString()
+      })
+      .eq("id", assignment.id);
+
+    if (updateAssignmentError) {
+      alert("Error verifying arrival.");
+      return;
+    }
+  } else {
+    const { data: taskRecord, error: taskCodeError } =
+      await supabaseClient
+        .from("tasks")
+        .select("arrival_code")
+        .eq("id", taskId)
+        .maybeSingle();
+
+    if (taskCodeError || !taskRecord) {
+      alert("Invalid arrival code.");
+      return;
+    }
+
+    const validCodes = [
+      String(taskRecord.arrival_code || "").trim()
+    ];
+
+    if (!validCodes.includes(code)) {
+      alert("Invalid arrival code.");
+      return;
+    }
+  }
+
+  await supabaseClient
+    .from("worker_quotes")
+    .update({ status: "in_progress" })
+    .eq("id", quoteId);
+
+  await supabaseClient
+    .from("tasks")
+    .update({
+      status: "in_progress",
+      worker_arrival_confirmed: true,
+      arrival_verified: true,
+      arrived_at: new Date().toISOString()
+    })
+    .eq("id", taskId);
+
+  alert("Arrival verified. Task started.");
+  loadMyJobs();
+}
+ 
+
+
+async function reportWorkerTaskIssue(taskId, quoteId, sourceType, issueType) {
+  const notes =
+    prompt("Describe the issue:");
+
+  if (notes === null) {
+    return;
+  }
+
+  const tableName =
+    sourceType === "direct_request"
+      ? "direct_task_requests"
+      : "tasks";
+
+  const updateData = {
+    issue_status: issueType,
+    issue_notes: notes,
+    updated_at: new Date().toISOString()
+  };
+
+  if (issueType === "customer_no_show") {
+    updateData.no_show_reported_by = "worker";
+    updateData.no_show_reported_at = new Date().toISOString();
+  }
+
+  if (issueType === "worker_needs_help") {
+    updateData.incomplete_work_reported_by = "worker";
+    updateData.incomplete_work_reported_at = new Date().toISOString();
+  }
+
+  const { error } =
+    await supabaseClient
+      .from(tableName)
+      .update(updateData)
+      .eq("id", taskId);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  if (quoteId) {
+    await supabaseClient
+      .from("worker_quotes")
+      .update({
+        issue_status: issueType,
+        issue_notes: notes,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", quoteId);
+  }
+
+  alert("Issue reported successfully.");
+  loadMyJobs();
+}
+
+async function markWorkerTaskComplete(taskId, quoteId) {
+  const job =
+    loadedJobs.find(item => item.task.id === taskId);
+
+  if (!job) {
+    alert("Job not found.");
+    return;
+  }
+
+  if (!canMarkWorkerComplete(job.task, job.quote, job.assignment)) {
+    alert("You can mark this task complete on the task date after the arrival code has been verified.");
+    return;
+  }
+
+  const confirmed =
+    confirm("Mark this task complete from your side? The customer will still need to confirm completion.");
+
+  if (!confirmed) {
+    return;
+  }
+
+  if (job.isDirectRequest === true) {
+    const { error: directRequestError } =
+      await supabaseClient
+        .from("direct_task_requests")
+        .update({
+          status: "worker_completed",
+          worker_completed: true,
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", taskId);
+
+    if (directRequestError) {
+      alert(directRequestError.message);
+      return;
+    }
+
+    alert("Task marked complete. Waiting for customer confirmation.");
+    loadMyJobs();
+    return;
+  }
+
+  const { error: quoteError } =
+    await supabaseClient
+      .from("worker_quotes")
+      .update({
+        status: "worker_completed",
+        worker_completed_at: new Date().toISOString()
+      })
+      .eq("id", quoteId);
+
+  if (quoteError) {
+    alert(quoteError.message);
+    return;
+  }
+
+ const { error: taskError } =
+    await supabaseClient
+      .from("tasks")
+      .update({
+        status: "worker_completed",
+        worker_completed: true,
+        worker_completed_at: new Date().toISOString()
+      })
+      .eq("id", taskId);
+
+  if (taskError) {
+    alert(taskError.message);
+    return;
+  }
+
+  alert("Task marked complete. Waiting for customer confirmation.");
+  loadMyJobs();
+}
+
+
+async function getWorkerCancellationCount() {
+  const { count, error } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .in("worker_id", currentWorkerIds)
+      .in("status", [
+        "worker_cancelled",
+        "worker_canceled"
+      ]);
+
+  if (error || count === null || count === undefined) {
+    return 0;
+  }
+
+  return Number(count || 0);
+}
+
+async function getOrCreateTaskConversation(task, quote, customerId) {
+  const cleanCustomerId =
+    customerId ||
+    getCustomerId(task, quote, null) ||
+    "";
+
+  if (!cleanCustomerId || !currentWorkerId) {
+    return "";
+  }
+
+  const { data: existingConversation } =
+    await supabaseClient
+      .from("task_conversations")
+      .select("id")
+      .eq("task_id", task.id)
+      .eq("customer_id", cleanCustomerId)
+      .eq("worker_id", currentWorkerId)
+      .maybeSingle();
+
+  if (existingConversation && existingConversation.id) {
+    await supabaseClient
+      .from("task_conversations")
+      .update({
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", existingConversation.id);
+
+    return existingConversation.id;
+  }
+
+  const { data: newConversation } =
+    await supabaseClient
+      .from("task_conversations")
+      .insert([
+        {
+          task_id: task.id,
+          customer_id: cleanCustomerId,
+          worker_id: currentWorkerId,
+          conversation_type: "task",
+          updated_at: new Date().toISOString()
+        }
+      ])
+      .select("id")
+      .maybeSingle();
+
+  return newConversation?.id || "";
+}
+
+async function notifyCustomerWorkerCancelled(job, customerId) {
+  const task =
+    job.task;
+
+  const quote =
+    job.quote;
+
+  const cleanCustomerId =
+    customerId ||
+    getCustomerId(task, quote, job.assignment) ||
+    "";
+
+  const conversationId =
+    await getOrCreateTaskConversation(task, quote, cleanCustomerId);
+
+  const message =
+    `The worker cancelled your task: ${getTaskTitle(task)}. Your refund will be processed according to TaskMint payment rules.`;
+
+  if (conversationId) {
+    await supabaseClient
+      .from("task_messages")
+      .insert([
+        {
+          conversation_id: conversationId,
+          task_id: task.id,
+          sender_id: currentWorkerId,
+          sender_type: "worker",
+          receiver_id: cleanCustomerId,
+          customer_id: cleanCustomerId,
+          worker_id: currentWorkerId,
+          message: message,
+          is_read: false
+        }
+      ]);
+  }
+}
+
+async function cancelWorkerTask(taskId, quoteId, customerId) {
+  const job =
+    loadedJobs.find(item => String(item.task.id) === String(taskId));
+
+  if (!job) {
+    alert("Job not found.");
+    return;
+  }
+
+  const cancellationCount =
+    await getWorkerCancellationCount();
+
+  const warningMessage =
+    cancellationCount >= 4
+      ? "Cancel this task? You have reached the 5th cancellation threshold. Your ranking may drop after this cancellation."
+      : "Cancel this task? After your 5th cancellation, your worker ranking may drop. This task will be removed from My Jobs. The customer will be notified that the worker cancelled and that a refund will be processed.";
+
+  const confirmed =
+    confirm(warningMessage);
+
+  if (!confirmed) {
+    return;
+  }
+
+  const cancelledAt =
+    new Date().toISOString();
+
+  const refundAmount =
+    job.task.amount_paid ||
+    job.task.paid_amount ||
+    job.task.task_amount ||
+    job.quote.quote_amount ||
+    job.quote.amount ||
+    0;
+
+  const { error: quoteError } =
+    await supabaseClient
+      .from("worker_quotes")
+      .update({
+        status: "worker_cancelled"
+      })
+      .eq("id", quoteId);
+
+  if (quoteError) {
+    alert(quoteError.message);
+    return;
+  }
+
+  let taskError = null;
+
+  if (job.isDirectRequest === true) {
+    const directRequestUpdate =
+      await supabaseClient
+        .from("direct_task_requests")
+        .update({
+          status: "worker_cancelled",
+          payment_status: "refund_pending",
+          escrow_status: "refund_pending",
+          updated_at: cancelledAt
+        })
+        .eq("id", taskId);
+
+    taskError =
+      directRequestUpdate.error;
+  } else {
+    const taskUpdate =
+      await supabaseClient
+        .from("tasks")
+        .update({
+          status: "worker_cancelled",
+          task_status: "worker_cancelled",
+          payment_status: "refund_pending",
+          escrow_status: "refund_pending",
+          refund_amount: refundAmount,
+          updated_at: cancelledAt
+        })
+        .eq("id", taskId);
+
+    taskError =
+      taskUpdate.error;
+  }
+
+  if (taskError) {
+    alert(taskError.message);
+    return;
+  }
+
+  await notifyCustomerWorkerCancelled(job, customerId);
+
+  loadedJobs =
+    loadedJobs.filter(item => String(item.task.id) !== String(taskId));
+
+  updateSummary(loadedJobs);
+  renderJobs();
+
+  alert("Task cancelled. It has been removed from My Jobs. The customer has been notified that the worker cancelled and that a refund will be processed.");
+}
+
+function messageCustomer(taskId, customerId) {
+  localStorage.setItem("selectedMessageTaskId", taskId);
+  localStorage.setItem("selectedTaskId", taskId);
+  localStorage.setItem("selectedCustomerId", customerId || "");
+  localStorage.setItem("messageContext", "task");
+  window.location.href = "worker-task-message.html";
+}
+ 
+function viewJob(taskId) {
+  localStorage.setItem("selectedJobId", taskId);
+  localStorage.setItem("selectedTaskId", taskId);
+  window.location.href = "job-details.html";
+}
+ 
+loadMyJobs();
+</script>
+ 
+</body>
+</html>

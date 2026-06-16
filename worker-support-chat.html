@@ -307,7 +307,7 @@
       background: white;
       border: 1px solid var(--border);
       border-radius: 18px;
-      padding: 10px;
+      padding: 12px;
       min-height: 220px;
       max-height: 360px;
       overflow-y: auto;
@@ -315,42 +315,51 @@
     }
 
     .message {
-      display: inline-block;
-      width: fit-content;
-      max-width: 78%;
-      padding: 8px 10px;
-      border-radius: 14px;
-      margin-bottom: 8px;
-      font-size: 12px;
-      line-height: 1.3;
+      width: 100%;
+      padding: 8px 0;
+      margin-bottom: 6px;
+      font-size: 13px;
+      line-height: 1.35;
       white-space: pre-wrap;
+      border-bottom: 1px solid var(--border);
     }
 
-    .message.worker {
-      background: var(--accent);
-      color: white;
-      margin-left: auto;
-      margin-right: 0;
-      border-bottom-right-radius: 5px;
-      display: block;
+    .message:last-child {
+      border-bottom: none;
     }
 
+    .message.worker,
     .message.admin {
-      background: var(--surface);
+      background: transparent;
       color: var(--text);
-      margin-right: auto;
+      border-radius: 0;
       margin-left: 0;
-      border: 1px solid var(--border);
-      border-bottom-left-radius: 5px;
+      margin-right: 0;
       display: block;
+    }
+
+    .sender-name {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .sender-name.admin-name {
+      color: var(--accent);
+    }
+
+    .sender-name.worker-name {
+      color: var(--text);
     }
 
     .message-meta {
-      font-size: 9px;
-      opacity: 0.78;
+      font-size: 9.5px;
+      opacity: 0.72;
       margin-top: 4px;
       line-height: 1.25;
       font-weight: 700;
+      color: var(--muted);
     }
 
     .chat-image {
@@ -359,7 +368,7 @@
       object-fit: cover;
       border-radius: 10px;
       margin-top: 6px;
-      border: 1px solid rgba(255,255,255,0.45);
+      border: 1px solid var(--border);
       background: white;
       display: block;
     }
@@ -448,7 +457,7 @@
 
   <div class="top-bar">
     <a class="back" href="my-jobs.html">← Back</a>
-    <div class="refresh" onclick="loadPage()">Refresh</div>
+    <div class="refresh" onclick="refreshSupportPage()">Refresh</div>
   </div>
 
   <div class="hero">
@@ -1308,7 +1317,7 @@ async function loadMessages() {
       `message ${role}`;
 
     div.innerHTML = `
-      <strong>${escapeHTML(senderLabel)}</strong><br>
+      <span class="sender-name ${role === "worker" ? "worker-name" : "admin-name"}">${escapeHTML(senderLabel)}</span><br>
       ${escapeHTML(message.message || "")}
       ${
         message.attachment_url
@@ -1319,7 +1328,7 @@ async function loadMessages() {
         ${escapeHTML(formatDateTime(message.created_at))}
         ${
           role === "worker"
-            ? `<br>${message.is_read_by_taskmint ? "Read by TaskMint" : "Sent to TaskMint"}`
+            ? `<br>${message.is_read_by_taskmint || activeChat.taskmint_last_read_at ? "Read by TaskMint" : "Sent to TaskMint"}`
             : `<br>${message.is_read_by_worker ? "Read by you" : "Unread"}`
         }
       </div>
@@ -1367,8 +1376,7 @@ async function markWorkerRead() {
   await supabaseClient
     .from("worker_support_chats")
     .update({
-      worker_last_read_at: now,
-      updated_at: activeChat.updated_at || now
+      worker_last_read_at: now
     })
     .eq("id", activeChat.id);
 
@@ -1559,6 +1567,24 @@ async function closeWorkerChat() {
   await refreshActiveChat();
   await loadChats();
 }
+
+async function refreshSupportPage() {
+  if (activeChat) {
+    await refreshActiveChat();
+  }
+
+  await loadChats();
+
+  const statusTarget =
+    activeChat ? "replyStatus" : "openChatStatus";
+
+  setStatus(statusTarget, "Refreshed.", "#0b7a28");
+
+  setTimeout(() => {
+    setStatus(statusTarget, "");
+  }, 1200);
+}
+
 
 async function loadPage() {
   const ready =

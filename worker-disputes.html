@@ -733,6 +733,33 @@ async function loadTasks() {
     ]);
 
   if (error || !data || data.length === 0) {
+
+    if (selectedTaskId) {
+
+      let taskTitle = "Selected Task";
+
+      const { data: selectedTask } =
+        await supabaseClient
+          .from("tasks")
+          .select("id,title")
+          .eq("id", selectedTaskId)
+          .maybeSingle();
+
+      if (selectedTask) {
+        taskTitle = selectedTask.title || taskTitle;
+      }
+
+      select.innerHTML = `
+        <option value="${selectedTaskId}">
+          ${escapeHTML(taskTitle)}
+        </option>
+      `;
+
+      select.value = selectedTaskId;
+      workerTaskIds = [String(selectedTaskId)];
+      return;
+    }
+
     select.innerHTML = `<option value="">No eligible jobs</option>`;
     return;
   }
@@ -761,6 +788,30 @@ async function loadTasks() {
   });
 
   if (selectedTaskId) {
+
+    const exists =
+      [...select.options].some(
+        option => String(option.value) === String(selectedTaskId)
+      );
+
+    if (!exists) {
+
+      const { data: selectedTask } =
+        await supabaseClient
+          .from("tasks")
+          .select("id,title")
+          .eq("id", selectedTaskId)
+          .maybeSingle();
+
+      if (selectedTask) {
+        select.innerHTML += `
+          <option value="${selectedTask.id}">
+            ${escapeHTML(selectedTask.title || "Selected Task")}
+          </option>
+        `;
+      }
+    }
+
     select.value = selectedTaskId;
   }
 }

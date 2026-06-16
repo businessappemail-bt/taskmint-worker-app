@@ -571,16 +571,25 @@ function normalizeStatus(value) {
   return cleanText(value, "accepted").toLowerCase().replaceAll(" ", "_");
 }
 
-function getTaskDate(task) {
-  return getFirstAvailable(task, [
-    "task_date",
-    "scheduled_for",
+function getTaskDate(task, quote = null) {
+  return getFirstAvailable(quote, [
+    "selected_flexible_date",
+    "flexible_date_selected",
+    "worker_selected_date",
+    "selected_date",
+    "proposed_date",
     "scheduled_date",
-    "date_needed",
-    "needed_by",
-    "scheduled_start",
-    "due_date"
-  ], "");
+    "task_date"
+  ], "") ||
+    getFirstAvailable(task, [
+      "task_date",
+      "scheduled_for",
+      "scheduled_date",
+      "date_needed",
+      "needed_by",
+      "scheduled_start",
+      "due_date"
+    ], "");
 }
 
 function getDateObject(value) {
@@ -857,11 +866,16 @@ async function fetchScheduledTasks() {
 }
 
 async function fetchAcceptedDirectRequests() {
+  const idFilter =
+    currentWorkerIds
+      .map(id => `worker_id.eq.${id},accepted_worker_id.eq.${id},assigned_worker_id.eq.${id}`)
+      .join(",");
+
   const { data, error } =
     await supabaseClient
       .from("direct_task_requests")
       .select("*")
-      .in("worker_id", currentWorkerIds)
+      .or(idFilter)
       .in("status", [
         "accepted",
         "scheduled",
@@ -1020,7 +1034,7 @@ function renderCalendar() {
     const key = toDateKey(date);
 
     const hasJob =
-      loadedJobs.some(job => toDateKey(getTaskDate(job.task)) === key);
+      loadedJobs.some(job => toDateKey(getTaskDate(job.task, job.quote)) === key);
 
     const div = document.createElement("div");
 
@@ -1063,7 +1077,7 @@ function renderSelectedJobs() {
     });
 
   const jobs =
-    loadedJobs.filter(job => toDateKey(getTaskDate(job.task)) === key);
+    loadedJobs.filter(job => toDateKey(getTaskDate(job.task, job.quote)) === key);
 
   if (jobs.length === 0) {
     list.innerHTML = `
@@ -1109,7 +1123,7 @@ function renderSelectedJobs() {
       <div class="info-grid">
         <div class="info-box">
           <div class="info-label">Date</div>
-          <div class="info-value">${escapeHTML(formatDate(getTaskDate(task)))}</div>
+          <div class="info-value">${escapeHTML(formatDate(getTaskDate(task, quote)))}</div>
         </div>
 
         <div class="info-box">
@@ -1143,7 +1157,7 @@ function updateSummary() {
 
   const monthJobs =
     loadedJobs.filter(job => {
-      const date = getDateObject(getTaskDate(job.task));
+      const date = getDateObject(getTaskDate(job.task, job.quote));
 
       return (
         date &&
@@ -1156,7 +1170,7 @@ function updateSummary() {
 
   const todayJobs =
     loadedJobs.filter(job => {
-      const date = getDateObject(getTaskDate(job.task));
+      const date = getDateObject(getTaskDate(job.task, job.quote));
       return date && isSameDay(date, today);
     });
 

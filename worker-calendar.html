@@ -581,17 +581,13 @@ function getTaskDate(task, quote = null) {
     "scheduled_date",
     "task_date"
   ], "") ||
-    getFirstAvailable(task, [
-  "schedule_preference",
-  "scheduled_time",
-  "schedule_time",
-  "selected_time",
-  "task_time",
-  "time",
-  "time_needed",
-  "start_time",
-  "arrival_time"
-], "");
+  getFirstAvailable(task, [
+    "task_date",
+    "scheduled_for",
+    "scheduled_date",
+    "date_needed",
+    "due_date"
+  ], "");
 }
 
 function getDateObject(value) {
@@ -639,80 +635,38 @@ function getTaskTime(task, quote = null) {
       "selected_time",
       "proposed_time",
       "scheduled_time",
-      "task_time",
-      "time",
-      "time_needed",
-      "start_time",
-      "arrival_time"
+      "task_time"
     ], "") ||
     getFirstAvailable(task, [
+      "schedule_preference",
       "scheduled_time",
       "schedule_time",
       "selected_time",
       "task_time",
-      "time",
       "time_needed",
       "start_time",
       "arrival_time"
     ], "");
 
-  if (directTime) {
-    const directTimeText =
-      String(directTime).trim();
-
-    const timeOnlyMatch =
-      directTimeText.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-
-    if (timeOnlyMatch) {
-      const hour = Number(timeOnlyMatch[1]);
-      const minute = Number(timeOnlyMatch[2]);
-      const date = new Date();
-
-      date.setHours(hour, minute, 0, 0);
-
-      return date.toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit"
-      });
-    }
-
-    const amPmMatch =
-      directTimeText.match(/\b\d{1,2}:\d{2}\s?(AM|PM)\b/i);
-
-    if (amPmMatch) {
-      return amPmMatch[0].toUpperCase();
-    }
-  }
-
-  const dateTimeValue =
-    task.scheduled_start ||
-    task.scheduled_for ||
-    task.scheduled_date ||
-    task.task_date ||
-    task.date_needed ||
-    "";
-
-  const date =
-    getDateObject(dateTimeValue);
-
-  if (!date) {
+  if (!directTime) {
     return "Time not listed";
   }
 
-  const hasTime =
-    date.getHours() !== 0 ||
-    date.getMinutes() !== 0;
+  const match =
+    String(directTime).trim().match(/^(\d{1,2}):(\d{2})/);
 
-  if (!hasTime) {
-    return "Time not listed";
+  if (!match) {
+    return String(directTime);
   }
+
+  const date = new Date();
+  date.setHours(Number(match[1]), Number(match[2]), 0, 0);
 
   return date.toLocaleTimeString([], {
     hour: "numeric",
     minute: "2-digit"
   });
 }
-
 
 function toDateKey(value) {
   const date = value instanceof Date ? value : getDateObject(value);

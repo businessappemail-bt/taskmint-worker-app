@@ -879,6 +879,16 @@ async function submitDispute() {
       throw error;
     }
 
+    await supabaseClient
+      .from("tasks")
+      .update({
+        status: "dispute_open",
+        dispute_status: "open",
+        escrow_status: "disputed",
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", taskId);
+
     status.style.color = "#0b7a28";
     status.innerText = "Dispute submitted successfully.";
 

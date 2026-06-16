@@ -1008,7 +1008,7 @@ function getCustomerPhoto(profile) {
   ], DEFAULT_PROFILE_PHOTO);
 }
  
-function getDaysUntil(task) {
+function getDaysUntil(task, quote = null) {
   const taskDate = getDateObject(getTaskDate(task, quote));
  
   if (!taskDate) {
@@ -1024,8 +1024,8 @@ function getDaysUntil(task) {
   return Math.ceil(difference / (1000 * 60 * 60 * 24));
 }
  
-function getCountdownText(task) {
-  const daysUntil = getDaysUntil(task);
+function getCountdownText(task, quote = null) {
+  const daysUntil = getDaysUntil(task, quote);
  
   if (daysUntil === null) {
     return "Date not set";
@@ -1107,7 +1107,7 @@ function isPaymentRecorded(task, quote) {
 }
  
 function canShowFullAddress(task, quote) {
-  const daysUntil = getDaysUntil(task);
+  const daysUntil = getDaysUntil(task, quote);
  
   return (
     daysUntil !== null &&
@@ -1266,7 +1266,7 @@ function getArrivalSection(job) {
 
 function canMarkWorkerComplete(task, quote, assignment) {
   const taskDate =
-    getDateObject(getTaskDate(task));
+    getDateObject(getTaskDate(task, quote));
 
   if (!taskDate) {
     return false;
@@ -1852,7 +1852,7 @@ function renderJobs() {
     const customerPhoto = getCustomerPhoto(job.customerProfile);
     const status = assignment && assignment.arrival_verified === true ? "in_progress" : quote.status;
     const taskDate = formatDate(getTaskDate(task, quote));
-    const countdown = getCountdownText(task);
+    const countdown = getCountdownText(task, quote);
     const quoteAmount = quote.quote_amount || quote.amount || "0";
  
     const div = document.createElement("div");

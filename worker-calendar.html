@@ -582,14 +582,16 @@ function getTaskDate(task, quote = null) {
     "task_date"
   ], "") ||
     getFirstAvailable(task, [
-      "task_date",
-      "scheduled_for",
-      "scheduled_date",
-      "date_needed",
-      "needed_by",
-      "scheduled_start",
-      "due_date"
-    ], "");
+  "schedule_preference",
+  "scheduled_time",
+  "schedule_time",
+  "selected_time",
+  "task_time",
+  "time",
+  "time_needed",
+  "start_time",
+  "arrival_time"
+], "");
 }
 
 function getDateObject(value) {

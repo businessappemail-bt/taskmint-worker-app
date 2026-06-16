@@ -729,6 +729,18 @@ async function requestPayout(payoutSpeed) {
   const feeAmount = selectedSpeed === "instant" ? calculateInstantFee(requestedAmount) : 0;
   const netAmount = Math.max(requestedAmount - feeAmount, 0);
   if (availableBalance <= 0) { setActionMessage("No available balance to request.", "#b00020"); return; }
+
+  const { data: disputedTasks } = await supabaseClient
+    .from("tasks")
+    .select("id")
+    .or(workerFilter)
+    .in("dispute_status", ["open","reviewing"]);
+
+  if (disputedTasks && disputedTasks.length > 0) {
+    setActionMessage("Payouts are locked while a dispute is under review.", "#b00020");
+    return;
+  }
+
   if (selectedSpeed === "instant" && netAmount <= 0) { setActionMessage("Instant payout amount is too low after the fee.", "#b00020"); return; }
   const confirmMessage = selectedSpeed === "instant"
     ? `Request instant payout for ${money(availableBalance)}? Instant fee: ${money(feeAmount)}. You receive: ${money(netAmount)}.`

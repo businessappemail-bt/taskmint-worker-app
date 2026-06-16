@@ -1310,6 +1310,17 @@ function getWorkerCompleteSection(job) {
   const assignment =
     job.assignment;
 
+  const dispute =
+    getDisputeForTask(task.id);
+
+  if (dispute) {
+    return `
+      <button class="secondary full" disabled>
+        Task Locked During Dispute Review
+      </button>
+    `;
+  }
+
   const status =
     normalizeStatus(quote.status);
 

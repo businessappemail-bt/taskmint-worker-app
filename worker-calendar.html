@@ -628,8 +628,21 @@ function formatDate(value) {
   });
 }
 
-function getTaskTime(task) {
+function getTaskTime(task, quote = null) {
   const directTime =
+    getFirstAvailable(quote, [
+      "selected_flexible_time",
+      "flexible_time_selected",
+      "worker_selected_time",
+      "selected_time",
+      "proposed_time",
+      "scheduled_time",
+      "task_time",
+      "time",
+      "time_needed",
+      "start_time",
+      "arrival_time"
+    ], "") ||
     getFirstAvailable(task, [
       "scheduled_time",
       "schedule_time",
@@ -1116,7 +1129,7 @@ function renderSelectedJobs() {
       </div>
 
       <div class="job-time-banner">
-        <div>${escapeHTML(getTaskTime(task))}</div>
+        <div>${escapeHTML(getTaskTime(task, quote))}</div>
         <span>Scheduled time</span>
       </div>
 

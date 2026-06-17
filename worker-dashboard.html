@@ -1969,7 +1969,66 @@
       }
     }
 
-  </style>
+  
+    /* ── EARNINGS BUBBLE + UPCOMING TASK FIX VISUALS ── */
+    .earnings-bubble {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.99), rgba(242,247,244,0.96));
+      border: 1px solid #dcebe2;
+      border-radius: 15px;
+      padding: 11px 12px;
+      margin: 4px 0 10px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.045);
+      cursor: pointer;
+    }
+
+    .earnings-bubble-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .earnings-bubble-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: var(--surface2);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .earnings-bubble-label {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .earnings-bubble-sub {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.2;
+    }
+
+    .earnings-bubble-amount {
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+</style>
 </head>
 <body>
 
@@ -2092,6 +2151,18 @@
       </div>
 
     </div>
+  </div>
+
+  <!-- EARNINGS BUBBLE -->
+  <div class="earnings-bubble" onclick="window.location.href='worker-earnings.html'">
+    <div class="earnings-bubble-left">
+      <div class="earnings-bubble-icon">$</div>
+      <div>
+        <div class="earnings-bubble-label">Worker Earnings</div>
+        <div class="earnings-bubble-sub">Tap to view earnings history</div>
+      </div>
+    </div>
+    <div class="earnings-bubble-amount" id="workerEarningsBubbleAmount">$0.00</div>
   </div>
 
   <!-- NEXT ACCEPTED TASK -->
@@ -3017,26 +3088,69 @@ async function loadCompletedTaskCount(workerId) {
 
 async function loadWorkerEarnings(workerId) {
 
+  const workerIds =
+    getWorkerIdList(workerId);
+
+  function setEarningsDisplay(amount) {
+    const formattedAmount =
+      `$${Number(amount || 0).toFixed(2)}`;
+
+    const dashboardAmount =
+      document.getElementById("earningsAmount");
+
+    const bubbleAmount =
+      document.getElementById("workerEarningsBubbleAmount");
+
+    if (dashboardAmount) {
+      dashboardAmount.innerText =
+        formattedAmount;
+    }
+
+    if (bubbleAmount) {
+      bubbleAmount.innerText =
+        formattedAmount;
+    }
+  }
+
+  if (workerIds.length === 0) {
+    setEarningsDisplay(0);
+    return;
+  }
+
   const { data, error } =
     await supabaseClient
       .from("worker_earnings")
-      .select("worker_payout")
-      .eq("worker_id", workerId);
+      .select("*")
+      .in("worker_id", workerIds);
 
   if (error || !data) {
-    document.getElementById("earningsAmount").innerText =
-      "$0.00";
+    setEarningsDisplay(0);
     return;
   }
 
   let total = 0;
 
   data.forEach((item) => {
-    total += Number(item.worker_payout || 0);
+    const amount =
+      item.worker_payout ??
+      item.net_amount ??
+      item.payout_amount ??
+      item.worker_pay ??
+      item.amount_earned ??
+      item.earnings_amount ??
+      item.amount ??
+      item.total_amount ??
+      0;
+
+    const numericAmount =
+      Number(amount || 0);
+
+    if (!Number.isNaN(numericAmount)) {
+      total += numericAmount;
+    }
   });
 
-  document.getElementById("earningsAmount").innerText =
-    `$${total.toFixed(2)}`;
+  setEarningsDisplay(total);
 
 }
 
@@ -3676,7 +3790,10 @@ async function loadTodaySchedule(workerId) {
 
   today.setHours(0, 0, 0, 0);
 
-  const { data: tasks, error } =
+  const upcomingJobs =
+    [];
+
+  const { data: assignedTasks, error: taskError } =
     await supabaseClient
       .from("tasks")
       .select("*")
@@ -3685,28 +3802,85 @@ async function loadTodaySchedule(workerId) {
       )
       .in("status", [
         "accepted",
-        "in_progress",
-        "worker_completed",
         "scheduled",
-        "paid",
-        "completed"
+        "in_progress",
+        "worker_completed"
       ])
       .order("created_at", { ascending: false });
 
-  if (error) {
-    container.innerHTML = `
-      <div class="small-text">
-        No upcoming jobs are showing here yet. Once an accepted job has a saved date, it will appear here.
-      </div>
-    `;
-    return;
+  if (!taskError) {
+    (assignedTasks || []).forEach((task) => {
+      upcomingJobs.push({
+        task,
+        quote: {
+          status: task.status || "accepted"
+        }
+      });
+    });
   }
 
+  const { data: acceptedQuotes } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("*")
+      .in("worker_id", workerIds)
+      .in("status", [
+        "accepted",
+        "approved",
+        "in_progress"
+      ])
+      .order("created_at", { ascending: false });
+
+  const quoteTaskIds =
+    [
+      ...new Set(
+        (acceptedQuotes || [])
+          .map((quote) => quote.task_id)
+          .filter(Boolean)
+      )
+    ];
+
+  const taskMap =
+    {};
+
+  if (quoteTaskIds.length > 0) {
+    const { data: quoteTasks } =
+      await supabaseClient
+        .from("tasks")
+        .select("*")
+        .in("id", quoteTaskIds);
+
+    (quoteTasks || []).forEach((task) => {
+      taskMap[String(task.id)] = task;
+    });
+  }
+
+  (acceptedQuotes || []).forEach((quote) => {
+    const task =
+      taskMap[String(quote.task_id)];
+
+    if (!task) {
+      return;
+    }
+
+    const alreadyAdded =
+      upcomingJobs.some((job) => String(job.task.id) === String(task.id));
+
+    if (alreadyAdded) {
+      return;
+    }
+
+    upcomingJobs.push({
+      task,
+      quote
+    });
+  });
+
   const todayTasks =
-    (tasks || [])
-      .filter((task) => {
+    upcomingJobs
+      .filter((job) => {
         const taskDateValue =
-          getTaskScheduleDate(task);
+          getTaskScheduleDate(job.task, job.quote);
 
         if (!taskDateValue) {
           return false;
@@ -3723,7 +3897,7 @@ async function loadTodaySchedule(workerId) {
 
         return taskDate.getTime() >= today.getTime();
       })
-      .sort((a, b) => getAcceptedTaskSortValue({ task: a, quote: null }) - getAcceptedTaskSortValue({ task: b, quote: null }))
+      .sort((a, b) => getAcceptedTaskSortValue(a) - getAcceptedTaskSortValue(b))
       .slice(0, 3);
 
   if (!todayTasks || todayTasks.length === 0) {
@@ -3737,15 +3911,22 @@ async function loadTodaySchedule(workerId) {
 
   container.innerHTML = "";
 
-  todayTasks.forEach((task) => {
+  todayTasks.forEach((job) => {
+
+    const task =
+      job.task;
+
+    const quote =
+      job.quote;
 
     const title = getTaskTitle(task);
     const location = getTaskCityState(task);
-    const date = getTaskDateDisplay(getTaskScheduleDate(task));
+    const scheduleValue = getTaskScheduleDate(task, quote);
+    const date = getTaskDateDisplay(scheduleValue);
     const time = formatScheduleTime(
-      getTaskScheduleTime(task) || getTaskScheduleDate(task)
+      getTaskScheduleTime(task, quote) || scheduleValue
     );
-    const payAmount = getWorkerPayAmount(task, null);
+    const payAmount = getWorkerPayAmount(task, quote);
 
     container.innerHTML += `
       <div class="schedule-card" onclick="window.location.href='my-jobs.html'">

@@ -7,11 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --bg: #ffffff;
@@ -40,413 +36,150 @@
       align-items: center;
     }
 
-    .container {
-      width: 100%;
-      max-width: 470px;
-      padding: 20px 16px 30px;
-    }
+    .container { width: 100%; max-width: 470px; padding: 20px 16px 30px; }
 
     .top-bar {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      width: 100%;
-      max-width: 470px;
+      position: sticky; top: 0; z-index: 40;
+      width: 100%; max-width: 470px;
       background: rgba(255,255,255,0.97);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 13px 20px;
-      margin: -20px -16px 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 13px 20px; margin: -20px -16px 16px;
     }
 
-    .back,
-    .refresh {
-      color: var(--accent);
-      font-weight: 800;
-      text-decoration: none;
-      font-size: 14px;
-      cursor: pointer;
-    }
+    .back, .refresh { color: var(--accent); font-weight: 800; text-decoration: none; font-size: 14px; cursor: pointer; }
 
     .hero {
-      background: var(--accent);
-      color: white;
-      border-radius: 22px;
-      padding: 24px 20px;
-      margin-bottom: 14px;
+      background: var(--accent); color: white; border-radius: 22px;
+      padding: 24px 20px; margin-bottom: 14px;
       box-shadow: 0 8px 24px rgba(11,122,40,0.22);
-      position: relative;
-      overflow: hidden;
+      position: relative; overflow: hidden;
     }
 
     .hero::before {
-      content: "";
-      position: absolute;
-      width: 155px;
-      height: 155px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.10);
-      top: -65px;
-      right: -55px;
+      content: ""; position: absolute; width: 155px; height: 155px;
+      border-radius: 50%; background: rgba(255,255,255,0.10); top: -65px; right: -55px;
     }
 
     .hero::after {
-      content: "";
-      position: absolute;
-      width: 92px;
-      height: 92px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.07);
-      bottom: -45px;
-      left: -35px;
+      content: ""; position: absolute; width: 92px; height: 92px;
+      border-radius: 50%; background: rgba(255,255,255,0.07); bottom: -45px; left: -35px;
     }
 
-    .hero-title {
-      font-size: 29px;
-      font-weight: 800;
-      line-height: 1.08;
-      margin-bottom: 7px;
-      position: relative;
-      z-index: 2;
-      letter-spacing: -0.5px;
-    }
+    .hero-title { font-size: 29px; font-weight: 800; line-height: 1.08; margin-bottom: 7px; position: relative; z-index: 2; letter-spacing: -0.5px; }
+    .hero-sub { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.82); position: relative; z-index: 2; }
 
-    .hero-sub {
-      font-size: 13px;
-      line-height: 1.5;
-      color: rgba(255,255,255,0.82);
-      position: relative;
-      z-index: 2;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-
-    .section-title {
-      font-size: 15px;
-      font-weight: 800;
-      margin-bottom: 10px;
-      letter-spacing: -0.1px;
-    }
-
-    .small {
-      color: var(--muted);
-      font-size: 12.5px;
-      line-height: 1.5;
-      font-weight: 600;
-    }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 16px; margin-bottom: 12px; }
+    .section-title { font-size: 15px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.1px; }
+    .small { color: var(--muted); font-size: 12.5px; line-height: 1.5; font-weight: 600; }
 
     .warning-box {
-      background: var(--warning-bg);
-      border: 1px solid var(--warning-border);
-      color: var(--warning-text);
-      border-radius: 14px;
-      padding: 12px;
-      margin-bottom: 12px;
-      font-size: 12.5px;
-      line-height: 1.5;
-      font-weight: 700;
+      background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning-text);
+      border-radius: 14px; padding: 12px; margin-bottom: 12px;
+      font-size: 12.5px; line-height: 1.5; font-weight: 700;
     }
 
-    label {
-      display: block;
-      margin-top: 13px;
-      margin-bottom: 7px;
-      color: var(--accent);
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
+    label { display: block; margin-top: 13px; margin-bottom: 7px; color: var(--accent); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; }
+
+    select, textarea, input {
+      width: 100%; padding: 13px; border-radius: 13px; border: 1px solid var(--border);
+      font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif;
+      outline: none; background: white; color: var(--text);
     }
 
-    select,
-    textarea,
-    input {
-      width: 100%;
-      padding: 13px;
-      border-radius: 13px;
-      border: 1px solid var(--border);
-      font-size: 14px;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      outline: none;
-      background: white;
-      color: var(--text);
-    }
-
-    select:focus,
-    textarea:focus,
-    input:focus {
+    select:focus, textarea:focus, input:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(11,122,40,0.10);
     }
 
-    textarea {
-      min-height: 115px;
-      resize: vertical;
-      line-height: 1.45;
-    }
-
-    input[type="file"] {
-      font-size: 12.5px;
-      color: var(--muted);
-    }
+    textarea { min-height: 115px; resize: vertical; line-height: 1.45; }
+    input[type="file"] { font-size: 12.5px; color: var(--muted); }
 
     button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 13px;
-      background: var(--accent);
-      color: white;
-      font-size: 14px;
-      font-weight: 800;
-      cursor: pointer;
-      margin-top: 12px;
+      width: 100%; padding: 14px; border: none; border-radius: 13px;
+      background: var(--accent); color: white; font-size: 14px; font-weight: 800;
+      cursor: pointer; margin-top: 12px;
       transition: opacity 0.18s, transform 0.18s, box-shadow 0.18s;
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    button:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 14px rgba(11,122,40,0.10);
-    }
+    button:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(11,122,40,0.10); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+    button.secondary { background: white; color: var(--accent); border: 1px solid var(--border); }
+    button.danger { background: var(--danger); color: white; }
 
-    button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
+    .hidden { display: none; }
 
-    button.secondary {
-      background: white;
-      color: var(--accent);
-      border: 1px solid var(--border);
-    }
-
-    button.danger {
-      background: var(--danger);
-      color: white;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 9px;
-      margin-top: 10px;
-    }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 10px; }
 
     .info-box {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 11px;
-      min-height: 66px;
+      background: white; border: 1px solid var(--border); border-radius: 14px;
+      padding: 11px; min-height: 66px;
     }
 
-    .info-label {
-      color: var(--accent);
-      font-size: 10px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      margin-bottom: 5px;
-    }
-
-    .info-value {
-      color: var(--text);
-      font-size: 12.5px;
-      font-weight: 700;
-      line-height: 1.35;
-      word-break: break-word;
-    }
+    .info-label { color: var(--accent); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+    .info-value { color: var(--text); font-size: 12.5px; font-weight: 700; line-height: 1.35; word-break: break-word; }
 
     .status-pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: capitalize;
-      background: var(--surface2);
-      color: var(--accent);
-      border: 1px solid #cfead7;
-      margin-top: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 6px 10px; border-radius: 999px; font-size: 11px; font-weight: 800;
+      text-transform: capitalize; background: var(--surface2); color: var(--accent);
+      border: 1px solid #cfead7; margin-top: 8px;
     }
 
-    .status-pill.urgent,
-    .status-pill.open {
-      background: var(--warning-bg);
-      color: var(--warning-text);
-      border-color: var(--warning-border);
-    }
+    .status-pill.urgent, .status-pill.open { background: var(--warning-bg); color: var(--warning-text); border-color: var(--warning-border); }
+    .status-pill.closed, .status-pill.resolved { background: #eeeeee; color: #333; border-color: #d7d7d7; }
 
-    .status-pill.closed,
-    .status-pill.resolved {
-      background: #eeeeee;
-      color: #333;
-      border-color: #d7d7d7;
-    }
-
+    /* chat thread */
     .chat-thread {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 12px;
-      min-height: 220px;
-      max-height: 360px;
-      overflow-y: auto;
-      margin-top: 12px;
+      background: white; border: 1px solid var(--border); border-radius: 18px;
+      padding: 12px; min-height: 220px; max-height: 360px; overflow-y: auto; margin-top: 12px;
     }
 
-    .message {
-      width: 100%;
-      padding: 8px 0;
-      margin-bottom: 6px;
-      font-size: 13px;
-      line-height: 1.35;
-      white-space: pre-wrap;
-      border-bottom: 1px solid var(--border);
-    }
+    .chat-msg { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; line-height: 1.35; white-space: pre-wrap; }
+    .chat-msg:last-child { border-bottom: none; }
 
-    .message:last-child {
-      border-bottom: none;
-    }
+    .sender-name { display: inline-block; font-size: 12px; font-weight: 800; margin-bottom: 3px; }
+    .sender-name.admin-name { color: var(--accent); }
+    .sender-name.worker-name { color: var(--text); }
 
-    .message.worker,
-    .message.admin {
-      background: transparent;
-      color: var(--text);
-      border-radius: 0;
-      margin-left: 0;
-      margin-right: 0;
-      display: block;
-    }
-
-    .sender-name {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 800;
-      margin-bottom: 3px;
-    }
-
-    .sender-name.admin-name {
-      color: var(--accent);
-    }
-
-    .sender-name.worker-name {
-      color: var(--text);
-    }
-
-    .message-meta {
-      font-size: 9.5px;
-      opacity: 0.72;
-      margin-top: 4px;
-      line-height: 1.25;
-      font-weight: 700;
-      color: var(--muted);
-    }
+    .message-meta { font-size: 9.5px; opacity: 0.72; margin-top: 4px; line-height: 1.25; font-weight: 700; color: var(--muted); }
 
     .chat-image {
-      width: 100%;
-      max-height: 180px;
-      object-fit: cover;
-      border-radius: 10px;
-      margin-top: 6px;
-      border: 1px solid var(--border);
-      background: white;
-      display: block;
+      width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px;
+      margin-top: 6px; border: 1px solid var(--border); background: white; display: block;
     }
 
-    .typing-line {
-      min-height: 18px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-      margin-top: 8px;
-      line-height: 1.4;
-    }
-
-    .read-line {
-      color: var(--muted);
-      font-size: 11.5px;
-      font-weight: 700;
-      margin-top: 8px;
-      line-height: 1.4;
-      text-align: center;
-    }
+    .typing-line { min-height: 18px; color: var(--muted); font-size: 12px; font-weight: 700; margin-top: 8px; line-height: 1.4; }
+    .read-line { color: var(--muted); font-size: 11.5px; font-weight: 700; margin-top: 8px; line-height: 1.4; text-align: center; }
 
     .chat-list-item {
-      background: white;
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      border-radius: 15px;
-      padding: 12px;
-      margin-bottom: 10px;
-      cursor: pointer;
+      background: white; border: 1px solid var(--border); border-left: 4px solid var(--accent);
+      border-radius: 15px; padding: 12px; margin-bottom: 10px; cursor: pointer;
     }
 
-    .chat-list-item.closed {
-      border-left-color: #999;
-    }
+    .chat-list-item.closed { border-left-color: #999; }
+    .chat-list-title { font-size: 13.5px; font-weight: 800; margin-bottom: 4px; }
+    .chat-list-sub { color: var(--muted); font-size: 12px; line-height: 1.4; font-weight: 600; }
 
-    .chat-list-title {
-      font-size: 13.5px;
-      font-weight: 800;
-      margin-bottom: 4px;
-    }
-
-    .chat-list-sub {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.4;
-      font-weight: 600;
+    .unread-badge {
+      display: inline-block; background: var(--danger); color: white;
+      border-radius: 999px; font-size: 10px; font-weight: 800;
+      padding: 2px 7px; margin-left: 6px; vertical-align: middle;
     }
 
     .empty {
-      background: white;
-      border: 1px dashed #bfd1c6;
-      border-radius: 16px;
-      padding: 18px 14px;
-      color: var(--muted);
-      font-size: 13px;
-      text-align: center;
-      line-height: 1.45;
-      font-weight: 600;
+      background: white; border: 1px dashed #bfd1c6; border-radius: 16px;
+      padding: 18px 14px; color: var(--muted); font-size: 13px;
+      text-align: center; line-height: 1.45; font-weight: 600;
     }
 
-    .status-message {
-      min-height: 18px;
-      text-align: center;
-      font-weight: 800;
-      margin-top: 12px;
-      font-size: 13px;
-      line-height: 1.4;
-    }
+    .status-message { min-height: 18px; text-align: center; font-weight: 800; margin-top: 12px; font-size: 13px; line-height: 1.4; }
 
     @media (max-width: 360px) {
-      .hero-title {
-        font-size: 25px;
-      }
-
-      .info-grid {
-        grid-template-columns: 1fr;
-      }
+      .hero-title { font-size: 25px; }
+      .info-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -457,7 +190,7 @@
 
   <div class="top-bar">
     <a class="back" href="my-jobs.html">← Back</a>
-    <div class="refresh" onclick="refreshSupportPage()">Refresh</div>
+    <div class="refresh" onclick="manualRefresh()">Refresh</div>
   </div>
 
   <div class="hero">
@@ -471,11 +204,10 @@
     If there is an emergency, immediate danger, violence, threats, or a medical issue, call 911 first. TaskMint support is not emergency services.
   </div>
 
+  <!-- NEW CHAT FORM -->
   <div id="openChatSection" class="card">
     <div class="section-title">Start Support Chat</div>
-    <p class="small">
-      Select the job, enter your phone number, explain the issue, and upload proof if needed.
-    </p>
+    <p class="small">Select the job, enter your phone number, explain the issue, and upload proof if needed.</p>
 
     <label for="taskSelect">Task</label>
     <select id="taskSelect" onchange="previewSelectedTask()">
@@ -512,15 +244,13 @@
     <label for="proofUpload">Upload Photo Proof</label>
     <input id="proofUpload" type="file" accept="image/*">
 
-    <p class="small" style="margin-top:8px;">
-      You can upload proof of arrival, screenshots, customer location issues, damage, or other job-related evidence.
-    </p>
+    <p class="small" style="margin-top:8px;">You can upload proof of arrival, screenshots, customer location issues, damage, or other job-related evidence.</p>
 
     <button onclick="startSupportChat()">Start Chat with TaskMint</button>
-
     <div id="openChatStatus" class="status-message"></div>
   </div>
 
+  <!-- ACTIVE CHAT -->
   <div id="activeChatSection" class="card hidden">
     <div class="section-title">Active Support Chat</div>
 
@@ -529,17 +259,14 @@
         <div class="info-label">Status</div>
         <div class="info-value" id="activeChatStatusText">Open</div>
       </div>
-
       <div class="info-box">
         <div class="info-label">Issue</div>
         <div class="info-value" id="activeIssueTypeText">Not listed</div>
       </div>
-
       <div class="info-box">
         <div class="info-label">Task</div>
         <div class="info-value" id="activeTaskText">Not linked</div>
       </div>
-
       <div class="info-box">
         <div class="info-label">Phone</div>
         <div class="info-value" id="activePhoneText">Not listed</div>
@@ -563,10 +290,12 @@
 
     <button onclick="sendMessage()">Send Message</button>
     <button class="secondary" onclick="closeWorkerChat()">Close Chat</button>
+    <button class="secondary" onclick="backToList()">← Back to My Chats</button>
 
     <div id="replyStatus" class="status-message"></div>
   </div>
 
+  <!-- CHAT LIST -->
   <div class="card">
     <div class="section-title">Your Support Chats</div>
     <div id="chatList">
@@ -577,14 +306,12 @@
 </div>
 
 <script>
-const supabaseClient =
-  window.supabase.createClient(
-    "https://dbcthtjmtlumidpbucrc.supabase.co",
-    "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
-  );
+const supabaseClient = window.supabase.createClient(
+  "https://dbcthtjmtlumidpbucrc.supabase.co",
+  "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
+);
 
-const SUPPORT_BUCKET =
-  "worker-support-uploads";
+const SUPPORT_BUCKET = "worker-support-uploads";
 
 let currentUser = null;
 let currentWorkerId = null;
@@ -593,1022 +320,497 @@ let eligibleTasks = [];
 let activeChat = null;
 let activeMessages = [];
 let typingTimeout = null;
-let refreshTimer = null;
+let pollTimer = null;
+let lastMessageCount = 0;
 
-const params =
-  new URLSearchParams(window.location.search);
+const params = new URLSearchParams(window.location.search);
+let selectedTaskId = params.get("task_id") || "";
 
-let selectedTaskId =
-  params.get("task_id") || "";
-
-const blockedWords = [
-  "fuck",
-  "shit",
-  "bitch",
-  "asshole",
-  "nigga",
-  "nigger",
-  "cunt",
-  "motherfucker",
-  "pussy"
-];
+const blockedWords = ["fuck","shit","bitch","asshole","nigga","nigger","cunt","motherfucker","pussy"];
 
 function escapeHTML(value) {
   return String(value || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
 function cleanText(value, fallback = "Not listed") {
-  if (value === null || value === undefined) {
-    return fallback;
-  }
-
-  const text =
-    String(value).trim();
-
+  if (value === null || value === undefined) return fallback;
+  const text = String(value).trim();
   return text === "" ? fallback : text;
 }
 
 function containsBlockedWords(text) {
-  const lower =
-    String(text || "").toLowerCase();
-
+  const lower = String(text || "").toLowerCase();
   return blockedWords.some(word => lower.includes(word));
 }
 
 function formatDateTime(value) {
-  if (!value) {
-    return "Not listed";
-  }
-
-  const date =
-    new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleString([], {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
+  if (!value) return "Not listed";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString([], { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
 function getFirstAvailable(record, keys, fallback = "") {
-  if (!record) {
-    return fallback;
-  }
-
+  if (!record) return fallback;
   for (const key of keys) {
-    if (
-      record[key] !== null &&
-      record[key] !== undefined &&
-      String(record[key]).trim() !== ""
-    ) {
-      return record[key];
-    }
+    if (record[key] !== null && record[key] !== undefined && String(record[key]).trim() !== "") return record[key];
   }
-
   return fallback;
 }
 
 function getTaskTitle(task) {
-  return getFirstAvailable(task, [
-    "title",
-    "task_title",
-    "category",
-    "service_type"
-  ], "Task");
+  return getFirstAvailable(task, ["title","task_title","category","service_type"], "Task");
 }
 
 function getTaskOrderNumber(task) {
-  return getFirstAvailable(task, [
-    "order_number",
-    "task_order_number"
-  ], "") || `TM-${String(task.id || "").slice(0, 8).toUpperCase()}`;
+  return getFirstAvailable(task, ["order_number","task_order_number"], "") || `TM-${String(task.id || "").slice(0,8).toUpperCase()}`;
 }
 
 function getTaskLocation(task) {
-  const city =
-    getFirstAvailable(task, ["city", "task_city", "service_city"], "");
-
-  const state =
-    getFirstAvailable(task, ["state", "task_state", "service_state"], "");
-
+  const city = getFirstAvailable(task, ["city","task_city","service_city"], "");
+  const state = getFirstAvailable(task, ["state","task_state","service_state"], "");
   return [city, state].filter(Boolean).join(", ") || "Location not listed";
 }
 
 function getTaskDetails(task) {
-  if (!task) {
-    return "";
-  }
-
-  if (
-    task.task_details &&
-    typeof task.task_details === "object" &&
-    !Array.isArray(task.task_details)
-  ) {
+  if (!task) return "";
+  if (task.task_details && typeof task.task_details === "object" && !Array.isArray(task.task_details)) {
     return Object.entries(task.task_details)
       .filter(([key, value]) => {
-        const loweredKey =
-          String(key || "").toLowerCase();
-
-        return (
-          !loweredKey.includes("address") &&
-          !loweredKey.includes("unit") &&
-          !loweredKey.includes("apt") &&
-          !loweredKey.includes("apartment") &&
-          !loweredKey.includes("suite") &&
-          value !== null &&
-          value !== undefined &&
-          String(value).trim() !== ""
-        );
+        const loweredKey = String(key || "").toLowerCase();
+        return !loweredKey.includes("address") && !loweredKey.includes("unit") &&
+          !loweredKey.includes("apt") && !loweredKey.includes("apartment") &&
+          !loweredKey.includes("suite") && value !== null && value !== undefined && String(value).trim() !== "";
       })
       .map(([key, value]) => {
-        const label =
-          key
-            .replaceAll("_", " ")
-            .replace(/\b\w/g, letter => letter.toUpperCase());
-
+        const label = key.replaceAll("_"," ").replace(/\b\w/g, l => l.toUpperCase());
         return `${label}: ${value}`;
-      })
-      .join("\\n");
+      }).join("\n");
   }
-
-  return getFirstAvailable(task, [
-    "description",
-    "details",
-    "notes",
-    "special_instructions"
-  ], "");
+  return getFirstAvailable(task, ["description","details","notes","special_instructions"], "");
 }
 
 function getWorkerDisplayName(profile, workerProfile) {
-  const profileName =
-    getFirstAvailable(profile, [
-      "full_name",
-      "name",
-      "display_name"
-    ], "");
-
-  if (profileName) {
-    return profileName;
-  }
-
-  const workerProfileName =
-    getFirstAvailable(workerProfile, [
-      "full_name",
-      "name",
-      "display_name"
-    ], "");
-
-  if (workerProfileName) {
-    return workerProfileName;
-  }
-
-  const firstName =
-    profile?.first_name ||
-    workerProfile?.first_name ||
-    "";
-
-  const lastName =
-    profile?.last_name ||
-    workerProfile?.last_name ||
-    "";
-
-  const fullName =
-    `${firstName} ${lastName}`.trim();
-
+  const profileName = getFirstAvailable(profile, ["full_name","name","display_name"], "");
+  if (profileName) return profileName;
+  const workerProfileName = getFirstAvailable(workerProfile, ["full_name","name","display_name"], "");
+  if (workerProfileName) return workerProfileName;
+  const firstName = profile?.first_name || workerProfile?.first_name || "";
+  const lastName = profile?.last_name || workerProfile?.last_name || "";
+  const fullName = `${firstName} ${lastName}`.trim();
   return fullName || currentUser?.email || "Worker";
 }
 
 function setStatus(elementId, message, color = "#666") {
-  const box =
-    document.getElementById(elementId);
-
-  if (!box) {
-    return;
-  }
-
+  const box = document.getElementById(elementId);
+  if (!box) return;
   box.style.color = color;
   box.innerText = message;
 }
 
 async function loadCurrentWorker() {
-  const { data, error } =
-    await supabaseClient.auth.getUser();
+  const { data, error } = await supabaseClient.auth.getUser();
+  if (error || !data || !data.user) { window.location.href = "worker-login.html"; return false; }
+  currentUser = data.user;
+  const ids = [currentUser.id];
 
-  if (error || !data || !data.user) {
-    window.location.href = "worker-login.html";
-    return false;
-  }
+  const { data: profile } = await supabaseClient.from("profiles").select("*").eq("email", currentUser.email).maybeSingle();
+  if (profile && profile.id) ids.push(profile.id);
 
-  currentUser =
-    data.user;
+  const { data: workerProfileByEmail } = await supabaseClient.from("worker_profiles").select("*").eq("email", currentUser.email).maybeSingle();
+  const { data: workerProfileByAuthId } = await supabaseClient.from("worker_profiles").select("*").eq("auth_user_id", currentUser.id).maybeSingle();
+  const workerProfiles = [workerProfileByEmail, workerProfileByAuthId].filter(Boolean);
 
-  const ids =
-    [currentUser.id];
-
-  const { data: profile } =
-    await supabaseClient
-      .from("profiles")
-      .select("*")
-      .eq("email", currentUser.email)
-      .maybeSingle();
-
-  if (profile && profile.id) {
-    ids.push(profile.id);
-  }
-
-  const { data: workerProfileByEmail } =
-    await supabaseClient
-      .from("worker_profiles")
-      .select("*")
-      .eq("email", currentUser.email)
-      .maybeSingle();
-
-  const { data: workerProfileByAuthId } =
-    await supabaseClient
-      .from("worker_profiles")
-      .select("*")
-      .eq("auth_user_id", currentUser.id)
-      .maybeSingle();
-
-  const workerProfiles =
-    [workerProfileByEmail, workerProfileByAuthId].filter(Boolean);
-
-  workerProfiles.forEach(workerProfile => {
-    if (workerProfile.id) {
-      ids.push(workerProfile.id);
-    }
-
-    if (workerProfile.auth_user_id) {
-      ids.push(workerProfile.auth_user_id);
-    }
+  workerProfiles.forEach(wp => {
+    if (wp.id) ids.push(wp.id);
+    if (wp.auth_user_id) ids.push(wp.auth_user_id);
   });
 
-  currentWorkerIds =
-    [...new Set(ids.filter(Boolean).map(String))];
+  currentWorkerIds = [...new Set(ids.filter(Boolean).map(String))];
+  currentWorkerId = workerProfileByEmail?.id || workerProfileByAuthId?.id || currentUser.id;
 
-  currentWorkerId =
-    workerProfileByEmail?.id ||
-    workerProfileByAuthId?.id ||
-    currentUser.id;
-
-  const workerName =
-    getWorkerDisplayName(profile, workerProfileByEmail || workerProfileByAuthId);
-
+  const workerName = getWorkerDisplayName(profile, workerProfileByEmail || workerProfileByAuthId);
   localStorage.setItem("taskmintWorkerName", workerName);
-
   return true;
 }
 
 async function loadTasks() {
-  const select =
-    document.getElementById("taskSelect");
+  const select = document.getElementById("taskSelect");
+  select.innerHTML = `<option value="">Loading jobs...</option>`;
 
-  select.innerHTML =
-    `<option value="">Loading jobs...</option>`;
+  const { data: quotes } = await supabaseClient
+    .from("worker_quotes")
+    .select(`*, tasks (*)`)
+    .in("worker_id", currentWorkerIds)
+    .in("status", ["accepted","in_progress","worker_completed","completed"])
+    .order("created_at", { ascending: false });
 
-  const { data: quotes } =
-    await supabaseClient
-      .from("worker_quotes")
-      .select(`
-        *,
-        tasks (*)
-      `)
-      .in("worker_id", currentWorkerIds)
-      .in("status", [
-        "accepted",
-        "in_progress",
-        "worker_completed",
-        "completed"
-      ])
-      .order("created_at", { ascending: false });
-
-  eligibleTasks =
-    (quotes || [])
-      .filter(row => row.tasks)
-      .map(row => ({
-        quote: row,
-        task: row.tasks
-      }));
+  eligibleTasks = (quotes || []).filter(row => row.tasks).map(row => ({ quote: row, task: row.tasks }));
 
   if (selectedTaskId) {
-    const selectedExists =
-      eligibleTasks.some(item => String(item.task.id) === String(selectedTaskId));
-
+    const selectedExists = eligibleTasks.some(item => String(item.task.id) === String(selectedTaskId));
     if (!selectedExists) {
-      const { data: selectedTask } =
-        await supabaseClient
-          .from("tasks")
-          .select("*")
-          .eq("id", selectedTaskId)
-          .maybeSingle();
-
-      if (selectedTask) {
-        eligibleTasks.unshift({
-          quote: null,
-          task: selectedTask
-        });
-      }
+      const { data: selectedTask } = await supabaseClient.from("tasks").select("*").eq("id", selectedTaskId).maybeSingle();
+      if (selectedTask) eligibleTasks.unshift({ quote: null, task: selectedTask });
     }
   }
 
-  if (eligibleTasks.length === 0) {
-    select.innerHTML =
-      `<option value="">No active jobs found</option>`;
-    return;
-  }
+  if (eligibleTasks.length === 0) { select.innerHTML = `<option value="">No active jobs found</option>`; return; }
 
-  select.innerHTML =
-    `<option value="">Select a job</option>`;
-
+  select.innerHTML = `<option value="">Select a job</option>`;
   eligibleTasks.forEach(item => {
-    const task =
-      item.task;
-
-    select.innerHTML += `
-      <option value="${escapeHTML(task.id)}">
-        ${escapeHTML(getTaskTitle(task))} — ${escapeHTML(getTaskOrderNumber(task))}
-      </option>
-    `;
+    select.innerHTML += `<option value="${escapeHTML(item.task.id)}">${escapeHTML(getTaskTitle(item.task))} — ${escapeHTML(getTaskOrderNumber(item.task))}</option>`;
   });
 
-  if (selectedTaskId) {
-    select.value =
-      selectedTaskId;
-
-    previewSelectedTask();
-  }
+  if (selectedTaskId) { select.value = selectedTaskId; previewSelectedTask(); }
 }
 
 function getSelectedTaskBundle() {
-  const taskId =
-    document.getElementById("taskSelect").value;
-
+  const taskId = document.getElementById("taskSelect").value;
   return eligibleTasks.find(item => String(item.task.id) === String(taskId)) || null;
 }
 
 function previewSelectedTask() {
-  const preview =
-    document.getElementById("taskPreview");
-
-  const bundle =
-    getSelectedTaskBundle();
-
-  if (!bundle) {
-    preview.innerHTML = "";
-    return;
-  }
-
-  const task =
-    bundle.task;
-
-  const taskDetails =
-    getTaskDetails(task);
-
+  const preview = document.getElementById("taskPreview");
+  const bundle = getSelectedTaskBundle();
+  if (!bundle) { preview.innerHTML = ""; return; }
+  const task = bundle.task;
+  const taskDetails = getTaskDetails(task);
   preview.innerHTML = `
     <div class="info-grid">
       <div class="info-box">
         <div class="info-label">Order</div>
         <div class="info-value">${escapeHTML(getTaskOrderNumber(task))}</div>
       </div>
-
       <div class="info-box">
         <div class="info-label">Location</div>
         <div class="info-value">${escapeHTML(getTaskLocation(task))}</div>
       </div>
     </div>
-
-    ${
-      taskDetails
-        ? `
-          <div class="info-box" style="margin-top:10px;">
-            <div class="info-label">Task Details</div>
-            <div class="info-value" style="white-space:pre-wrap;">${escapeHTML(taskDetails)}</div>
-          </div>
-        `
-        : ""
-    }
+    ${taskDetails ? `<div class="info-box" style="margin-top:10px;"><div class="info-label">Task Details</div><div class="info-value" style="white-space:pre-wrap;">${escapeHTML(taskDetails)}</div></div>` : ""}
   `;
 }
 
 async function uploadPhoto(file) {
-  if (!file) {
-    return null;
-  }
-
-  const safeName =
-    file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
-
-  const filePath =
-    `${currentWorkerId}/${Date.now()}-${safeName}`;
-
-  const { error } =
-    await supabaseClient.storage
-      .from(SUPPORT_BUCKET)
-      .upload(filePath, file);
-
-  if (error) {
-    throw error;
-  }
-
-  const { data } =
-    supabaseClient.storage
-      .from(SUPPORT_BUCKET)
-      .getPublicUrl(filePath);
-
+  if (!file) return null;
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+  const filePath = `${currentWorkerId}/${Date.now()}-${safeName}`;
+  const { error } = await supabaseClient.storage.from(SUPPORT_BUCKET).upload(filePath, file);
+  if (error) throw error;
+  const { data } = supabaseClient.storage.from(SUPPORT_BUCKET).getPublicUrl(filePath);
   return data.publicUrl;
 }
 
 async function startSupportChat() {
-  const taskBundle =
-    getSelectedTaskBundle();
-
-  const issueType =
-    document.getElementById("issueType").value;
-
-  const urgency =
-    document.getElementById("urgencyLevel").value || "urgent";
-
-  const phoneNumber =
-    document.getElementById("phoneNumber").value.trim();
-
-  const message =
-    document.getElementById("messageInput").value.trim();
-
-  const file =
-    document.getElementById("proofUpload").files[0];
+  const taskBundle = getSelectedTaskBundle();
+  const issueType = document.getElementById("issueType").value;
+  const urgency = document.getElementById("urgencyLevel").value || "urgent";
+  const phoneNumber = document.getElementById("phoneNumber").value.trim();
+  const message = document.getElementById("messageInput").value.trim();
+  const file = document.getElementById("proofUpload").files[0];
 
   setStatus("openChatStatus", "");
+  if (!taskBundle || !taskBundle.task || !taskBundle.task.id) { setStatus("openChatStatus", "Select a task.", "#b00020"); return; }
+  if (!issueType) { setStatus("openChatStatus", "Select an issue type.", "#b00020"); return; }
+  if (!phoneNumber) { setStatus("openChatStatus", "Enter a phone number TaskMint can use if support needs to call you.", "#b00020"); return; }
+  if (!message) { setStatus("openChatStatus", "Enter a message explaining the issue.", "#b00020"); return; }
+  if (containsBlockedWords(message)) { setStatus("openChatStatus", "Please remove inappropriate language before sending.", "#b00020"); return; }
 
-  if (!taskBundle || !taskBundle.task || !taskBundle.task.id) {
-    setStatus("openChatStatus", "Select a task.", "#b00020");
-    return;
-  }
-
-  if (!issueType) {
-    setStatus("openChatStatus", "Select an issue type.", "#b00020");
-    return;
-  }
-
-  if (!phoneNumber) {
-    setStatus("openChatStatus", "Enter a phone number TaskMint can use if support needs to call you.", "#b00020");
-    return;
-  }
-
-  if (!message) {
-    setStatus("openChatStatus", "Enter a message explaining the issue.", "#b00020");
-    return;
-  }
-
-  if (containsBlockedWords(message)) {
-    setStatus("openChatStatus", "Please remove inappropriate language before sending.", "#b00020");
-    return;
-  }
-
-  const task =
-    taskBundle.task;
-
-  const taskDetails =
-    getTaskDetails(task);
-
-  const workerName =
-    localStorage.getItem("taskmintWorkerName") || currentUser.email || "Worker";
+  const task = taskBundle.task;
+  const taskDetails = getTaskDetails(task);
+  const workerName = localStorage.getItem("taskmintWorkerName") || currentUser.email || "Worker";
 
   setStatus("openChatStatus", "Starting support chat...", "#666");
 
   try {
-    const photoUrl =
-      await uploadPhoto(file);
+    const photoUrl = await uploadPhoto(file);
+    const now = new Date().toISOString();
 
-    const now =
-      new Date().toISOString();
+    const { data: chat, error: chatError } = await supabaseClient
+      .from("worker_support_chats")
+      .insert({
+        worker_id: currentWorkerId, worker_name: workerName,
+        worker_email: currentUser.email, worker_phone: phoneNumber,
+        task_id: task.id, task_title: getTaskTitle(task),
+        task_order_number: getTaskOrderNumber(task),
+        task_location: getTaskLocation(task),
+        task_details: taskDetails || null,
+        issue_type: issueType, priority: urgency,
+        status: "open", opened_by: "worker",
+        worker_last_read_at: now, taskmint_last_read_at: null,
+        worker_typing: false, taskmint_typing: false,
+        created_at: now, updated_at: now
+      })
+      .select("*").single();
 
-    const { data: chat, error: chatError } =
-      await supabaseClient
-        .from("worker_support_chats")
-        .insert({
-          worker_id: currentWorkerId,
-          worker_name: workerName,
-          worker_email: currentUser.email,
-          worker_phone: phoneNumber,
-          task_id: task.id,
-          task_title: getTaskTitle(task),
-          task_order_number: getTaskOrderNumber(task),
-          task_location: getTaskLocation(task),
-          task_details: taskDetails || null,
-          issue_type: issueType,
-          priority: urgency,
-          status: "open",
-          opened_by: "worker",
-          worker_last_read_at: now,
-          taskmint_last_read_at: null,
-          worker_typing: false,
-          taskmint_typing: false,
-          created_at: now,
-          updated_at: now
-        })
-        .select("*")
-        .single();
+    if (chatError) throw chatError;
 
-    if (chatError) {
-      throw chatError;
-    }
-
-    const { error: messageError } =
-      await supabaseClient
-        .from("worker_support_chat_messages")
-        .insert({
-          chat_id: chat.id,
-          task_id: task.id,
-          worker_id: currentWorkerId,
-          sender_id: currentWorkerId,
-          sender_role: "worker",
-          message: message,
-          attachment_url: photoUrl,
-          is_read_by_worker: true,
-          is_read_by_taskmint: false,
-          created_at: now
-        });
-
-    if (messageError) {
-      throw messageError;
-    }
+    await supabaseClient.from("worker_support_chat_messages").insert({
+      chat_id: chat.id, task_id: task.id,
+      worker_id: currentWorkerId, sender_id: currentWorkerId,
+      sender_role: "worker", message: message,
+      attachment_url: photoUrl,
+      is_read_by_worker: true, is_read_by_taskmint: false,
+      created_at: now
+    });
 
     document.getElementById("messageInput").value = "";
     document.getElementById("proofUpload").value = "";
-
     setStatus("openChatStatus", "Support chat opened and sent to TaskMint admin support.", "#0b7a28");
 
-    activeChat =
-      chat;
-
+    activeChat = chat;
     await openChat(chat.id);
-
   } catch (error) {
     setStatus("openChatStatus", error.message || "Could not start support chat.", "#b00020");
   }
 }
 
 async function loadChats() {
-  const chatList =
-    document.getElementById("chatList");
+  const chatList = document.getElementById("chatList");
 
-  chatList.innerHTML =
-    `<div class="empty">Loading support chats...</div>`;
+  const { data, error } = await supabaseClient
+    .from("worker_support_chats")
+    .select("*")
+    .in("worker_id", currentWorkerIds)
+    .order("updated_at", { ascending: false });
 
-  const { data, error } =
-    await supabaseClient
-      .from("worker_support_chats")
-      .select("*")
-      .in("worker_id", currentWorkerIds)
-      .order("updated_at", { ascending: false });
-
-  if (error) {
-    chatList.innerHTML =
-      `<div class="empty">${escapeHTML(error.message)}</div>`;
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    chatList.innerHTML =
-      `<div class="empty">No support chats yet.</div>`;
-    return;
-  }
+  if (error) { chatList.innerHTML = `<div class="empty">${escapeHTML(error.message)}</div>`; return; }
+  if (!data || data.length === 0) { chatList.innerHTML = `<div class="empty">No support chats yet.</div>`; return; }
 
   chatList.innerHTML = "";
-
   data.forEach(chat => {
-    const div =
-      document.createElement("div");
+    const div = document.createElement("div");
+    const status = String(chat.status || "open").toLowerCase();
+    div.className = `chat-list-item ${status}`;
+    div.onclick = () => openChat(chat.id);
 
-    div.className =
-      `chat-list-item ${String(chat.status || "").toLowerCase()}`;
-
-    div.onclick =
-      () => openChat(chat.id);
+    // show unread badge if admin replied after worker last read
+    const workerReadTime = chat.worker_last_read_at ? new Date(chat.worker_last_read_at).getTime() : 0;
+    const updatedTime = chat.updated_at ? new Date(chat.updated_at).getTime() : 0;
+    const hasUnread = updatedTime > workerReadTime && chat.taskmint_last_read_at;
 
     div.innerHTML = `
       <div class="chat-list-title">
         ${escapeHTML(chat.issue_type || "Support Chat")}
+        ${hasUnread ? `<span class="unread-badge">New</span>` : ""}
       </div>
       <div class="chat-list-sub">
         ${escapeHTML(chat.task_title || "Task")} • ${escapeHTML(chat.task_order_number || "Order not listed")}<br>
-        Status: ${escapeHTML(chat.status || "open")} • Updated: ${escapeHTML(formatDateTime(chat.updated_at || chat.created_at))}
+        Status: ${escapeHTML(status)} • Updated: ${escapeHTML(formatDateTime(chat.updated_at || chat.created_at))}
       </div>
-      <span class="status-pill ${escapeHTML(chat.status || "open")}">
-        ${escapeHTML(chat.priority || chat.status || "open")}
-      </span>
+      <span class="status-pill ${escapeHTML(status)}">${escapeHTML(status)}</span>
     `;
-
     chatList.appendChild(div);
   });
 }
 
 async function openChat(chatId) {
-  const { data: chat, error } =
-    await supabaseClient
-      .from("worker_support_chats")
-      .select("*")
-      .eq("id", chatId)
-      .maybeSingle();
+  const { data: chat, error } = await supabaseClient.from("worker_support_chats").select("*").eq("id", chatId).maybeSingle();
+  if (error || !chat) { setStatus("openChatStatus", error?.message || "Support chat not found.", "#b00020"); return; }
 
-  if (error || !chat) {
-    setStatus("openChatStatus", error?.message || "Support chat not found.", "#b00020");
-    return;
-  }
-
-  activeChat =
-    chat;
-
+  activeChat = chat;
   document.getElementById("openChatSection").classList.add("hidden");
   document.getElementById("activeChatSection").classList.remove("hidden");
 
   renderActiveChatHeader();
-
   await markWorkerRead();
   await loadMessages();
+  await loadChats();
+}
+
+function backToList() {
+  activeChat = null;
+  lastMessageCount = 0;
+  document.getElementById("activeChatSection").classList.add("hidden");
+  document.getElementById("openChatSection").classList.remove("hidden");
 }
 
 function renderActiveChatHeader() {
-  if (!activeChat) {
-    return;
-  }
-
-  document.getElementById("activeChatStatusText").innerHTML =
-    `<span class="status-pill ${escapeHTML(activeChat.status || "open")}">${escapeHTML(activeChat.status || "open")}</span>`;
-
-  document.getElementById("activeIssueTypeText").innerText =
-    activeChat.issue_type || "Not listed";
-
-  document.getElementById("activeTaskText").innerText =
-    `${activeChat.task_title || "Task"} • ${activeChat.task_order_number || "Order not listed"}`;
-
-  document.getElementById("activePhoneText").innerText =
-    activeChat.worker_phone || "Not listed";
-
-  document.getElementById("activeTaskDetails").innerHTML =
-    activeChat.task_details
-      ? `
-        <div class="info-box" style="margin-top:10px;">
-          <div class="info-label">Task Details</div>
-          <div class="info-value" style="white-space:pre-wrap;">${escapeHTML(activeChat.task_details)}</div>
-        </div>
-      `
-      : "";
+  if (!activeChat) return;
+  const status = String(activeChat.status || "open").toLowerCase();
+  document.getElementById("activeChatStatusText").innerHTML = `<span class="status-pill ${escapeHTML(status)}">${escapeHTML(status)}</span>`;
+  document.getElementById("activeIssueTypeText").innerText = activeChat.issue_type || "Not listed";
+  document.getElementById("activeTaskText").innerText = `${activeChat.task_title || "Task"} • ${activeChat.task_order_number || "Order not listed"}`;
+  document.getElementById("activePhoneText").innerText = activeChat.worker_phone || "Not listed";
+  document.getElementById("activeTaskDetails").innerHTML = activeChat.task_details
+    ? `<div class="info-box" style="margin-top:10px;"><div class="info-label">Task Details</div><div class="info-value" style="white-space:pre-wrap;">${escapeHTML(activeChat.task_details)}</div></div>`
+    : "";
 }
 
 async function loadMessages() {
-  if (!activeChat) {
-    return;
-  }
+  if (!activeChat) return;
+  const thread = document.getElementById("messageThread");
 
-  const thread =
-    document.getElementById("messageThread");
+  const { data, error } = await supabaseClient
+    .from("worker_support_chat_messages")
+    .select("*")
+    .eq("chat_id", activeChat.id)
+    .order("created_at", { ascending: true });
 
-  const { data, error } =
-    await supabaseClient
-      .from("worker_support_chat_messages")
-      .select("*")
-      .eq("chat_id", activeChat.id)
-      .order("created_at", { ascending: true });
+  if (error) { thread.innerHTML = `<div class="empty">${escapeHTML(error.message)}</div>`; return; }
 
-  if (error) {
-    thread.innerHTML =
-      `<div class="empty">${escapeHTML(error.message)}</div>`;
-    return;
-  }
+  activeMessages = data || [];
 
-  activeMessages =
-    data || [];
+  if (activeMessages.length === 0) { thread.innerHTML = `<div class="empty">No messages yet.</div>`; return; }
 
-  if (activeMessages.length === 0) {
-    thread.innerHTML =
-      `<div class="empty">No messages yet.</div>`;
-    return;
-  }
+  // only re-render if message count changed (avoids scroll jumping while typing)
+  if (activeMessages.length === lastMessageCount) return;
+  lastMessageCount = activeMessages.length;
 
   thread.innerHTML = "";
-
   activeMessages.forEach(message => {
-    const role =
-      String(message.sender_role || "").toLowerCase() === "admin"
-        ? "admin"
-        : "worker";
-
-    const senderLabel =
-      role === "worker"
-        ? "You"
-        : "TaskMint";
-
-    const div =
-      document.createElement("div");
-
-    div.className =
-      `message ${role}`;
-
+    const role = String(message.sender_role || "").toLowerCase() === "admin" ? "admin" : "worker";
+    const senderLabel = role === "worker" ? "You" : "TaskMint";
+    const div = document.createElement("div");
+    div.className = "chat-msg";
     div.innerHTML = `
       <span class="sender-name ${role === "worker" ? "worker-name" : "admin-name"}">${escapeHTML(senderLabel)}</span><br>
       ${escapeHTML(message.message || "")}
-      ${
-        message.attachment_url
-          ? `<a href="${escapeHTML(message.attachment_url)}" target="_blank"><img class="chat-image" src="${escapeHTML(message.attachment_url)}" alt="Support chat upload"></a>`
-          : ""
-      }
+      ${message.attachment_url ? `<a href="${escapeHTML(message.attachment_url)}" target="_blank"><img class="chat-image" src="${escapeHTML(message.attachment_url)}" alt="Support chat upload"></a>` : ""}
       <div class="message-meta">
         ${escapeHTML(formatDateTime(message.created_at))}
-        ${
-          role === "worker"
-            ? `<br>${message.is_read_by_taskmint || activeChat.taskmint_last_read_at ? "Read by TaskMint" : "Sent to TaskMint"}`
-            : `<br>${message.is_read_by_worker ? "Read by you" : "Unread"}`
+        ${role === "worker"
+          ? `<br>${message.is_read_by_taskmint || activeChat.taskmint_last_read_at ? "Read by TaskMint" : "Sent to TaskMint"}`
+          : `<br>${message.is_read_by_worker ? "Read by you" : "Unread"}`
         }
       </div>
     `;
-
     thread.appendChild(div);
   });
 
-  thread.scrollTop =
-    thread.scrollHeight;
-
+  thread.scrollTop = thread.scrollHeight;
   updateReadStatus();
 }
 
 function updateReadStatus() {
-  if (!activeChat) {
-    return;
-  }
-
-  const readStatus =
-    document.getElementById("readStatus");
-
-  const taskmintRead =
-    activeChat.taskmint_last_read_at
-      ? `TaskMint last read: ${formatDateTime(activeChat.taskmint_last_read_at)}`
-      : "TaskMint has not read this chat yet.";
-
-  const workerRead =
-    activeChat.worker_last_read_at
-      ? `You last read: ${formatDateTime(activeChat.worker_last_read_at)}`
-      : "";
-
-  readStatus.innerText =
-    `${taskmintRead}${workerRead ? " • " + workerRead : ""}`;
+  if (!activeChat) return;
+  const readStatus = document.getElementById("readStatus");
+  const taskmintRead = activeChat.taskmint_last_read_at
+    ? `TaskMint last read: ${formatDateTime(activeChat.taskmint_last_read_at)}`
+    : "TaskMint has not read this chat yet.";
+  const workerRead = activeChat.worker_last_read_at ? ` • You last read: ${formatDateTime(activeChat.worker_last_read_at)}` : "";
+  readStatus.innerText = `${taskmintRead}${workerRead}`;
 }
 
 async function markWorkerRead() {
-  if (!activeChat) {
-    return;
-  }
-
-  const now =
-    new Date().toISOString();
-
-  await supabaseClient
-    .from("worker_support_chats")
-    .update({
-      worker_last_read_at: now
-    })
-    .eq("id", activeChat.id);
-
-  await supabaseClient
-    .from("worker_support_chat_messages")
-    .update({
-      is_read_by_worker: true
-    })
-    .eq("chat_id", activeChat.id)
-    .neq("sender_role", "worker");
-
-  activeChat.worker_last_read_at =
-    now;
+  if (!activeChat) return;
+  const now = new Date().toISOString();
+  await supabaseClient.from("worker_support_chats").update({ worker_last_read_at: now }).eq("id", activeChat.id);
+  await supabaseClient.from("worker_support_chat_messages").update({ is_read_by_worker: true }).eq("chat_id", activeChat.id).neq("sender_role", "worker");
+  activeChat.worker_last_read_at = now;
 }
 
 async function setWorkerTyping() {
-  if (!activeChat) {
-    return;
-  }
-
-  await supabaseClient
-    .from("worker_support_chats")
-    .update({
-      worker_typing: true
-    })
-    .eq("id", activeChat.id);
-
+  if (!activeChat) return;
+  await supabaseClient.from("worker_support_chats").update({ worker_typing: true }).eq("id", activeChat.id);
   clearTimeout(typingTimeout);
-
-  typingTimeout =
-    setTimeout(async () => {
-      await supabaseClient
-        .from("worker_support_chats")
-        .update({
-          worker_typing: false
-        })
-        .eq("id", activeChat.id);
-    }, 1800);
+  typingTimeout = setTimeout(async () => {
+    await supabaseClient.from("worker_support_chats").update({ worker_typing: false }).eq("id", activeChat.id);
+  }, 1800);
 }
 
-async function refreshActiveChat() {
-  if (!activeChat) {
-    return;
-  }
+// Polls only metadata + messages — never rebuilds the form/textarea
+async function pollActiveChat() {
+  if (!activeChat) return;
 
-  const { data } =
-    await supabaseClient
-      .from("worker_support_chats")
-      .select("*")
-      .eq("id", activeChat.id)
-      .maybeSingle();
+  const { data } = await supabaseClient.from("worker_support_chats").select("*").eq("id", activeChat.id).maybeSingle();
+  if (!data) return;
 
-  if (!data) {
-    return;
-  }
-
-  activeChat =
-    data;
-
+  activeChat = data;
   renderActiveChatHeader();
 
-  const typingStatus =
-    document.getElementById("typingStatus");
-
-  typingStatus.innerText =
-    activeChat.taskmint_typing
-      ? "TaskMint is typing..."
-      : "";
+  const typingStatus = document.getElementById("typingStatus");
+  if (typingStatus) typingStatus.innerText = activeChat.taskmint_typing ? "TaskMint is typing..." : "";
 
   await markWorkerRead();
-  await loadMessages();
+  await loadMessages(); // only re-renders if new messages arrived
+  updateReadStatus();
 }
 
 async function sendMessage() {
-  if (!activeChat) {
-    return;
+  if (!activeChat) return;
+  if (["closed","resolved"].includes(String(activeChat.status || "").toLowerCase())) {
+    setStatus("replyStatus", "This chat is closed.", "#b00020"); return;
   }
 
-  if (["closed", "resolved"].includes(String(activeChat.status || "").toLowerCase())) {
-    setStatus("replyStatus", "This chat is closed.", "#b00020");
-    return;
-  }
-
-  const message =
-    document.getElementById("replyInput").value.trim();
-
-  const file =
-    document.getElementById("replyUpload").files[0];
+  const message = document.getElementById("replyInput").value.trim();
+  const file = document.getElementById("replyUpload").files[0];
 
   setStatus("replyStatus", "");
-
-  if (!message && !file) {
-    setStatus("replyStatus", "Enter a message or upload a photo.", "#b00020");
-    return;
-  }
-
-  if (containsBlockedWords(message)) {
-    setStatus("replyStatus", "Please remove inappropriate language before sending.", "#b00020");
-    return;
-  }
+  if (!message && !file) { setStatus("replyStatus", "Enter a message or upload a photo.", "#b00020"); return; }
+  if (containsBlockedWords(message)) { setStatus("replyStatus", "Please remove inappropriate language before sending.", "#b00020"); return; }
 
   setStatus("replyStatus", "Sending...", "#666");
 
   try {
-    const photoUrl =
-      await uploadPhoto(file);
+    const photoUrl = await uploadPhoto(file);
+    const now = new Date().toISOString();
 
-    const now =
-      new Date().toISOString();
+    const { error } = await supabaseClient.from("worker_support_chat_messages").insert({
+      chat_id: activeChat.id, task_id: activeChat.task_id || null,
+      worker_id: currentWorkerId, sender_id: currentWorkerId,
+      sender_role: "worker", message: message || "Photo uploaded.",
+      attachment_url: photoUrl,
+      is_read_by_worker: true, is_read_by_taskmint: false,
+      created_at: now
+    });
 
-    const { error } =
-      await supabaseClient
-        .from("worker_support_chat_messages")
-        .insert({
-          chat_id: activeChat.id,
-          task_id: activeChat.task_id || null,
-          worker_id: currentWorkerId,
-          sender_id: currentWorkerId,
-          sender_role: "worker",
-          message: message || "Photo uploaded.",
-          attachment_url: photoUrl,
-          is_read_by_worker: true,
-          is_read_by_taskmint: false,
-          created_at: now
-        });
+    if (error) throw error;
 
-    if (error) {
-      throw error;
-    }
-
-    await supabaseClient
-      .from("worker_support_chats")
-      .update({
-        status: "open",
-        worker_typing: false,
-        worker_last_read_at: now,
-        updated_at: now
-      })
-      .eq("id", activeChat.id);
+    await supabaseClient.from("worker_support_chats").update({
+      status: "open", worker_typing: false, worker_last_read_at: now, updated_at: now
+    }).eq("id", activeChat.id);
 
     document.getElementById("replyInput").value = "";
     document.getElementById("replyUpload").value = "";
-
+    lastMessageCount = 0; // force re-render on next poll
     setStatus("replyStatus", "Message sent.", "#0b7a28");
 
-    await refreshActiveChat();
+    await pollActiveChat();
     await loadChats();
-
   } catch (error) {
     setStatus("replyStatus", error.message || "Could not send message.", "#b00020");
   }
 }
 
 async function closeWorkerChat() {
-  if (!activeChat) {
-    return;
-  }
+  if (!activeChat) return;
+  const confirmed = confirm("Close this support chat? TaskMint will still be able to review the conversation.");
+  if (!confirmed) return;
 
-  const confirmed =
-    confirm("Close this support chat? TaskMint will still be able to review the conversation.");
+  const now = new Date().toISOString();
+  const { error } = await supabaseClient.from("worker_support_chats").update({
+    status: "closed", closed_by: "worker", closed_reason: "worker_closed", closed_at: now, updated_at: now
+  }).eq("id", activeChat.id);
 
-  if (!confirmed) {
-    return;
-  }
-
-  const now =
-    new Date().toISOString();
-
-  const { error } =
-    await supabaseClient
-      .from("worker_support_chats")
-      .update({
-        status: "closed",
-        closed_by: "worker",
-        closed_reason: "worker_closed",
-        closed_at: now,
-        updated_at: now
-      })
-      .eq("id", activeChat.id);
-
-  if (error) {
-    setStatus("replyStatus", error.message, "#b00020");
-    return;
-  }
+  if (error) { setStatus("replyStatus", error.message, "#b00020"); return; }
 
   setStatus("replyStatus", "Chat closed.", "#0b7a28");
-
-  await refreshActiveChat();
+  await pollActiveChat();
   await loadChats();
 }
 
-async function refreshSupportPage() {
-  if (activeChat) {
-    await refreshActiveChat();
-  }
-
+async function manualRefresh() {
   await loadChats();
-
-  const statusTarget =
-    activeChat ? "replyStatus" : "openChatStatus";
-
-  setStatus(statusTarget, "Refreshed.", "#0b7a28");
-
-  setTimeout(() => {
-    setStatus(statusTarget, "");
-  }, 1200);
+  if (activeChat) await pollActiveChat();
 }
-
 
 async function loadPage() {
-  const ready =
-    await loadCurrentWorker();
-
-  if (!ready) {
-    return;
-  }
+  const ready = await loadCurrentWorker();
+  if (!ready) return;
 
   await loadTasks();
   await loadChats();
 
-  if (refreshTimer) {
-    clearInterval(refreshTimer);
-  }
+  if (pollTimer) clearInterval(pollTimer);
 
-  refreshTimer =
-    setInterval(async () => {
-      if (activeChat) {
-        await refreshActiveChat();
-      }
-
-      await loadChats();
-    }, 7000);
+  // Poll every 15s — only updates message thread and header, never the reply textarea
+  pollTimer = setInterval(async () => {
+    if (activeChat) await pollActiveChat();
+    await loadChats();
+  }, 15000);
 }
 
 loadPage();

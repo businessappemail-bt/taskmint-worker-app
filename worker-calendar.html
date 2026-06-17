@@ -8,458 +8,133 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #ffffff;
-      --surface: #f2f7f4;
-      --surface2: #e6f4eb;
-      --border: #e2ebe5;
-      --accent: #0b7a28;
-      --text: #111111;
-      --muted: #6b7870;
-      --danger: #b00020;
-      --warning-bg: #fffbeb;
-      --warning-border: #f0c040;
-      --warning-text: #7a4f00;
+      --bg: #ffffff; --surface: #f2f7f4; --surface2: #e6f4eb;
+      --border: #e2ebe5; --accent: #0b7a28; --text: #111111;
+      --muted: #6b7870; --danger: #b00020;
+      --warning-bg: #fffbeb; --warning-border: #f0c040; --warning-text: #7a4f00;
     }
 
-    body {
-      margin: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding-bottom: 90px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+    body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 90px; display: flex; flex-direction: column; align-items: center; }
 
-    .container {
-      width: 100%;
-      max-width: 470px;
-      padding: 20px 16px 30px;
-    }
+    .container { width: 100%; max-width: 470px; padding: 20px 16px 30px; }
 
     .top-bar {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      width: 100%;
-      max-width: 470px;
-      background: rgba(255,255,255,0.97);
-      backdrop-filter: blur(16px);
+      position: sticky; top: 0; z-index: 40; width: 100%; max-width: 470px;
+      background: rgba(255,255,255,0.97); backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 13px 20px;
-      margin: -20px -16px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 13px 20px; margin: -20px -16px 20px;
     }
 
-    .back,
-    .refresh {
-      color: var(--accent);
-      font-weight: 800;
-      cursor: pointer;
-      font-size: 14px;
-      text-decoration: none;
-    }
+    .back, .refresh { color: var(--accent); font-weight: 800; cursor: pointer; font-size: 14px; text-decoration: none; }
 
-    .refresh {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 8px 11px;
-      font-size: 12px;
-    }
+    .refresh { background: var(--surface2); border: 1px solid var(--border); border-radius: 999px; padding: 8px 11px; font-size: 12px; }
 
     .hero {
-      background: var(--accent);
-      color: white;
-      border-radius: 22px;
-      padding: 24px 20px;
-      margin-bottom: 14px;
+      background: var(--accent); color: white; border-radius: 22px;
+      padding: 24px 20px; margin-bottom: 14px;
       box-shadow: 0 8px 24px rgba(11,122,40,0.22);
-      position: relative;
-      overflow: hidden;
-      opacity: 0;
-      animation: riseIn 0.35s 0.05s forwards;
+      position: relative; overflow: hidden;
+      opacity: 0; animation: riseIn 0.35s 0.05s forwards;
     }
 
-    .hero::before {
-      content: "";
-      position: absolute;
-      width: 155px;
-      height: 155px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.10);
-      top: -65px;
-      right: -55px;
+    .hero::before { content: ""; position: absolute; width: 155px; height: 155px; border-radius: 50%; background: rgba(255,255,255,0.10); top: -65px; right: -55px; }
+    .hero::after  { content: ""; position: absolute; width: 92px; height: 92px; border-radius: 50%; background: rgba(255,255,255,0.07); bottom: -45px; left: -35px; }
+
+    .hero h1 { margin: 0 0 7px; font-size: 29px; font-weight: 800; line-height: 1.08; letter-spacing: -0.5px; position: relative; z-index: 2; }
+    .hero p { margin: 0; font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.82); position: relative; z-index: 2; }
+
+    .summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; opacity: 0; animation: riseIn 0.35s 0.1s forwards; }
+
+    .summary-box, .calendar-card, .jobs-card, .job-card, .empty {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 14px; margin-bottom: 12px;
     }
 
-    .hero::after {
-      content: "";
-      position: absolute;
-      width: 92px;
-      height: 92px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.07);
-      bottom: -45px;
-      left: -35px;
-    }
+    .summary-label { color: var(--accent); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .summary-value { font-size: 24px; font-weight: 800; line-height: 1; }
 
-    .hero h1 {
-      margin: 0 0 7px;
-      font-size: 29px;
-      font-weight: 800;
-      line-height: 1.08;
-      letter-spacing: -0.5px;
-      position: relative;
-      z-index: 2;
-    }
+    .calendar-card { opacity: 0; animation: riseIn 0.35s 0.15s forwards; }
 
-    .hero p {
-      margin: 0;
-      font-size: 13px;
-      line-height: 1.5;
-      color: rgba(255,255,255,0.82);
-      position: relative;
-      z-index: 2;
-    }
-
-    .summary-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 12px;
-      opacity: 0;
-      animation: riseIn 0.35s 0.1s forwards;
-    }
-
-    .summary-box,
-    .calendar-card,
-    .jobs-card,
-    .job-card,
-    .empty {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 14px;
-      margin-bottom: 12px;
-    }
-
-    .summary-label {
-      color: var(--accent);
-      font-size: 10px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-    }
-
-    .summary-value {
-      font-size: 24px;
-      font-weight: 800;
-      line-height: 1;
-    }
-
-    .calendar-card {
-      opacity: 0;
-      animation: riseIn 0.35s 0.15s forwards;
-    }
-
-    .calendar-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-      gap: 12px;
-    }
-
-    .month-title {
-      font-size: 18px;
-      font-weight: 800;
-      text-align: center;
-      letter-spacing: -0.1px;
-    }
+    .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
+    .month-title { font-size: 18px; font-weight: 800; text-align: center; letter-spacing: -0.1px; }
 
     .month-btn {
-      width: 40px;
-      height: 40px;
-      border: none;
-      border-radius: 14px;
-      background: var(--surface2);
-      color: var(--accent);
-      font-size: 22px;
-      font-weight: 800;
-      cursor: pointer;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      transition: opacity 0.18s, transform 0.18s;
-      flex-shrink: 0;
+      width: 40px; height: 40px; border: none; border-radius: 14px;
+      background: var(--surface2); color: var(--accent); font-size: 22px; font-weight: 800;
+      cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: opacity 0.18s, transform 0.18s; flex-shrink: 0;
     }
+    .month-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-    .month-btn:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
+    .weekday-row, .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 
-    .weekday-row,
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
-    }
-
-    .weekday {
-      text-align: center;
-      font-size: 10px;
-      color: var(--muted);
-      font-weight: 800;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
+    .weekday { text-align: center; font-size: 10px; color: var(--muted); font-weight: 800; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
 
     .day {
-      min-height: 48px;
-      border-radius: 15px;
-      border: 1px solid var(--border);
-      background: #fff;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      padding: 7px 5px;
-      position: relative;
-      text-align: left;
-      transition: 0.18s;
+      min-height: 48px; border-radius: 15px; border: 1px solid var(--border);
+      background: #fff; font-size: 13px; font-weight: 800; cursor: pointer;
+      padding: 7px 5px; position: relative; text-align: left; transition: 0.18s;
     }
+    .day.blank { background: transparent; border: none; cursor: default; }
+    .day.today { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(11,122,40,0.10); }
+    .day.selected { background: var(--accent); color: white; border-color: var(--accent); }
+    .day.booked { background: var(--surface2); border-color: #bde8ca; }
+    .day:hover:not(.blank) { transform: translateY(-1px); }
 
-    .day.blank {
-      background: transparent;
-      border: none;
-      cursor: default;
-    }
-
-    .day.today {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(11,122,40,0.10);
-    }
-
-    .day.selected {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-
-    .day.booked {
-      background: var(--surface2);
-      border-color: #bde8ca;
-    }
-
-    .day:hover:not(.blank) {
-      transform: translateY(-1px);
-    }
-
-    .job-dot {
-      position: absolute;
-      right: 7px;
-      bottom: 7px;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-
-    .day.selected .job-dot {
-      background: white;
-    }
+    .job-dot { position: absolute; right: 7px; bottom: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+    .day.selected .job-dot { background: white; }
 
     .jobs-card {
-      max-height: 58vh;
-      overflow-y: auto;
-      padding-bottom: 10px;
-      opacity: 0;
-      animation: riseIn 0.35s 0.2s forwards;
-      scrollbar-width: thin;
-      scrollbar-color: var(--accent) var(--surface2);
+      max-height: 58vh; overflow-y: auto; padding-bottom: 10px;
+      opacity: 0; animation: riseIn 0.35s 0.2s forwards;
+      scrollbar-width: thin; scrollbar-color: var(--accent) var(--surface2);
     }
+    .jobs-card::-webkit-scrollbar { width: 7px; }
+    .jobs-card::-webkit-scrollbar-track { background: var(--surface2); border-radius: 999px; }
+    .jobs-card::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 999px; }
 
-    .jobs-card::-webkit-scrollbar {
-      width: 7px;
-    }
+    .jobs-title { font-size: 16px; font-weight: 800; margin-bottom: 10px; position: sticky; top: 0; background: var(--surface); padding-bottom: 10px; z-index: 5; letter-spacing: -0.1px; }
 
-    .jobs-card::-webkit-scrollbar-track {
-      background: var(--surface2);
-      border-radius: 999px;
-    }
+    .job-card { border-radius: 18px; padding: 13px; margin-bottom: 10px; background: #fff; }
 
-    .jobs-card::-webkit-scrollbar-thumb {
-      background: var(--accent);
-      border-radius: 999px;
-    }
+    .job-top { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+    .job-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; line-height: 1.25; letter-spacing: -0.1px; }
+    .job-meta { color: var(--muted); font-size: 12px; line-height: 1.35; font-weight: 600; }
 
-    .jobs-title {
-      font-size: 16px;
-      font-weight: 800;
-      margin-bottom: 10px;
-      position: sticky;
-      top: 0;
-      background: var(--surface);
-      padding-bottom: 10px;
-      z-index: 5;
-      letter-spacing: -0.1px;
-    }
-
-    .job-card {
-      border-radius: 18px;
-      padding: 13px;
-      margin-bottom: 10px;
-      background: #fff;
-    }
-
-    .job-top {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: flex-start;
-      margin-bottom: 10px;
-    }
-
-    .job-title {
-      font-size: 15px;
-      font-weight: 800;
-      margin-bottom: 4px;
-      line-height: 1.25;
-      letter-spacing: -0.1px;
-    }
-
-    .job-meta {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.35;
-      font-weight: 600;
-    }
-
-    .pill {
-      border-radius: 999px;
-      padding: 7px 9px;
-      background: var(--surface2);
-      color: var(--accent);
-      font-size: 10px;
-      font-weight: 800;
-      text-transform: capitalize;
-      white-space: nowrap;
-      border: 1px solid #cfead7;
-    }
+    .pill { border-radius: 999px; padding: 7px 9px; background: var(--surface2); color: var(--accent); font-size: 10px; font-weight: 800; text-transform: capitalize; white-space: nowrap; border: 1px solid #cfead7; }
 
     .job-time-banner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      background: var(--surface2);
-      border: 1px solid #cfead7;
-      color: var(--accent);
-      border-radius: 16px;
-      padding: 11px 12px;
-      margin: 10px 0;
-      font-size: 13px;
-      font-weight: 800;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      background: var(--surface2); border: 1px solid #cfead7; color: var(--accent);
+      border-radius: 16px; padding: 11px 12px; margin: 10px 0; font-size: 13px; font-weight: 800;
     }
+    .job-time-banner span { font-size: 12px; color: var(--muted); font-weight: 700; }
 
-    .job-time-banner span {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 700;
-    }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .info-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px; min-height: 58px; }
+    .info-label { color: var(--accent); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+    .info-value { font-size: 12px; font-weight: 700; line-height: 1.35; color: var(--text); }
 
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .info-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 10px;
-      min-height: 58px;
-    }
-
-    .info-label {
-      color: var(--accent);
-      font-size: 10px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 5px;
-    }
-
-    .info-value {
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1.35;
-      color: var(--text);
-    }
-
-    .empty {
-      text-align: center;
-      color: var(--muted);
-      line-height: 1.5;
-      font-size: 13px;
-      font-weight: 600;
-      background: #fff;
-    }
+    .empty { text-align: center; color: var(--muted); line-height: 1.5; font-size: 13px; font-weight: 600; background: #fff; }
 
     button.open-job {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 13px;
-      background: var(--accent);
-      color: white;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      margin-top: 10px;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      width: 100%; padding: 12px; border: none; border-radius: 13px;
+      background: var(--accent); color: white; font-size: 13px; font-weight: 800;
+      cursor: pointer; margin-top: 10px; font-family: 'Plus Jakarta Sans', sans-serif;
       transition: opacity 0.18s, transform 0.18s, box-shadow 0.18s;
     }
+    button.open-job:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(11,122,40,0.10); }
 
-    button.open-job:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 14px rgba(11,122,40,0.10);
-    }
-
-    @keyframes riseIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
     @media (max-width: 360px) {
-      .hero h1 {
-        font-size: 25px;
-      }
-
-      .summary-row {
-        grid-template-columns: 1fr;
-      }
-
-      .info-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .jobs-card {
-        max-height: none;
-      }
+      .hero h1 { font-size: 25px; }
+      .summary-row { grid-template-columns: 1fr; }
+      .info-grid { grid-template-columns: 1fr; }
+      .jobs-card { max-height: none; }
     }
   </style>
 </head>
@@ -479,20 +154,9 @@
   </div>
 
   <div class="summary-row">
-    <div class="summary-box">
-      <div class="summary-label">This Month</div>
-      <div class="summary-value" id="monthCount">0</div>
-    </div>
-
-    <div class="summary-box">
-      <div class="summary-label">Today</div>
-      <div class="summary-value" id="todayCount">0</div>
-    </div>
-
-    <div class="summary-box">
-      <div class="summary-label">Active</div>
-      <div class="summary-value" id="activeCount">0</div>
-    </div>
+    <div class="summary-box"><div class="summary-label">This Month</div><div class="summary-value" id="monthCount">0</div></div>
+    <div class="summary-box"><div class="summary-label">Today</div><div class="summary-value" id="todayCount">0</div></div>
+    <div class="summary-box"><div class="summary-label">Active</div><div class="summary-value" id="activeCount">0</div></div>
   </div>
 
   <div class="calendar-card">
@@ -501,25 +165,16 @@
       <div class="month-title" id="monthTitle">Month</div>
       <button class="month-btn" onclick="changeMonth(1)">›</button>
     </div>
-
     <div class="weekday-row">
-      <div class="weekday">Sun</div>
-      <div class="weekday">Mon</div>
-      <div class="weekday">Tue</div>
-      <div class="weekday">Wed</div>
-      <div class="weekday">Thu</div>
-      <div class="weekday">Fri</div>
-      <div class="weekday">Sat</div>
+      <div class="weekday">Sun</div><div class="weekday">Mon</div><div class="weekday">Tue</div>
+      <div class="weekday">Wed</div><div class="weekday">Thu</div><div class="weekday">Fri</div><div class="weekday">Sat</div>
     </div>
-
     <div class="calendar-grid" id="calendarGrid"></div>
   </div>
 
   <div class="jobs-card">
     <div class="jobs-title" id="selectedDateTitle">Jobs</div>
-    <div id="selectedJobsList">
-      <div class="empty">Loading calendar...</div>
-    </div>
+    <div id="selectedJobsList"><div class="empty">Loading calendar...</div></div>
   </div>
 
 </div>
@@ -543,27 +198,14 @@ function cleanText(value, fallback = "Not specified") {
 }
 
 function escapeHTML(value) {
-  return cleanText(value, "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  return cleanText(value, "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
 function getFirstAvailable(record, keys, fallback = "") {
   if (!record) return fallback;
-
   for (const key of keys) {
-    if (
-      record[key] !== null &&
-      record[key] !== undefined &&
-      String(record[key]).trim() !== ""
-    ) {
-      return record[key];
-    }
+    if (record[key] !== null && record[key] !== undefined && String(record[key]).trim() !== "") return record[key];
   }
-
   return fallback;
 }
 
@@ -573,43 +215,22 @@ function normalizeStatus(value) {
 
 function getTaskDate(task, quote = null) {
   return getFirstAvailable(quote, [
-    "selected_flexible_date",
-    "flexible_date_selected",
-    "worker_selected_date",
-    "selected_date",
-    "proposed_date",
-    "scheduled_date",
-    "task_date"
+    "selected_flexible_date","flexible_date_selected","worker_selected_date",
+    "selected_date","proposed_date","scheduled_date","task_date"
   ], "") ||
   getFirstAvailable(task, [
-    "task_date",
-    "scheduled_for",
-    "scheduled_date",
-    "date_needed",
-    "due_date"
+    "task_date","scheduled_for","scheduled_date","date_needed","due_date"
   ], "");
 }
 
 function getDateObject(value) {
   if (!value) return null;
-
-  const rawValue =
-    String(value).trim();
-
-  const dateOnlyMatch =
-    rawValue.match(/^\d{4}-\d{2}-\d{2}/);
-
-  if (dateOnlyMatch) {
-    const parts =
-      dateOnlyMatch[0].split("-");
-
-    return new Date(
-      Number(parts[0]),
-      Number(parts[1]) - 1,
-      Number(parts[2])
-    );
+  const rawValue = String(value).trim();
+  const match = rawValue.match(/^\d{4}-\d{2}-\d{2}/);
+  if (match) {
+    const parts = match[0].split("-");
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
   }
-
   const date = new Date(rawValue);
   if (Number.isNaN(date.getTime())) return null;
   return date;
@@ -618,276 +239,114 @@ function getDateObject(value) {
 function formatDate(value) {
   const date = getDateObject(value);
   if (!date) return "Not scheduled";
-
-  return date.toLocaleDateString([], {
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  });
+  return date.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
 }
 
 function getTaskTime(task, quote = null) {
-  const directTime =
-    getFirstAvailable(quote, [
-      "selected_flexible_time",
-      "flexible_time_selected",
-      "worker_selected_time",
-      "selected_time",
-      "proposed_time",
-      "scheduled_time",
-      "task_time"
-    ], "") ||
-    getFirstAvailable(task, [
-      "schedule_preference",
-      "scheduled_time",
-      "schedule_time",
-      "selected_time",
-      "task_time",
-      "time_needed",
-      "start_time",
-      "arrival_time"
-    ], "");
+  const directTime = getFirstAvailable(quote, [
+    "selected_flexible_time","flexible_time_selected","worker_selected_time",
+    "selected_time","proposed_time","scheduled_time","task_time"
+  ], "") || getFirstAvailable(task, [
+    "schedule_preference","scheduled_time","schedule_time","selected_time",
+    "task_time","time_needed","start_time","arrival_time"
+  ], "");
 
-  if (!directTime) {
-    return "Time not listed";
-  }
-
-  const match =
-    String(directTime).trim().match(/^(\d{1,2}):(\d{2})/);
-
-  if (!match) {
-    return String(directTime);
-  }
-
+  if (!directTime) return "Time not listed";
+  const match = String(directTime).trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return String(directTime);
   const date = new Date();
   date.setHours(Number(match[1]), Number(match[2]), 0, 0);
-
-  return date.toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit"
-  });
+  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 function toDateKey(value) {
   const date = value instanceof Date ? value : getDateObject(value);
   if (!date) return "";
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
 }
 
-function selectedDateKey() {
-  return toDateKey(selectedDate);
-}
-
-function getTaskTitle(task) {
-  return getFirstAvailable(task, [
-    "title",
-    "task_title",
-    "job_title",
-    "category",
-    "service_type"
-  ], "Untitled Job");
-}
-
-function getTaskCategory(task) {
-  return getFirstAvailable(task, [
-    "category",
-    "task_category",
-    "service_type"
-  ], "Not listed");
-}
+function selectedDateKey() { return toDateKey(selectedDate); }
+function getTaskTitle(task) { return getFirstAvailable(task, ["title","task_title","job_title","category","service_type"], "Untitled Job"); }
+function getTaskCategory(task) { return getFirstAvailable(task, ["category","task_category","service_type"], "Not listed"); }
 
 function getCityState(task) {
-  const city = getFirstAvailable(task, ["city", "task_city", "service_city"], "");
-  const state = getFirstAvailable(task, ["state", "task_state", "service_state"], "");
+  const city = getFirstAvailable(task, ["city","task_city","service_city"], "");
+  const state = getFirstAvailable(task, ["state","task_state","service_state"], "");
   return [city, state].filter(Boolean).join(", ") || "Location not listed";
 }
 
-function getQuoteAmount(quote) {
-  return Number(quote?.quote_amount || quote?.amount || quote?.price || 0);
-}
+function getQuoteAmount(quote) { return Number(quote?.quote_amount || quote?.amount || quote?.price || 0); }
+function formatMoney(value) { const n = Number(value || 0); return Number.isNaN(n) ? "$0.00" : "$" + n.toFixed(2); }
+function isSameDay(d1, d2) { return d1.getFullYear()===d2.getFullYear() && d1.getMonth()===d2.getMonth() && d1.getDate()===d2.getDate(); }
 
 function getDirectRequestCalendarJob(request) {
   return {
     quote: {
       status: request.status || "accepted",
-      quote_amount:
-        request.quote_amount ||
-        request.amount ||
-        request.price ||
-        request.accepted_amount ||
-        0
+      quote_amount: request.quote_amount || request.amount || request.price || request.accepted_amount || 0
     },
     task: {
       ...request,
       source_type: "direct_quote",
       is_direct_request: true,
-      task_date:
-        request.task_date ||
-        request.scheduled_date ||
-        request.date_needed ||
-        "",
-      task_time:
-        request.task_time ||
-        request.scheduled_time ||
-        request.time_needed ||
-        "",
-      payment_status:
-        request.payment_status ||
-        request.escrow_status ||
-        "Not listed"
+      task_date: request.task_date || request.scheduled_date || request.date_needed || "",
+      task_time: request.task_time || request.scheduled_time || request.time_needed || "",
+      payment_status: request.payment_status || request.escrow_status || "Not listed"
     }
   };
 }
 
-function formatMoney(value) {
-  const numberValue = Number(value || 0);
-  if (Number.isNaN(numberValue)) return "$0.00";
-  return "$" + numberValue.toFixed(2);
-}
-
-function isSameDay(dateOne, dateTwo) {
-  return (
-    dateOne.getFullYear() === dateTwo.getFullYear() &&
-    dateOne.getMonth() === dateTwo.getMonth() &&
-    dateOne.getDate() === dateTwo.getDate()
-  );
-}
-
 async function loadCurrentWorker() {
   const { data, error } = await supabaseClient.auth.getUser();
-
   if (error || !data || !data.user) {
-    document.getElementById("selectedJobsList").innerHTML = `
-      <div class="empty">
-        No active worker session found. Please log in again.
-      </div>
-    `;
+    document.getElementById("selectedJobsList").innerHTML = `<div class="empty">No active worker session found. Please log in again.</div>`;
     return false;
   }
-
   currentUser = data.user;
-
   const ids = [currentUser.id];
-
-  const { data: profile } =
-    await supabaseClient
-      .from("profiles")
-      .select("id, email")
-      .eq("email", currentUser.email)
-      .maybeSingle();
-
+  const { data: profile } = await supabaseClient.from("profiles").select("id,email").eq("email", currentUser.email).maybeSingle();
   if (profile && profile.id) ids.push(profile.id);
-
-  const { data: workerRecord } =
-    await supabaseClient
-      .from("worker_profiles")
-      .select("id, email")
-      .eq("email", currentUser.email)
-      .maybeSingle();
-
+  const { data: workerRecord } = await supabaseClient.from("worker_profiles").select("id,email").eq("email", currentUser.email).maybeSingle();
   if (workerRecord && workerRecord.id) ids.push(workerRecord.id);
-
   currentWorkerIds = [...new Set(ids.filter(Boolean).map(String))];
-
   return true;
 }
 
 async function fetchAcceptedQuotes() {
-  const { data, error } =
-    await supabaseClient
-      .from("worker_quotes")
-      .select("*")
-      .in("worker_id", currentWorkerIds)
-      .in("status", ["accepted", "in_progress", "worker_completed", "completed", "paid"])
-      .order("created_at", { ascending: false });
-
+  const { data, error } = await supabaseClient.from("worker_quotes").select("*").in("worker_id", currentWorkerIds).in("status", ["accepted","in_progress","worker_completed","completed","paid"]).order("created_at", { ascending: false });
   if (error) throw error;
-
   return data || [];
 }
 
 async function fetchScheduledTasks() {
-  const { data, error } =
-    await supabaseClient
-      .from("tasks")
-      .select("*")
-      .or(
-        `worker_id.in.(${currentWorkerIds.join(",")}),accepted_worker_id.in.(${currentWorkerIds.join(",")}),assigned_worker_id.in.(${currentWorkerIds.join(",")})`
-      )
-      .in("status", [
-        "accepted",
-        "scheduled",
-        "in_progress",
-        "worker_completed",
-        "completed",
-        "paid"
-      ])
-      .order("created_at", { ascending: false });
-
+  const { data, error } = await supabaseClient.from("tasks").select("*")
+    .or(`worker_id.in.(${currentWorkerIds.join(",")}),accepted_worker_id.in.(${currentWorkerIds.join(",")}),assigned_worker_id.in.(${currentWorkerIds.join(",")})`)
+    .in("status", ["accepted","scheduled","in_progress","worker_completed","completed","paid"])
+    .order("created_at", { ascending: false });
   if (error) throw error;
-
   return data || [];
 }
 
 async function fetchAcceptedDirectRequests() {
-  const idFilter =
-    currentWorkerIds
-      .map(id => `worker_id.eq.${id},accepted_worker_id.eq.${id},assigned_worker_id.eq.${id}`)
-      .join(",");
-
-  const { data, error } =
-    await supabaseClient
-      .from("direct_task_requests")
-      .select("*")
-      .or(idFilter)
-      .in("status", [
-        "accepted",
-        "scheduled",
-        "in_progress",
-        "worker_completed",
-        "completed",
-        "paid"
-      ])
-      .order("created_at", { ascending: false });
-
+  const idFilter = currentWorkerIds.map(id => `worker_id.eq.${id},accepted_worker_id.eq.${id},assigned_worker_id.eq.${id}`).join(",");
+  const { data, error } = await supabaseClient.from("direct_task_requests").select("*").or(idFilter).in("status", ["accepted","scheduled","in_progress","worker_completed","completed","paid"]).order("created_at", { ascending: false });
   if (error) throw error;
-
   return data || [];
 }
 
 async function fetchTasksForQuotes(quotes) {
-  const taskIds = [...new Set(quotes.map(quote => quote.task_id).filter(Boolean))];
-
+  const taskIds = [...new Set(quotes.map(q => q.task_id).filter(Boolean))];
   if (taskIds.length === 0) return {};
-
-  const { data, error } =
-    await supabaseClient
-      .from("tasks")
-      .select("*")
-      .in("id", taskIds);
-
+  const { data, error } = await supabaseClient.from("tasks").select("*").in("id", taskIds);
   if (error) throw error;
-
   const taskMap = {};
-
-  (data || []).forEach(task => {
-    taskMap[task.id] = task;
-  });
-
+  (data || []).forEach(task => { taskMap[task.id] = task; });
   return taskMap;
 }
 
 async function loadCalendarJobs() {
-  document.getElementById("selectedJobsList").innerHTML =
-    `<div class="empty">Loading calendar...</div>`;
-
+  document.getElementById("selectedJobsList").innerHTML = `<div class="empty">Loading calendar...</div>`;
   const workerLoaded = await loadCurrentWorker();
-
   if (!workerLoaded) return;
 
   try {
@@ -896,77 +355,34 @@ async function loadCalendarJobs() {
     const scheduledTasks = await fetchScheduledTasks();
     const directRequests = await fetchAcceptedDirectRequests();
 
-    const quoteJobs =
-      quotes
-        .map(quote => {
-          const task = taskMap[quote.task_id];
+    const quoteJobs = quotes.map(quote => {
+      const task = taskMap[quote.task_id];
+      if (!task) return null;
+      return { quote, task };
+    }).filter(Boolean);
 
-          if (!task) return null;
+    const quoteTaskIds = new Set(quoteJobs.map(job => String(job.task.id)).filter(Boolean));
 
-          return { quote, task };
-        })
-        .filter(Boolean);
+    const taskJobs = scheduledTasks.filter(task => !quoteTaskIds.has(String(task.id))).map(task => ({
+      quote: { status: task.status || "scheduled", quote_amount: task.paid_amount || task.amount_paid || task.task_amount || task.worker_payout_amount || 0 },
+      task
+    }));
 
-    const quoteTaskIds =
-      new Set(
-        quoteJobs
-          .map(job => String(job.task.id))
-          .filter(Boolean)
-      );
+    const directRequestJobs = directRequests.map(r => getDirectRequestCalendarJob(r));
 
-    const taskJobs =
-      scheduledTasks
-        .filter(task => !quoteTaskIds.has(String(task.id)))
-        .map(task => {
-          return {
-            quote: {
-              status: task.status || "scheduled",
-              quote_amount:
-                task.paid_amount ||
-                task.amount_paid ||
-                task.task_amount ||
-                task.worker_payout_amount ||
-                0
-            },
-            task
-          };
-        });
-
-    const directRequestJobs =
-      directRequests
-        .map(request => getDirectRequestCalendarJob(request));
-
-    loadedJobs =
-      [...quoteJobs, ...taskJobs, ...directRequestJobs];
+    loadedJobs = [...quoteJobs, ...taskJobs, ...directRequestJobs];
 
     renderCalendar();
     renderSelectedJobs();
     updateSummary();
-
   } catch (error) {
-    document.getElementById("selectedJobsList").innerHTML = `
-      <div class="empty">
-        ${escapeHTML(error.message || "Unable to load calendar.")}
-      </div>
-    `;
+    document.getElementById("selectedJobsList").innerHTML = `<div class="empty">${escapeHTML(error.message || "Unable to load calendar.")}</div>`;
   }
 }
 
 function changeMonth(direction) {
-  visibleMonth =
-    new Date(
-      visibleMonth.getFullYear(),
-      visibleMonth.getMonth() + direction,
-      1
-    );
-
-  selectedDate =
-    new Date(
-      visibleMonth.getFullYear(),
-      visibleMonth.getMonth(),
-      1
-    );
-
+  visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + direction, 1);
+  selectedDate = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
   renderCalendar();
   renderSelectedJobs();
   updateSummary();
@@ -975,16 +391,10 @@ function changeMonth(direction) {
 function renderCalendar() {
   const grid = document.getElementById("calendarGrid");
   const title = document.getElementById("monthTitle");
-
   const year = visibleMonth.getFullYear();
   const month = visibleMonth.getMonth();
 
-  title.innerText =
-    visibleMonth.toLocaleDateString([], {
-      month: "long",
-      year: "numeric"
-    });
-
+  title.innerText = visibleMonth.toLocaleDateString([], { month: "long", year: "numeric" });
   grid.innerHTML = "";
 
   const firstDay = new Date(year, month, 1).getDay();
@@ -1001,33 +411,12 @@ function renderCalendar() {
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
     const key = toDateKey(date);
-
-    const hasJob =
-      loadedJobs.some(job => toDateKey(getTaskDate(job.task, job.quote)) === key);
+    const hasJob = loadedJobs.some(job => toDateKey(getTaskDate(job.task, job.quote)) === key);
 
     const div = document.createElement("div");
-
-    div.className =
-      [
-        "day",
-        hasJob ? "booked" : "",
-        isSameDay(date, today) ? "today" : "",
-        isSameDay(date, selectedDate) ? "selected" : ""
-      ]
-        .filter(Boolean)
-        .join(" ");
-
-    div.innerHTML = `
-      ${day}
-      ${hasJob ? `<span class="job-dot"></span>` : ""}
-    `;
-
-    div.onclick = () => {
-      selectedDate = date;
-      renderCalendar();
-      renderSelectedJobs();
-    };
-
+    div.className = ["day", hasJob ? "booked" : "", isSameDay(date, today) ? "today" : "", isSameDay(date, selectedDate) ? "selected" : ""].filter(Boolean).join(" ");
+    div.innerHTML = `${day}${hasJob ? `<span class="job-dot"></span>` : ""}`;
+    div.onclick = () => { selectedDate = date; renderCalendar(); renderSelectedJobs(); };
     grid.appendChild(div);
   }
 }
@@ -1037,28 +426,13 @@ function renderSelectedJobs() {
   const title = document.getElementById("selectedDateTitle");
   const key = selectedDateKey();
 
-  title.innerText =
-    selectedDate.toLocaleDateString([], {
-      weekday: "long",
-      month: "short",
-      day: "numeric",
-      year: "numeric"
-    });
+  title.innerText = selectedDate.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric", year: "numeric" });
 
-  const jobs =
-    loadedJobs.filter(job => toDateKey(getTaskDate(job.task, job.quote)) === key);
+  const jobs = loadedJobs.filter(job => toDateKey(getTaskDate(job.task, job.quote)) === key);
 
-  if (jobs.length === 0) {
-    list.innerHTML = `
-      <div class="empty">
-        No jobs scheduled for this date.
-      </div>
-    `;
-    return;
-  }
+  if (jobs.length === 0) { list.innerHTML = `<div class="empty">No jobs scheduled for this date.</div>`; return; }
 
   list.innerHTML = "";
-
   jobs.forEach(job => {
     const task = job.task;
     const quote = job.quote;
@@ -1066,22 +440,13 @@ function renderSelectedJobs() {
 
     const card = document.createElement("div");
     card.className = "job-card";
-
     card.innerHTML = `
       <div class="job-top">
         <div>
-          <div class="job-title">
-            ${escapeHTML(getTaskTitle(task))}
-          </div>
-
-          <div class="job-meta">
-            ${escapeHTML(getTaskCategory(task))} • ${escapeHTML(getCityState(task))}
-          </div>
+          <div class="job-title">${escapeHTML(getTaskTitle(task))}</div>
+          <div class="job-meta">${escapeHTML(getTaskCategory(task))} • ${escapeHTML(getCityState(task))}</div>
         </div>
-
-        <div class="pill">
-          ${escapeHTML(status.replaceAll("_", " "))}
-        </div>
+        <div class="pill">${escapeHTML(status.replaceAll("_"," "))}</div>
       </div>
 
       <div class="job-time-banner">
@@ -1090,32 +455,14 @@ function renderSelectedJobs() {
       </div>
 
       <div class="info-grid">
-        <div class="info-box">
-          <div class="info-label">Date</div>
-          <div class="info-value">${escapeHTML(formatDate(getTaskDate(task, quote)))}</div>
-        </div>
-
-        <div class="info-box">
-          <div class="info-label">Quote</div>
-          <div class="info-value">${escapeHTML(formatMoney(getQuoteAmount(quote)))}</div>
-        </div>
-
-        <div class="info-box">
-          <div class="info-label">Task Status</div>
-          <div class="info-value">${escapeHTML(task.status || "accepted")}</div>
-        </div>
-
-        <div class="info-box">
-          <div class="info-label">Payment</div>
-          <div class="info-value">${escapeHTML(task.payment_status || "Not listed")}</div>
-        </div>
+        <div class="info-box"><div class="info-label">Date</div><div class="info-value">${escapeHTML(formatDate(getTaskDate(task, quote)))}</div></div>
+        <div class="info-box"><div class="info-label">Quote</div><div class="info-value">${escapeHTML(formatMoney(getQuoteAmount(quote)))}</div></div>
+        <div class="info-box"><div class="info-label">Task Status</div><div class="info-value">${escapeHTML(task.status || "accepted")}</div></div>
+        <div class="info-box"><div class="info-label">Payment</div><div class="info-value">${escapeHTML(task.payment_status || "Not listed")}</div></div>
       </div>
 
-      <button class="open-job" onclick="openMyJobs()">
-        Open My Jobs
-      </button>
+      <button class="open-job" onclick="openMyJobs()">Open My Jobs</button>
     `;
-
     list.appendChild(card);
   });
 }
@@ -1123,49 +470,30 @@ function renderSelectedJobs() {
 function updateSummary() {
   const month = visibleMonth.getMonth();
   const year = visibleMonth.getFullYear();
-
-  const monthJobs =
-    loadedJobs.filter(job => {
-      const date = getDateObject(getTaskDate(job.task, job.quote));
-
-      return (
-        date &&
-        date.getMonth() === month &&
-        date.getFullYear() === year
-      );
-    });
-
   const today = new Date();
 
-  const todayJobs =
-    loadedJobs.filter(job => {
-      const date = getDateObject(getTaskDate(job.task, job.quote));
-      return date && isSameDay(date, today);
-    });
+  const monthJobs = loadedJobs.filter(job => {
+    const date = getDateObject(getTaskDate(job.task, job.quote));
+    return date && date.getMonth() === month && date.getFullYear() === year;
+  });
 
-  const activeJobs =
-    loadedJobs.filter(job => {
-      const quoteStatus =
-        normalizeStatus(job.quote.status);
+  const todayJobs = loadedJobs.filter(job => {
+    const date = getDateObject(getTaskDate(job.task, job.quote));
+    return date && isSameDay(date, today);
+  });
 
-      const taskStatus =
-        normalizeStatus(job.task.status);
-
-      return (
-        job.task.customer_completed !== true &&
-        !["completed", "paid"].includes(taskStatus) &&
-        !["completed", "paid"].includes(quoteStatus)
-      );
-    });
+  const activeJobs = loadedJobs.filter(job => {
+    const qs = normalizeStatus(job.quote.status);
+    const ts = normalizeStatus(job.task.status);
+    return job.task.customer_completed !== true && !["completed","paid"].includes(ts) && !["completed","paid"].includes(qs);
+  });
 
   document.getElementById("monthCount").innerText = String(monthJobs.length);
   document.getElementById("todayCount").innerText = String(todayJobs.length);
   document.getElementById("activeCount").innerText = String(activeJobs.length);
 }
 
-function openMyJobs() {
-  window.location.href = "my-jobs.html";
-}
+function openMyJobs() { window.location.href = "my-jobs.html"; }
 
 loadCalendarJobs();
 </script>

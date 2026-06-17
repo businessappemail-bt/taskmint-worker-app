@@ -1717,15 +1717,15 @@
 
     /* ── FINAL COMPACT SIZE FIXES ── */
     .top-bar {
-      min-height: 58px !important;
+      min-height: 70px !important;
       padding: 10px 16px !important;
       grid-template-columns: 1fr 42px !important;
       gap: 10px !important;
     }
 
     .brand img {
-      width: 128px !important;
-      max-height: 34px !important;
+      width: 184px !important;
+      max-height: 58px !important;
     }
 
     .icon-btn {
@@ -2918,8 +2918,19 @@ function getTaskScheduleDate(task, quote = null) {
 
   return getFirstScheduledValue([quote, task], [
     "scheduled_start",
+    "scheduledStart",
     "scheduled_for",
+    "scheduledFor",
     "scheduled_at",
+    "scheduledAt",
+    "scheduled_datetime",
+    "scheduledDateTime",
+    "scheduled_date_time",
+    "scheduledDateAndTime",
+    "schedule_date",
+    "scheduleDate",
+    "schedule_datetime",
+    "scheduleDateTime",
     "scheduled_date",
     "starts_at",
     "start_date",
@@ -2960,6 +2971,20 @@ function getTaskScheduleDate(task, quote = null) {
     "requestedDate",
     "actual_date",
     "actualDate",
+    "task_start",
+    "taskStart",
+    "task_start_at",
+    "taskStartAt",
+    "task_start_date",
+    "taskStartDate",
+    "requested_start",
+    "requestedStart",
+    "requested_start_date",
+    "requestedStartDate",
+    "confirmed_date",
+    "confirmedDate",
+    "confirmed_at",
+    "confirmedAt",
     "date"
   ]);
 
@@ -2969,6 +2994,7 @@ function getTaskScheduleTime(task, quote = null) {
 
   return getFirstScheduledValue([quote, task], [
     "scheduled_start_time",
+    "scheduledStartTime",
     "scheduled_time",
     "scheduledStartTime",
     "scheduledTime",
@@ -3010,6 +3036,12 @@ function getTaskScheduleTime(task, quote = null) {
     "requestedTime",
     "actual_time",
     "actualTime",
+    "task_start_time",
+    "taskStartTime",
+    "requested_start_time",
+    "requestedStartTime",
+    "confirmed_time",
+    "confirmedTime",
     "time"
   ]);
 
@@ -3776,6 +3808,10 @@ async function loadTodaySchedule(workerId) {
   const workerIds =
     getWorkerIdList(workerId);
 
+  if (!container) {
+    return;
+  }
+
   if (workerIds.length === 0) {
     container.innerHTML = `
       <div class="small-text">
@@ -3785,81 +3821,29 @@ async function loadTodaySchedule(workerId) {
     return;
   }
 
-  const today =
-    new Date();
-
-  today.setHours(0, 0, 0, 0);
-
   const upcomingJobs =
     [];
 
-  const { data: assignedTasks, error: taskError } =
-    await supabaseClient
-      .from("tasks")
-      .select("*")
-      .or(
-        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
-      )
-      .in("status", [
-        "accepted",
-        "scheduled",
-        "in_progress",
-        "worker_completed"
-      ])
-      .order("created_at", { ascending: false });
+  const addUpcomingJob = (task, quote = null) => {
+    if (!task || !task.id) {
+      return;
+    }
 
-  if (!taskError) {
-    (assignedTasks || []).forEach((task) => {
-      upcomingJobs.push({
-        task,
-        quote: {
-          status: task.status || "accepted"
-        }
-      });
-    });
-  }
+    const statusText =
+      String(task.status || quote?.status || "").toLowerCase();
 
-  const { data: acceptedQuotes } =
-    await supabaseClient
-      .from("worker_quotes")
-      .select("*")
-      .in("worker_id", workerIds)
-      .in("status", [
-        "accepted",
-        "approved",
-        "in_progress"
-      ])
-      .order("created_at", { ascending: false });
-
-  const quoteTaskIds =
-    [
-      ...new Set(
-        (acceptedQuotes || [])
-          .map((quote) => quote.task_id)
-          .filter(Boolean)
-      )
+    const excludedStatuses = [
+      "cancelled",
+      "canceled",
+      "declined",
+      "denied",
+      "expired",
+      "completed",
+      "customer_completed",
+      "closed"
     ];
 
-  const taskMap =
-    {};
-
-  if (quoteTaskIds.length > 0) {
-    const { data: quoteTasks } =
-      await supabaseClient
-        .from("tasks")
-        .select("*")
-        .in("id", quoteTaskIds);
-
-    (quoteTasks || []).forEach((task) => {
-      taskMap[String(task.id)] = task;
-    });
-  }
-
-  (acceptedQuotes || []).forEach((quote) => {
-    const task =
-      taskMap[String(quote.task_id)];
-
-    if (!task) {
+    if (excludedStatuses.includes(statusText)) {
       return;
     }
 
@@ -3872,38 +3856,154 @@ async function loadTodaySchedule(workerId) {
 
     upcomingJobs.push({
       task,
-      quote
+      quote: quote || {
+        status: task.status || "accepted"
+      }
     });
-  });
+  };
 
-  const todayTasks =
+  const { data: assignedTasks, error: taskError } =
+    await supabaseClient
+      .from("tasks")
+      .select("*")
+      .or(
+        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
+      )
+      .order("created_at", { ascending: false });
+
+  if (!taskError) {
+    (assignedTasks || []).forEach((task) => {
+      addUpcomingJob(task, {
+        status: task.status || "accepted"
+      });
+    });
+  }
+
+  const { data: acceptedQuotes } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("*")
+      .in("worker_id", workerIds)
+      .order("created_at", { ascending: false });
+
+  const usableQuotes =
+    (acceptedQuotes || []).filter((quote) => {
+      const quoteStatus =
+        String(quote.status || "").toLowerCase();
+
+      return [
+        "accepted",
+        "approved",
+        "assigned",
+        "scheduled",
+        "confirmed",
+        "booked",
+        "in_progress",
+        "worker_completed"
+      ].includes(quoteStatus);
+    });
+
+  const quoteTaskIds =
+    [
+      ...new Set(
+        usableQuotes
+          .map((quote) => quote.task_id)
+          .filter(Boolean)
+          .map(String)
+      )
+    ];
+
+  if (quoteTaskIds.length > 0) {
+    const { data: quoteTasks } =
+      await supabaseClient
+        .from("tasks")
+        .select("*")
+        .in("id", quoteTaskIds);
+
+    const taskMap =
+      {};
+
+    (quoteTasks || []).forEach((task) => {
+      taskMap[String(task.id)] = task;
+    });
+
+    usableQuotes.forEach((quote) => {
+      const task =
+        taskMap[String(quote.task_id)];
+
+      addUpcomingJob(task, quote);
+    });
+  }
+
+  const { data: taskAssignments, error: assignmentError } =
+    await supabaseClient
+      .from("task_assignments")
+      .select("*")
+      .in("worker_id", workerIds)
+      .order("created_at", { ascending: false });
+
+  if (!assignmentError && taskAssignments && taskAssignments.length > 0) {
+    const assignmentTaskIds =
+      [
+        ...new Set(
+          taskAssignments
+            .map((assignment) => assignment.task_id)
+            .filter(Boolean)
+            .map(String)
+        )
+      ];
+
+    if (assignmentTaskIds.length > 0) {
+      const { data: assignmentTasks } =
+        await supabaseClient
+          .from("tasks")
+          .select("*")
+          .in("id", assignmentTaskIds);
+
+      const assignmentMap =
+        {};
+
+      (taskAssignments || []).forEach((assignment) => {
+        if (assignment.task_id) {
+          assignmentMap[String(assignment.task_id)] = assignment;
+        }
+      });
+
+      (assignmentTasks || []).forEach((task) => {
+        addUpcomingJob(task, assignmentMap[String(task.id)] || null);
+      });
+    }
+  }
+
+  const today =
+    new Date();
+
+  today.setHours(0, 0, 0, 0);
+
+  const todayKey =
+    getDateOnlyKey(today);
+
+  const upcomingScheduledJobs =
     upcomingJobs
       .filter((job) => {
         const taskDateValue =
           getTaskScheduleDate(job.task, job.quote);
 
-        if (!taskDateValue) {
+        const dateKey =
+          getDateOnlyKey(taskDateValue);
+
+        if (!dateKey) {
           return false;
         }
 
-        const taskDate =
-          new Date(taskDateValue);
-
-        if (Number.isNaN(taskDate.getTime())) {
-          return false;
-        }
-
-        taskDate.setHours(0, 0, 0, 0);
-
-        return taskDate.getTime() >= today.getTime();
+        return dateKey >= todayKey;
       })
-      .sort((a, b) => getAcceptedTaskSortValue(a) - getAcceptedTaskSortValue(b))
-      .slice(0, 3);
+      .sort((a, b) => getAcceptedTaskSortValue(a) - getAcceptedTaskSortValue(b));
 
-  if (!todayTasks || todayTasks.length === 0) {
+  if (!upcomingScheduledJobs || upcomingScheduledJobs.length === 0) {
     container.innerHTML = `
       <div class="small-text">
-        No upcoming tasks yet. Accepted jobs will show the task name, date, location, and current status here.
+        No upcoming tasks yet. Scheduled accepted tasks will show here.
       </div>
     `;
     return;
@@ -3911,7 +4011,7 @@ async function loadTodaySchedule(workerId) {
 
   container.innerHTML = "";
 
-  todayTasks.forEach((job) => {
+  upcomingScheduledJobs.forEach((job) => {
 
     const task =
       job.task;

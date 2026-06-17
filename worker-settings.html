@@ -585,6 +585,12 @@
       <div class="quick-sub">Update your worker profile details.</div>
     </div>
 
+    <div class="quick-card" onclick="viewPublicProfile()" data-search="view public profile customer preview profile visibility account">
+      <div class="quick-icon">👁️</div>
+      <div class="quick-title">View Public Profile</div>
+      <div class="quick-sub">Preview what customers see.</div>
+    </div>
+
     <div class="quick-card" onclick="goTo('worker-availability.html')" data-search="availability schedule working days blocked dates work preferences">
       <div class="quick-icon">🕒</div>
       <div class="quick-title">Availability</div>
@@ -625,6 +631,14 @@
         <div>
           <div class="row-text">Edit Profile</div>
           <div class="row-sub">Update photo, experience, services, and service area.</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+
+      <div class="row" onclick="viewPublicProfile()">
+        <div>
+          <div class="row-text">View Public Profile</div>
+          <div class="row-sub">Preview the profile customers see before choosing you.</div>
         </div>
         <div class="arrow">›</div>
       </div>
@@ -906,6 +920,7 @@ const supabaseClient = window.supabase.createClient(
 );
 
 let currentUser = null;
+let currentWorkerId = null;
 let saveTimer = null;
 
 async function loadSettings() {
@@ -919,6 +934,16 @@ async function loadSettings() {
   }
 
   currentUser = data.user;
+
+  const { data: workerRecord } = await supabaseClient
+    .from("worker_profiles")
+    .select("id")
+    .eq("email", currentUser.email)
+    .maybeSingle();
+
+  currentWorkerId =
+    workerRecord?.id ||
+    currentUser.id;
 
   const { data: profile, error: profileError } = await supabaseClient
     .from("profiles")
@@ -1064,6 +1089,16 @@ function showToast(message) {
 
 function goTo(page) {
   window.location.href = page;
+}
+
+function viewPublicProfile() {
+  localStorage.setItem(
+    "selectedWorkerId",
+    currentWorkerId || currentUser?.id || ""
+  );
+
+  window.location.href =
+    "worker-public-profile.html";
 }
 
 function requestDeactivateAccount() {

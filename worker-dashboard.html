@@ -3821,8 +3821,8 @@ async function loadTodaySchedule(workerId) {
     return;
   }
 
-  const upcomingJobs =
-    [];
+  const upcomingJobs = [];
+  const addedTaskIds = new Set();
 
   const addUpcomingJob = (task, quote = null) => {
     if (!task || !task.id) {
@@ -3847,12 +3847,21 @@ async function loadTodaySchedule(workerId) {
       return;
     }
 
-    const alreadyAdded =
-      upcomingJobs.some((job) => String(job.task.id) === String(task.id));
+    const taskDateValue =
+      getTaskScheduleDate(task, quote);
 
-    if (alreadyAdded) {
+    const dateKey =
+      getDateOnlyKey(taskDateValue);
+
+    if (!dateKey) {
       return;
     }
+
+    if (addedTaskIds.has(String(task.id))) {
+      return;
+    }
+
+    addedTaskIds.add(String(task.id));
 
     upcomingJobs.push({
       task,
@@ -3862,7 +3871,47 @@ async function loadTodaySchedule(workerId) {
     });
   };
 
-  const { data: assignedTasks, error: taskError } =
+  const addTaskRows = (rows, quote = null) => {
+    (rows || []).forEach((task) => {
+      addUpcomingJob(task, quote || {
+        status: task.status || "accepted"
+      });
+    });
+  };
+
+  const addTasksByIds = async (taskIds, quoteMap = {}) => {
+    const cleanTaskIds =
+      [
+        ...new Set(
+          (taskIds || [])
+            .filter(Boolean)
+            .map(String)
+        )
+      ];
+
+    if (cleanTaskIds.length === 0) {
+      return;
+    }
+
+    const { data: tasksById, error } =
+      await supabaseClient
+        .from("tasks")
+        .select("*")
+        .in("id", cleanTaskIds);
+
+    if (error || !tasksById) {
+      return;
+    }
+
+    tasksById.forEach((task) => {
+      const linkedQuote =
+        quoteMap[String(task.id)] || null;
+
+      addUpcomingJob(task, linkedQuote);
+    });
+  };
+
+  const { data: assignedTasksByWorkerFields, error: taskError } =
     await supabaseClient
       .from("tasks")
       .select("*")
@@ -3872,11 +3921,7 @@ async function loadTodaySchedule(workerId) {
       .order("created_at", { ascending: false });
 
   if (!taskError) {
-    (assignedTasks || []).forEach((task) => {
-      addUpcomingJob(task, {
-        status: task.status || "accepted"
-      });
-    });
+    addTaskRows(assignedTasksByWorkerFields);
   }
 
   const { data: acceptedQuotes } =
@@ -3891,48 +3936,66 @@ async function loadTodaySchedule(workerId) {
       const quoteStatus =
         String(quote.status || "").toLowerCase();
 
-      return [
-        "accepted",
-        "approved",
-        "assigned",
-        "scheduled",
-        "confirmed",
-        "booked",
-        "in_progress",
-        "worker_completed"
+      return ![
+        "cancelled",
+        "canceled",
+        "declined",
+        "denied",
+        "expired",
+        "completed",
+        "closed"
       ].includes(quoteStatus);
     });
 
+  const quoteTaskMap = {};
   const quoteTaskIds =
-    [
-      ...new Set(
-        usableQuotes
-          .map((quote) => quote.task_id)
-          .filter(Boolean)
-          .map(String)
-      )
-    ];
+    usableQuotes
+      .map((quote) => {
+        if (quote.task_id) {
+          quoteTaskMap[String(quote.task_id)] = quote;
+        }
 
-  if (quoteTaskIds.length > 0) {
-    const { data: quoteTasks } =
+        return quote.task_id;
+      })
+      .filter(Boolean);
+
+  await addTasksByIds(quoteTaskIds, quoteTaskMap);
+
+  if (currentUser && currentUser.email) {
+    const { data: quotesByEmail } =
       await supabaseClient
-        .from("tasks")
+        .from("worker_quotes")
         .select("*")
-        .in("id", quoteTaskIds);
+        .eq("worker_email", currentUser.email)
+        .order("created_at", { ascending: false });
 
-    const taskMap =
-      {};
+    const emailQuoteMap = {};
+    const emailQuoteTaskIds =
+      (quotesByEmail || [])
+        .filter((quote) => {
+          const quoteStatus =
+            String(quote.status || "").toLowerCase();
 
-    (quoteTasks || []).forEach((task) => {
-      taskMap[String(task.id)] = task;
-    });
+          return ![
+            "cancelled",
+            "canceled",
+            "declined",
+            "denied",
+            "expired",
+            "completed",
+            "closed"
+          ].includes(quoteStatus);
+        })
+        .map((quote) => {
+          if (quote.task_id) {
+            emailQuoteMap[String(quote.task_id)] = quote;
+          }
 
-    usableQuotes.forEach((quote) => {
-      const task =
-        taskMap[String(quote.task_id)];
+          return quote.task_id;
+        })
+        .filter(Boolean);
 
-      addUpcomingJob(task, quote);
-    });
+    await addTasksByIds(emailQuoteTaskIds, emailQuoteMap);
   }
 
   const { data: taskAssignments, error: assignmentError } =
@@ -3943,36 +4006,42 @@ async function loadTodaySchedule(workerId) {
       .order("created_at", { ascending: false });
 
   if (!assignmentError && taskAssignments && taskAssignments.length > 0) {
+    const assignmentMap = {};
     const assignmentTaskIds =
-      [
-        ...new Set(
-          taskAssignments
-            .map((assignment) => assignment.task_id)
-            .filter(Boolean)
-            .map(String)
-        )
-      ];
+      taskAssignments
+        .map((assignment) => {
+          if (assignment.task_id) {
+            assignmentMap[String(assignment.task_id)] = assignment;
+          }
 
-    if (assignmentTaskIds.length > 0) {
-      const { data: assignmentTasks } =
-        await supabaseClient
-          .from("tasks")
-          .select("*")
-          .in("id", assignmentTaskIds);
+          return assignment.task_id;
+        })
+        .filter(Boolean);
 
-      const assignmentMap =
-        {};
+    await addTasksByIds(assignmentTaskIds, assignmentMap);
+  }
 
-      (taskAssignments || []).forEach((assignment) => {
-        if (assignment.task_id) {
-          assignmentMap[String(assignment.task_id)] = assignment;
-        }
-      });
+  if (currentUser && currentUser.email) {
+    const { data: taskAssignmentsByEmail } =
+      await supabaseClient
+        .from("task_assignments")
+        .select("*")
+        .eq("worker_email", currentUser.email)
+        .order("created_at", { ascending: false });
 
-      (assignmentTasks || []).forEach((task) => {
-        addUpcomingJob(task, assignmentMap[String(task.id)] || null);
-      });
-    }
+    const emailAssignmentMap = {};
+    const emailAssignmentTaskIds =
+      (taskAssignmentsByEmail || [])
+        .map((assignment) => {
+          if (assignment.task_id) {
+            emailAssignmentMap[String(assignment.task_id)] = assignment;
+          }
+
+          return assignment.task_id;
+        })
+        .filter(Boolean);
+
+    await addTasksByIds(emailAssignmentTaskIds, emailAssignmentMap);
   }
 
   const today =

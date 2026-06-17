@@ -682,13 +682,19 @@ function getTaskDate(task, quote = null) {
       quote.worker_selected_date ||
       quote.proposed_date ||
       quote.selected_date ||
-      quote.scheduled_date
+      quote.scheduled_date ||
+      quote.task_date ||
+      quote.date_needed ||
+      quote.needed_by ||
+      quote.scheduled_start ||
+      quote.due_date
     );
 
   if (
     selectedFlexibleDate !== null &&
     selectedFlexibleDate !== undefined &&
-    String(selectedFlexibleDate).trim() !== ""
+    String(selectedFlexibleDate).trim() !== "" &&
+    String(selectedFlexibleDate).trim() !== "Flexible"
   ) {
     return String(selectedFlexibleDate).trim().slice(0, 10);
   }
@@ -708,6 +714,10 @@ function getTaskDate(task, quote = null) {
     "needed_by",
     "scheduled_date",
     "scheduled_start",
+    "service_date",
+    "selected_date",
+    "start_date",
+    "task_start_date",
     "due_date"
   ], "");
 }
@@ -1082,6 +1092,81 @@ function isCustomerCancelledTask(task, quote) {
 function prettyStatus(value) {
   return normalizeStatus(value).replaceAll("_", " ");
 }
+
+function isTruthyValue(value) {
+  if (value === true) {
+    return true;
+  }
+
+  if (value === false || value === null || value === undefined) {
+    return false;
+  }
+
+  const normalized =
+    String(value).trim().toLowerCase();
+
+  return [
+    "true",
+    "yes",
+    "y",
+    "1",
+    "verified",
+    "confirmed",
+    "complete",
+    "completed"
+  ].includes(normalized);
+}
+
+function getCombinedJobStatus(task, quote, assignment) {
+  const assignmentStatus =
+    getFirstAvailable(assignment, [
+      "assignment_status",
+      "status"
+    ], "");
+
+  const taskStatus =
+    getFirstAvailable(task, [
+      "status",
+      "task_status"
+    ], "");
+
+  const quoteStatus =
+    getFirstAvailable(quote, [
+      "status"
+    ], "accepted");
+
+  if (
+    normalizeStatus(assignmentStatus) === "in_progress" ||
+    normalizeStatus(taskStatus) === "in_progress" ||
+    task.worker_arrival_confirmed === true ||
+    task.arrival_verified === true ||
+    isTruthyValue(task.worker_arrival_confirmed) ||
+    isTruthyValue(task.arrival_verified) ||
+    (
+      assignment &&
+      (
+        assignment.arrival_verified === true ||
+        isTruthyValue(assignment.arrival_verified)
+      )
+    )
+  ) {
+    return "in_progress";
+  }
+
+  if (
+    ["worker_completed", "completed", "paid"].includes(normalizeStatus(quoteStatus))
+  ) {
+    return normalizeStatus(quoteStatus);
+  }
+
+  if (
+    ["worker_completed", "completed", "paid"].includes(normalizeStatus(taskStatus))
+  ) {
+    return normalizeStatus(taskStatus);
+  }
+
+  return normalizeStatus(quoteStatus || taskStatus || assignmentStatus || "accepted");
+}
  
 function isPaymentRecorded(task, quote) {
   const paymentStatus = String(getFirstAvailable(task, [
@@ -1279,19 +1364,26 @@ function canMarkWorkerComplete(task, quote, assignment) {
   taskDate.setHours(0, 0, 0, 0);
 
   const status =
-    normalizeStatus(quote.status);
+    getCombinedJobStatus(task, quote, assignment);
 
   const dateReached =
     taskDate.getTime() <= today.getTime();
 
   const started =
     status === "in_progress" ||
+    normalizeStatus(task.status) === "in_progress" ||
+    normalizeStatus(task.task_status) === "in_progress" ||
     (
       assignment &&
-      assignment.arrival_verified === true
+      (
+        assignment.arrival_verified === true ||
+        isTruthyValue(assignment.arrival_verified)
+      )
     ) ||
     task.worker_arrival_confirmed === true ||
-    task.arrival_verified === true;
+    task.arrival_verified === true ||
+    isTruthyValue(task.worker_arrival_confirmed) ||
+    isTruthyValue(task.arrival_verified);
 
   return (
     dateReached &&
@@ -1322,7 +1414,7 @@ function getWorkerCompleteSection(job) {
   }
 
   const status =
-    normalizeStatus(quote.status);
+    getCombinedJobStatus(task, quote, assignment);
 
   if (["paid", "completed"].includes(status)) {
     return "";
@@ -1876,7 +1968,7 @@ function renderJobs() {
     const customerFallbackName = getCustomerNameFromRecords(task, quote, assignment);
     const customerName = getCustomerDisplayName(job.customerProfile, customerFallbackName);
     const customerPhoto = getCustomerPhoto(job.customerProfile);
-    const status = assignment && assignment.arrival_verified === true ? "in_progress" : quote.status;
+    const status = getCombinedJobStatus(task, quote, assignment);
     const taskDate = formatDate(getTaskDate(task, quote));
     const countdown = getCountdownText(task, quote);
     const quoteAmount = quote.quote_amount || quote.amount || "0";

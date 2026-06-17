@@ -375,18 +375,6 @@
       line-height: 1.35;
     }
 
-    .warning-box {
-      background: var(--warning-bg);
-      border: 1px solid var(--warning-border);
-      color: var(--warning-text);
-      border-radius: 14px;
-      padding: 11px;
-      font-size: 12px;
-      line-height: 1.45;
-      margin-top: 10px;
-      font-weight: 700;
-    }
-
     .payout-options {
       display: grid;
       gap: 10px;
@@ -546,7 +534,6 @@
       line-height: 1.35;
     }
 
-
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -596,87 +583,8 @@
       View your completed task earnings, filter by date or task type, and track payout activity.
     </div>
   </div>
- 
-  <div class="card">
-    <div class="section-header">
-      <div class="section-title">Available for Payout</div>
-    </div>
- 
-    <div class="balance-box">
-      <div class="balance-label">Current available balance</div>
-      <div class="balance-amount" id="availableBalance">$0.00</div>
-      <div class="balance-sub" id="balanceSubtext">
-        Completed and released jobs will show here.
-      </div>
-    </div>
-<div class="payout-options">
-      <div class="payout-option">
-        <div class="payout-option-title">Free Friday Payout</div>
-        <div class="payout-option-text">
-          Request your available balance with no payout fee. Standard payouts are reviewed and processed during the Friday payout run.
-        </div>
-        <button id="standardPayoutButton" onclick="requestPayout('standard')" disabled>
-          Request Free Friday Payout
-        </button>
-      </div>
 
-      <div class="payout-option">
-        <div class="payout-option-title">Instant Payout</div>
-        <div class="payout-option-text">
-          Request faster payout processing for a small instant payout fee.
-        </div>
-        <div class="fee-row">
-          <span>Instant fee</span>
-          <strong id="instantFeeAmount">$0.00</strong>
-        </div>
-        <div class="fee-row">
-          <span>You receive</span>
-          <strong id="instantNetAmount">$0.00</strong>
-        </div>
-        <button id="instantPayoutButton" onclick="requestPayout('instant')" disabled>
-          Request Instant Payout
-        </button>
-      </div>
-    </div>
-
-    <button class="secondary" onclick="window.location.href='worker-payout-info.html'">
-      Update Payout Information
-    </button>
- 
-    <div id="actionMessage" class="message"></div>
- 
-    <div class="warning-box">
-      Payout processing must run through a secure backend or Supabase Edge Function connected to Stripe. Do not put Stripe secret keys inside this page.
-    </div>
-  </div>
- 
-  <div class="card">
-    <div class="section-title">Earnings Summary</div>
- 
-    <div class="stats-grid">
-      <div class="stat-box">
-        <div class="stat-label">Pending</div>
-        <div class="stat-value" id="pendingAmount">$0.00</div>
-      </div>
- 
-      <div class="stat-box">
-        <div class="stat-label">Approved</div>
-        <div class="stat-value" id="approvedAmount">$0.00</div>
-      </div>
- 
-      <div class="stat-box">
-        <div class="stat-label">Paid</div>
-        <div class="stat-value" id="paidAmount">$0.00</div>
-      </div>
- 
-      <div class="stat-box">
-        <div class="stat-label">Last Request</div>
-        <div class="stat-value" id="lastRequestDate">None</div>
-      </div>
-    </div>
-  </div>
- 
- 
+  <!-- EARNINGS HISTORY CARD (moved to top) -->
   <div class="card">
     <div class="section-header">
       <div class="section-title">Earnings History</div>
@@ -719,6 +627,85 @@
     </div>
   </div>
 
+  <!-- AVAILABLE FOR PAYOUT CARD -->
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">Available for Payout</div>
+    </div>
+ 
+    <div class="balance-box">
+      <div class="balance-label">Current available balance</div>
+      <div class="balance-amount" id="availableBalance">$0.00</div>
+      <div class="balance-sub" id="balanceSubtext">
+        Completed and released jobs will show here.
+      </div>
+    </div>
+
+    <div class="payout-options">
+      <div class="payout-option">
+        <div class="payout-option-title">Free Friday Payout</div>
+        <div class="payout-option-text">
+          Request your available balance with no payout fee. Standard payouts are reviewed and processed during the Friday payout run.
+        </div>
+        <button id="standardPayoutButton" onclick="requestPayout('standard')" disabled>
+          Request Free Friday Payout
+        </button>
+      </div>
+
+      <div class="payout-option">
+        <div class="payout-option-title">Instant Payout</div>
+        <div class="payout-option-text">
+          Request faster payout processing for a small instant payout fee.
+        </div>
+        <div class="fee-row">
+          <span>Instant fee</span>
+          <strong id="instantFeeAmount">$0.00</strong>
+        </div>
+        <div class="fee-row">
+          <span>You receive</span>
+          <strong id="instantNetAmount">$0.00</strong>
+        </div>
+        <button id="instantPayoutButton" onclick="requestPayout('instant')" disabled>
+          Request Instant Payout
+        </button>
+      </div>
+    </div>
+
+    <button class="secondary" onclick="window.location.href='worker-payout-info.html'">
+      Update Payout Information
+    </button>
+ 
+    <div id="actionMessage" class="message"></div>
+  </div>
+
+  <!-- EARNINGS SUMMARY CARD -->
+  <div class="card">
+    <div class="section-title">Earnings Summary</div>
+ 
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">Pending</div>
+        <div class="stat-value" id="pendingAmount">$0.00</div>
+      </div>
+ 
+      <div class="stat-box">
+        <div class="stat-label">Approved</div>
+        <div class="stat-value" id="approvedAmount">$0.00</div>
+      </div>
+ 
+      <div class="stat-box">
+        <div class="stat-label">Paid</div>
+        <div class="stat-value" id="paidAmount">$0.00</div>
+      </div>
+ 
+      <div class="stat-box">
+        <div class="stat-label">Last Request</div>
+        <div class="stat-value" id="lastRequestDate">None</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYOUT REQUESTS CARD -->
   <div class="card">
     <div class="section-header">
       <div class="section-title">Payout Requests</div>
@@ -824,7 +811,6 @@ function setActionMessage(message, color = "#666") {
   box.innerText = message;
 }
  
-
 function escapeHTML(value) {
   return cleanText(value, "")
     .replaceAll("&", "&amp;")
@@ -1132,7 +1118,6 @@ async function getCurrentWorker() {
   return currentWorkerIds.length > 0;
 }
 
- 
 function getEarningAmount(row) {
   return Number(
     getFirstAvailable(row, [
@@ -1164,8 +1149,7 @@ function isAvailableEarning(row) {
 }
 
 function calculateInstantFee(amount) {
-  const balance =
-    Number(amount || 0);
+  const balance = Number(amount || 0);
 
   if (balance <= 0) {
     return 0;
@@ -1178,42 +1162,28 @@ function calculateInstantFee(amount) {
 }
 
 function updatePayoutButtons() {
-  const standardButton =
-    document.getElementById("standardPayoutButton");
+  const standardButton = document.getElementById("standardPayoutButton");
+  const instantButton = document.getElementById("instantPayoutButton");
+  const instantFeeBox = document.getElementById("instantFeeAmount");
+  const instantNetBox = document.getElementById("instantNetAmount");
 
-  const instantButton =
-    document.getElementById("instantPayoutButton");
-
-  const instantFeeBox =
-    document.getElementById("instantFeeAmount");
-
-  const instantNetBox =
-    document.getElementById("instantNetAmount");
-
-  const instantFee =
-    calculateInstantFee(availableBalance);
-
-  const instantNet =
-    Math.max(availableBalance - instantFee, 0);
+  const instantFee = calculateInstantFee(availableBalance);
+  const instantNet = Math.max(availableBalance - instantFee, 0);
 
   if (instantFeeBox) {
-    instantFeeBox.innerText =
-      money(instantFee);
+    instantFeeBox.innerText = money(instantFee);
   }
 
   if (instantNetBox) {
-    instantNetBox.innerText =
-      money(instantNet);
+    instantNetBox.innerText = money(instantNet);
   }
 
   if (standardButton) {
-    standardButton.disabled =
-      availableBalance <= 0;
+    standardButton.disabled = availableBalance <= 0;
   }
 
   if (instantButton) {
-    instantButton.disabled =
-      availableBalance <= 0 || instantNet <= 0;
+    instantButton.disabled = availableBalance <= 0 || instantNet <= 0;
   }
 }
  
@@ -1246,6 +1216,31 @@ async function loadAvailableBalance() {
       : "Completed and released jobs will show here.";
  
   updatePayoutButtons();
+}
+
+async function loadEarningsHistory() {
+  const list = document.getElementById("earningsHistoryList");
+
+  const { data, error } =
+    await supabaseClient
+      .from("worker_earnings")
+      .select("*")
+      .in("worker_id", currentWorkerIds)
+      .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    earningsHistory = [];
+    list.innerHTML = `
+      <div class="empty">
+        No earnings history found yet.
+      </div>
+    `;
+    return;
+  }
+
+  earningsHistory = data;
+  populateEarningsTypeFilter();
+  renderEarningsHistory();
 }
  
 function requestAmount(row) {
@@ -1593,7 +1588,6 @@ async function requestPayout(payoutSpeed) {
   }
 }
 
- 
 async function loadPayoutPage() {
   setActionMessage("", "#666");
  
@@ -1605,10 +1599,16 @@ async function loadPayoutPage() {
         Worker profile not found. Complete your worker profile before requesting payouts.
       </div>
     `;
+    document.getElementById("earningsHistoryList").innerHTML = `
+      <div class="empty">
+        Worker profile not found.
+      </div>
+    `;
     return;
   }
  
   await loadAvailableBalance();
+  await loadEarningsHistory();
   await loadPayoutRequests();
 }
  

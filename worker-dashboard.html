@@ -477,6 +477,198 @@
       margin-top: 12px;
     }
 
+
+    /* ── NEXT ACCEPTED TASK ── */
+    .next-task-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(11,122,40,0.10);
+      opacity: 0;
+      animation: riseIn 0.35s 0.22s forwards;
+    }
+
+    .next-task-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .next-task-kicker {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 5px;
+    }
+
+    .next-task-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+      letter-spacing: -0.2px;
+    }
+
+    .next-task-status {
+      background: var(--surface2);
+      color: var(--accent);
+      border: 1px solid #bde8ca;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .next-task-body {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .next-task-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 17px;
+      background: var(--surface2);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .next-task-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .next-task-customer {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 5px;
+    }
+
+    .next-task-pay {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .next-task-pay-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .next-task-pay-amount {
+      color: var(--accent);
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .next-task-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+      border-top: 1px solid var(--border);
+      padding-top: 13px;
+      margin-top: 4px;
+    }
+
+    .next-task-info {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+      min-height: 72px;
+    }
+
+    .next-task-info-label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+    }
+
+    .next-task-info-value {
+      color: var(--text);
+      font-size: 12.5px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .next-task-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 13px;
+    }
+
+    .next-task-empty {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .next-task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-top: 8px;
+    }
+
+    .next-task-mini {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .next-task-mini-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .next-task-mini-meta {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-top: 3px;
+    }
+
+    .next-task-mini-pay {
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
     /* ── BUTTONS ── */
     button {
       width: 100%;
@@ -648,6 +840,10 @@
       .two-col { gap: 8px; }
       .tile { padding: 13px; min-height: 104px; }
       .profile-actions { grid-template-columns: 1fr; }
+      .next-task-grid { grid-template-columns: 1fr; }
+      .next-task-actions { grid-template-columns: 1fr; }
+      .next-task-body { align-items: flex-start; }
+      .next-task-pay { text-align: left; }
     }
   </style>
 </head>
@@ -778,6 +974,15 @@
       </div>
 
     </div>
+  </div>
+
+  <!-- NEXT ACCEPTED TASK -->
+  <div class="section-header" id="nextAcceptedTaskSection">
+    <div class="section-label" style="margin:0;">Next Accepted Task</div>
+    <span class="section-link" onclick="window.location.href='my-jobs.html'">Open My Jobs</span>
+  </div>
+  <div id="nextAcceptedTaskCard" class="next-task-empty">
+    Loading your next accepted task...
   </div>
 
   <!-- PROFILE CARD -->
@@ -1171,6 +1376,7 @@ async function loadDashboard() {
   await loadWorkerRating(currentWorkerId);
   await loadWorkerEarnings(currentWorkerId);
   await loadCompletedTaskCount(currentWorkerId);
+  await loadNextAcceptedTask(currentWorkerId);
   await loadTodaySchedule(currentWorkerId);
   await loadUnreadDisputeDot(currentWorkerId);
   await loadWorkerNotifications();
@@ -1642,6 +1848,514 @@ function getTaskLocation(task) {
     task.city ||
     "Location not listed"
   );
+
+}
+
+
+function dashboardEscapeHTML(value) {
+
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+}
+
+function getTaskDateDisplay(value) {
+
+  if (!value) {
+    return "Date not set";
+  }
+
+  const rawValue =
+    String(value).trim();
+
+  const match =
+    rawValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+  let date = null;
+
+  if (match) {
+    date =
+      new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3])
+      );
+  } else {
+    date =
+      new Date(rawValue);
+  }
+
+  if (!date || Number.isNaN(date.getTime())) {
+    return rawValue;
+  }
+
+  return date.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
+
+}
+
+function getTaskCityState(task) {
+
+  const city =
+    task.city ||
+    task.task_city ||
+    task.service_city ||
+    "";
+
+  const state =
+    task.state ||
+    task.task_state ||
+    task.service_state ||
+    "";
+
+  const cityState =
+    [city, state]
+      .filter(Boolean)
+      .join(", ");
+
+  return cityState || getTaskLocation(task);
+
+}
+
+function getWorkerPayAmount(task, quote) {
+
+  const amount =
+    quote?.worker_payout ||
+    quote?.worker_pay ||
+    quote?.quote_amount ||
+    quote?.amount ||
+    quote?.total_amount ||
+    task?.worker_payout ||
+    task?.worker_pay ||
+    task?.quote_amount ||
+    task?.task_amount ||
+    task?.amount_paid ||
+    task?.paid_amount ||
+    task?.amount ||
+    0;
+
+  const numericAmount =
+    Number(amount || 0);
+
+  if (Number.isNaN(numericAmount)) {
+    return String(amount || "$0.00");
+  }
+
+  return `$${numericAmount.toFixed(2)}`;
+
+}
+
+function getCustomerIdForDashboard(task, quote) {
+
+  return (
+    quote?.customer_id ||
+    quote?.customer_user_id ||
+    quote?.client_id ||
+    task?.customer_id ||
+    task?.customer_user_id ||
+    task?.client_id ||
+    task?.posted_by ||
+    task?.created_by ||
+    task?.user_id ||
+    task?.profile_id ||
+    ""
+  );
+
+}
+
+function getCustomerFallbackNameForDashboard(task, quote) {
+
+  return (
+    quote?.customer_name ||
+    quote?.customer_full_name ||
+    quote?.client_name ||
+    quote?.client_full_name ||
+    task?.customer_name ||
+    task?.customer_full_name ||
+    task?.client_name ||
+    task?.client_full_name ||
+    task?.posted_by_name ||
+    task?.created_by_name ||
+    "Customer"
+  );
+
+}
+
+function getCustomerShortName(profile, fallbackName = "Customer") {
+
+  const directName =
+    profile?.full_name ||
+    profile?.name ||
+    profile?.display_name ||
+    profile?.customer_name ||
+    profile?.customer_full_name ||
+    fallbackName ||
+    "Customer";
+
+  const firstName =
+    profile?.first_name ||
+    profile?.firstName ||
+    String(directName).trim().split(/\s+/)[0] ||
+    "Customer";
+
+  const lastName =
+    profile?.last_name ||
+    profile?.lastName ||
+    String(directName).trim().split(/\s+/).slice(1).join(" ");
+
+  const lastInitial =
+    lastName ? `${String(lastName).trim().charAt(0).toUpperCase()}.` : "";
+
+  return `${firstName}${lastInitial ? " " + lastInitial : ""}`;
+
+}
+
+async function getDashboardCustomerProfile(customerId) {
+
+  if (!customerId) {
+    return null;
+  }
+
+  const id =
+    String(customerId);
+
+  const idAttempt =
+    await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+  if (!idAttempt.error && idAttempt.data) {
+    return idAttempt.data;
+  }
+
+  const userIdAttempt =
+    await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("user_id", id)
+      .maybeSingle();
+
+  if (!userIdAttempt.error && userIdAttempt.data) {
+    return userIdAttempt.data;
+  }
+
+  return null;
+
+}
+
+function getAcceptedTaskSortValue(job) {
+
+  const scheduleDate =
+    getTaskScheduleDate(job.task);
+
+  const date =
+    scheduleDate ? new Date(scheduleDate) : null;
+
+  if (date && !Number.isNaN(date.getTime())) {
+    return date.getTime();
+  }
+
+  return Number.MAX_SAFE_INTEGER;
+
+}
+
+function renderNextAcceptedTask(jobs) {
+
+  const container =
+    document.getElementById("nextAcceptedTaskCard");
+
+  if (!container) {
+    return;
+  }
+
+  if (!jobs || jobs.length === 0) {
+    container.className = "next-task-empty";
+    container.innerHTML = `
+      No accepted tasks yet. When a customer accepts your quote or assigns you a task, the next job will show here first.
+    `;
+    return;
+  }
+
+  const nextJob =
+    jobs[0];
+
+  const task =
+    nextJob.task;
+
+  const quote =
+    nextJob.quote;
+
+  const scheduleValue =
+    getTaskScheduleDate(task);
+
+  const title =
+    getTaskTitle(task);
+
+  const customerName =
+    getCustomerShortName(
+      nextJob.customerProfile,
+      getCustomerFallbackNameForDashboard(task, quote)
+    );
+
+  const dateDisplay =
+    getTaskDateDisplay(scheduleValue);
+
+  const timeDisplay =
+    formatScheduleTime(scheduleValue);
+
+  const locationDisplay =
+    getTaskCityState(task);
+
+  const payAmount =
+    getWorkerPayAmount(task, quote);
+
+  const status =
+    String(quote?.status || task?.status || "accepted").replaceAll("_", " ");
+
+  const upcomingJobs =
+    jobs.slice(1, 4);
+
+  const upcomingHtml =
+    upcomingJobs.length > 0
+      ? `
+        <div class="section-label" style="margin:14px 0 8px;">More Accepted Jobs</div>
+        <div class="next-task-list">
+          ${upcomingJobs.map((job) => {
+            const miniTask =
+              job.task;
+
+            const miniQuote =
+              job.quote;
+
+            const miniSchedule =
+              getTaskScheduleDate(miniTask);
+
+            const miniCustomer =
+              getCustomerShortName(
+                job.customerProfile,
+                getCustomerFallbackNameForDashboard(miniTask, miniQuote)
+              );
+
+            return `
+              <div class="next-task-mini" onclick="window.location.href='my-jobs.html'">
+                <div>
+                  <div class="next-task-mini-title">${dashboardEscapeHTML(getTaskTitle(miniTask))}</div>
+                  <div class="next-task-mini-meta">
+                    ${dashboardEscapeHTML(getTaskDateDisplay(miniSchedule))} • ${dashboardEscapeHTML(formatScheduleTime(miniSchedule))}<br>
+                    ${dashboardEscapeHTML(getTaskCityState(miniTask))} • ${dashboardEscapeHTML(miniCustomer)}
+                  </div>
+                </div>
+                <div class="next-task-mini-pay">${dashboardEscapeHTML(getWorkerPayAmount(miniTask, miniQuote))}</div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `
+      : "";
+
+  container.className = "next-task-card";
+  container.innerHTML = `
+    <div class="next-task-top">
+      <div>
+        <div class="next-task-kicker">Your Next Accepted Task</div>
+        <div class="next-task-title">${dashboardEscapeHTML(title)}</div>
+      </div>
+      <div class="next-task-status">${dashboardEscapeHTML(status)}</div>
+    </div>
+
+    <div class="next-task-body">
+      <div class="next-task-icon">🧰</div>
+
+      <div class="next-task-main">
+        <div class="next-task-customer">Customer: ${dashboardEscapeHTML(customerName)}</div>
+      </div>
+
+      <div class="next-task-pay">
+        <div class="next-task-pay-label">You'll earn</div>
+        <div class="next-task-pay-amount">${dashboardEscapeHTML(payAmount)}</div>
+      </div>
+    </div>
+
+    <div class="next-task-grid">
+      <div class="next-task-info">
+        <div class="next-task-info-label">Date</div>
+        <div class="next-task-info-value">${dashboardEscapeHTML(dateDisplay)}</div>
+      </div>
+
+      <div class="next-task-info">
+        <div class="next-task-info-label">Time</div>
+        <div class="next-task-info-value">${dashboardEscapeHTML(timeDisplay)}</div>
+      </div>
+
+      <div class="next-task-info">
+        <div class="next-task-info-label">City / State</div>
+        <div class="next-task-info-value">${dashboardEscapeHTML(locationDisplay)}</div>
+      </div>
+    </div>
+
+    <div class="next-task-actions">
+      <button type="button" onclick="window.location.href='my-jobs.html'">
+        Open My Jobs
+      </button>
+
+      <button type="button" class="secondary" onclick="window.location.href='worker-calendar.html'">
+        View It On Your Calendar
+      </button>
+    </div>
+
+    ${upcomingHtml}
+  `;
+
+}
+
+async function loadNextAcceptedTask(workerId) {
+
+  const container =
+    document.getElementById("nextAcceptedTaskCard");
+
+  if (!container) {
+    return;
+  }
+
+  const workerIds =
+    getWorkerIdList(workerId);
+
+  if (workerIds.length === 0) {
+    container.className = "next-task-empty";
+    container.innerHTML = "Worker record not found for accepted tasks.";
+    return;
+  }
+
+  const acceptedJobs =
+    [];
+
+  const { data: taskRows } =
+    await supabaseClient
+      .from("tasks")
+      .select("*")
+      .or(
+        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
+      )
+      .in("status", [
+        "accepted",
+        "scheduled",
+        "in_progress"
+      ])
+      .order("created_at", { ascending: false });
+
+  (taskRows || []).forEach((task) => {
+    acceptedJobs.push({
+      task,
+      quote: {
+        status: task.status || "accepted"
+      },
+      customerProfile: null
+    });
+  });
+
+  const { data: quoteRows } =
+    await supabaseClient
+      .from("worker_quotes")
+      .select("*")
+      .in("worker_id", workerIds)
+      .in("status", [
+        "accepted",
+        "approved",
+        "in_progress"
+      ])
+      .order("created_at", { ascending: false });
+
+  const quoteTaskIds =
+    [
+      ...new Set(
+        (quoteRows || [])
+          .map((quote) => quote.task_id)
+          .filter(Boolean)
+      )
+    ];
+
+  const taskMap =
+    {};
+
+  if (quoteTaskIds.length > 0) {
+    const { data: quoteTasks } =
+      await supabaseClient
+        .from("tasks")
+        .select("*")
+        .in("id", quoteTaskIds);
+
+    (quoteTasks || []).forEach((task) => {
+      taskMap[task.id] = task;
+    });
+  }
+
+  (quoteRows || []).forEach((quote) => {
+    const task =
+      taskMap[quote.task_id];
+
+    if (!task) {
+      return;
+    }
+
+    const alreadyAdded =
+      acceptedJobs.some((job) => String(job.task.id) === String(task.id));
+
+    if (alreadyAdded) {
+      return;
+    }
+
+    acceptedJobs.push({
+      task,
+      quote,
+      customerProfile: null
+    });
+  });
+
+  const customerIds =
+    [
+      ...new Set(
+        acceptedJobs
+          .map((job) => getCustomerIdForDashboard(job.task, job.quote))
+          .filter(Boolean)
+          .map(String)
+      )
+    ];
+
+  const customerProfiles =
+    {};
+
+  for (const customerId of customerIds) {
+    const profile =
+      await getDashboardCustomerProfile(customerId);
+
+    if (profile) {
+      customerProfiles[customerId] = profile;
+    }
+  }
+
+  const jobsWithProfiles =
+    acceptedJobs
+      .map((job) => {
+        const customerId =
+          String(getCustomerIdForDashboard(job.task, job.quote) || "");
+
+        job.customerProfile =
+          customerProfiles[customerId] || null;
+
+        return job;
+      })
+      .sort((a, b) => getAcceptedTaskSortValue(a) - getAcceptedTaskSortValue(b));
+
+  renderNextAcceptedTask(jobsWithProfiles);
 
 }
 

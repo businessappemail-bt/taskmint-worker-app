@@ -1083,44 +1083,20 @@
   </div>
 
   <!-- PROFILE COMPATIBILITY ELEMENTS -->
-  <div style="display:none;">
+  <div style="display:none;" aria-hidden="true">
     <img
       id="profilePic"
       src="https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true"
       alt="Worker Profile">
     <div id="workerName">Worker Profile</div>
-  </div>
-
-  <!-- PROFILE NOTICE -->
-  <div id="profileNotice"></div>
-
-  <!-- OVERVIEW / STATS -->
-  <div class="section-header" id="overviewSection">
-    <div class="section-label" style="margin:0;">Overview</div>
-    <span class="section-link" onclick="window.location.href='worker-payout-status.html'">Payout Status</span>
-  </div>
-
-  <div class="stats-row">
-    <div class="stat-box" onclick="window.location.href='worker-earnings.html'">
-      <div class="stat-icon">$</div>
-      <div class="stat-number" id="earningsAmount">...</div>
-      <div class="stat-label">Money Earned</div>
-    </div>
-    <div class="stat-box" onclick="window.location.href='worker-completed-tasks.html'">
-      <div class="stat-icon">✓</div>
-      <div class="stat-number" id="completedTasks">0</div>
-      <div class="stat-label">Completed Tasks</div>
-    </div>
-    <div class="stat-box" onclick="window.location.href='worker-reviews.html'">
-      <div class="stat-icon">★</div>
-      <div class="stat-number" id="ratingScore">0.0</div>
-      <div class="stat-label">Rating</div>
-    </div>
-    <div class="stat-box" onclick="scrollToPendingQuotes()">
-      <div class="stat-icon">⌛</div>
-      <div class="stat-number" id="pendingQuotes">0</div>
-      <div class="stat-label">Pending Quotes</div>
-    </div>
+    <div id="profileNotice"></div>
+    <div id="overviewSection"></div>
+    <div id="earningsAmount">$0.00</div>
+    <div id="completedTasks">0</div>
+    <div id="ratingScore">0.0</div>
+    <div id="pendingQuotes">0</div>
+    <div id="pendingQuotesCard"></div>
+    <div id="pendingQuotesList"></div>
   </div>
 
   <!-- QUICK ACTIONS -->
@@ -1131,7 +1107,7 @@
       <div class="r-icon">🔎</div>
       <div class="r-text">
         <div class="r-title">Find Work</div>
-        <div class="r-sub">Browse available customer tasks.</div>
+        <div class="r-sub">Browse open tasks near you.</div>
       </div>
       <div class="r-chev">›</div>
     </div>
@@ -1198,19 +1174,6 @@
     <span class="section-link" onclick="window.location.href='worker-calendar.html'">View All</span>
   </div>
   <div id="todayScheduleList" class="small-text">Loading upcoming work...</div>
-
-  <!-- PENDING QUOTES -->
-  <div class="section-header" id="pendingQuotesCard">
-    <div class="section-label" style="margin:0;">Pending Quotes</div>
-    <span class="section-link" onclick="openPendingQuotesPage()">View Pending</span>
-  </div>
-  <div id="pendingQuotesList" class="small-text">Loading pending quotes...</div>
-
-  <!-- ACCOUNT / LOGOUT -->
-  <div class="logout-row fade-in" style="animation-delay:0.40s;">
-    <div class="section-label" style="margin:0 0 12px;">Account</div>
-    <button class="logout" onclick="logout()">Log Out</button>
-  </div>
 
   <div class="dashboard-bottom-nav">
     <div class="bottom-nav-item active" onclick="window.location.href='worker-dashboard.html'">
@@ -1803,17 +1766,55 @@ function isFlexibleScheduleValue(value) {
 
 }
 
-function getFirstScheduledValue(records, keys) {
+function getScheduleFieldValue(record, keys) {
 
-  for (const record of records) {
-    if (!record) {
+  if (!record || typeof record !== "object") {
+    return "";
+  }
+
+  const loweredKeys =
+    keys.map((key) => String(key).toLowerCase());
+
+  for (const key of keys) {
+    if (!isFlexibleScheduleValue(record[key])) {
+      return record[key];
+    }
+  }
+
+  for (const [key, value] of Object.entries(record)) {
+    const loweredKey =
+      String(key || "").toLowerCase();
+
+    if (loweredKeys.includes(loweredKey) && !isFlexibleScheduleValue(value)) {
+      return value;
+    }
+  }
+
+  for (const value of Object.values(record)) {
+    if (!value || typeof value !== "object") {
       continue;
     }
 
-    for (const key of keys) {
-      if (!isFlexibleScheduleValue(record[key])) {
-        return record[key];
-      }
+    const nestedValue =
+      getScheduleFieldValue(value, keys);
+
+    if (!isFlexibleScheduleValue(nestedValue)) {
+      return nestedValue;
+    }
+  }
+
+  return "";
+
+}
+
+function getFirstScheduledValue(records, keys) {
+
+  for (const record of records) {
+    const scheduledValue =
+      getScheduleFieldValue(record, keys);
+
+    if (!isFlexibleScheduleValue(scheduledValue)) {
+      return scheduledValue;
     }
   }
 
@@ -1824,30 +1825,50 @@ function getFirstScheduledValue(records, keys) {
 function getTaskScheduleDate(task, quote = null) {
 
   return getFirstScheduledValue([quote, task], [
-    "selected_flexible_date",
-    "flexible_date_selected",
-    "worker_selected_date",
-    "proposed_date",
-    "selected_date",
-    "selected_task_date",
-    "task_date_selected",
-    "preferred_date",
-    "requested_date",
-    "service_date",
-    "booking_date",
-    "job_date",
-    "appointment_date",
-    "move_date",
-    "scheduled_date",
+    "scheduled_start",
     "scheduled_for",
     "scheduled_at",
-    "scheduled_start",
+    "scheduled_date",
     "starts_at",
     "start_date",
+    "startDate",
+    "service_date",
+    "serviceDate",
+    "booking_date",
+    "bookingDate",
+    "job_date",
+    "jobDate",
+    "appointment_date",
+    "appointmentDate",
+    "move_date",
+    "moveDate",
+    "moving_date",
+    "movingDate",
+    "pickup_date",
+    "pickupDate",
+    "dropoff_date",
+    "dropoffDate",
     "date_needed",
+    "dateNeeded",
     "needed_by",
+    "neededBy",
     "due_date",
-    "task_date"
+    "dueDate",
+    "task_date",
+    "taskDate",
+    "selected_date",
+    "selectedDate",
+    "selected_task_date",
+    "selectedTaskDate",
+    "task_date_selected",
+    "taskDateSelected",
+    "preferred_date",
+    "preferredDate",
+    "requested_date",
+    "requestedDate",
+    "actual_date",
+    "actualDate",
+    "date"
   ]);
 
 }
@@ -1855,27 +1876,49 @@ function getTaskScheduleDate(task, quote = null) {
 function getTaskScheduleTime(task, quote = null) {
 
   return getFirstScheduledValue([quote, task], [
-    "selected_flexible_time",
-    "flexible_time_selected",
-    "worker_selected_time",
-    "proposed_time",
-    "selected_time",
-    "selected_task_time",
-    "task_time_selected",
-    "preferred_time",
-    "requested_time",
-    "service_time",
-    "booking_time",
-    "job_time",
-    "appointment_time",
-    "scheduled_time",
     "scheduled_start_time",
-    "task_time",
-    "time",
-    "time_needed",
-    "needed_time",
+    "scheduled_time",
+    "scheduledStartTime",
+    "scheduledTime",
     "start_time",
-    "arrival_time"
+    "startTime",
+    "service_time",
+    "serviceTime",
+    "booking_time",
+    "bookingTime",
+    "job_time",
+    "jobTime",
+    "appointment_time",
+    "appointmentTime",
+    "move_time",
+    "moveTime",
+    "moving_time",
+    "movingTime",
+    "pickup_time",
+    "pickupTime",
+    "dropoff_time",
+    "dropoffTime",
+    "arrival_time",
+    "arrivalTime",
+    "time_needed",
+    "timeNeeded",
+    "needed_time",
+    "neededTime",
+    "task_time",
+    "taskTime",
+    "selected_time",
+    "selectedTime",
+    "selected_task_time",
+    "selectedTaskTime",
+    "task_time_selected",
+    "taskTimeSelected",
+    "preferred_time",
+    "preferredTime",
+    "requested_time",
+    "requestedTime",
+    "actual_time",
+    "actualTime",
+    "time"
   ]);
 
 }
@@ -1985,6 +2028,10 @@ function formatScheduleTime(value) {
   const rawValue =
     String(value).trim();
 
+  if (/^\d{4}-\d{2}-\d{2}$/.test(rawValue)) {
+    return "Time not set";
+  }
+
   const timeOnlyMatch =
     rawValue.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
 
@@ -1998,6 +2045,33 @@ function formatScheduleTime(value) {
       0,
       0
     );
+
+    return dateForTime.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  }
+
+  const amPmMatch =
+    rawValue.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/i);
+
+  if (amPmMatch) {
+    let hour = Number(amPmMatch[1]);
+    const minute = Number(amPmMatch[2] || 0);
+    const period = amPmMatch[3].toLowerCase();
+
+    if (period === "pm" && hour < 12) {
+      hour += 12;
+    }
+
+    if (period === "am" && hour === 12) {
+      hour = 0;
+    }
+
+    const dateForTime =
+      new Date();
+
+    dateForTime.setHours(hour, minute, 0, 0);
 
     return dateForTime.toLocaleTimeString([], {
       hour: "numeric",
@@ -2033,11 +2107,19 @@ function getTaskTitle(task) {
 
 function getTaskLocation(task) {
 
+  const cityState =
+    [
+      task.city || task.task_city || task.service_city || "",
+      task.state || task.task_state || task.service_state || ""
+    ]
+      .filter(Boolean)
+      .join(", ");
+
   return (
+    cityState ||
+    task.location ||
     task.address ||
     task.task_address ||
-    task.location ||
-    task.city ||
     "Location not listed"
   );
 
@@ -2637,26 +2719,26 @@ async function loadTodaySchedule(workerId) {
   todayTasks.forEach((task) => {
 
     const title = getTaskTitle(task);
-    const location = getTaskLocation(task);
+    const location = getTaskCityState(task);
+    const date = getTaskDateDisplay(getTaskScheduleDate(task));
     const time = formatScheduleTime(
       getTaskScheduleTime(task) || getTaskScheduleDate(task)
     );
-    const status = task.status || "scheduled";
+    const payAmount = getWorkerPayAmount(task, null);
 
     container.innerHTML += `
-      <div class="schedule-card">
+      <div class="schedule-card" onclick="window.location.href='my-jobs.html'">
         <div class="schedule-title">
-          ${title}
+          ${dashboardEscapeHTML(title)}
         </div>
 
         <div class="schedule-meta">
-          Date: ${getTaskDateDisplay(getTaskScheduleDate(task))}<br>
-          Time: ${time}<br>
-          Location: ${location}
+          ${dashboardEscapeHTML(date)} • ${dashboardEscapeHTML(time)}<br>
+          ${dashboardEscapeHTML(location)}
         </div>
 
         <div class="schedule-badge">
-          ${status.replaceAll("_", " ")}
+          ${dashboardEscapeHTML(payAmount)}
         </div>
       </div>
     `;

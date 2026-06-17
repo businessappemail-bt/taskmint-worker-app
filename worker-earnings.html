@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Payout Status - TaskMint</title>
+  <title>Earnings History - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -430,6 +430,123 @@
       font-weight: 800;
     }
 
+    .history-filters {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 9px;
+      margin-bottom: 12px;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .filter-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .filter-field label {
+      color: var(--accent);
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .filter-field input,
+    .filter-field select {
+      width: 100%;
+      min-height: 42px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      padding: 9px 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .earning-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 13px;
+    }
+
+    .earning-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .earning-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+
+    .earning-meta {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .earning-amount {
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 800;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .earning-detail-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 9px;
+    }
+
+    .earning-detail {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 9px;
+      min-height: 52px;
+    }
+
+    .earning-detail-label {
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .earning-detail-value {
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -445,6 +562,11 @@
       }
 
       .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-row,
+      .earning-detail-row {
         grid-template-columns: 1fr;
       }
 
@@ -469,9 +591,9 @@
   </div>
  
   <div class="hero">
-    <div class="hero-title">Payout Status</div>
+    <div class="hero-title">Earnings History</div>
     <div class="hero-sub">
-      Track available earnings, payout requests, approvals, denials, and Stripe transfer status.
+      View your completed task earnings, filter by date or task type, and track payout activity.
     </div>
   </div>
  
@@ -529,7 +651,7 @@
   </div>
  
   <div class="card">
-    <div class="section-title">Payout Summary</div>
+    <div class="section-title">Earnings Summary</div>
  
     <div class="stats-grid">
       <div class="stat-box">
@@ -554,6 +676,49 @@
     </div>
   </div>
  
+ 
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">Earnings History</div>
+    </div>
+
+    <div class="section-note">
+      Filter completed task earnings by completed date or task type.
+    </div>
+
+    <div class="history-filters">
+      <div class="filter-row">
+        <div class="filter-field">
+          <label for="earningStartDate">From</label>
+          <input id="earningStartDate" type="date" onchange="renderEarningsHistory()">
+        </div>
+
+        <div class="filter-field">
+          <label for="earningEndDate">To</label>
+          <input id="earningEndDate" type="date" onchange="renderEarningsHistory()">
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label for="earningTypeFilter">Task Type</label>
+        <select id="earningTypeFilter" onchange="renderEarningsHistory()">
+          <option value="">All task types</option>
+        </select>
+      </div>
+
+      <button class="secondary" onclick="clearEarningsFilters()">
+        Clear Filters
+      </button>
+    </div>
+
+    <div id="earningsHistoryList" class="history-list">
+      <div class="empty">
+        <div class="loading-spinner"></div>
+        Loading earnings history...
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="section-header">
       <div class="section-title">Payout Requests</div>
@@ -591,6 +756,7 @@ let currentWorkerId = null;
 let currentWorkerIds = [];
 let availableBalance = 0;
 let payoutRequests = [];
+let earningsHistory = [];
 
 const INSTANT_PAYOUT_FEE_RATE = 0.015;
 const INSTANT_PAYOUT_MIN_FEE = 1.00;
@@ -658,6 +824,222 @@ function setActionMessage(message, color = "#666") {
   box.innerText = message;
 }
  
+
+function escapeHTML(value) {
+  return cleanText(value, "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function getEarningDate(row) {
+  return getFirstAvailable(row, [
+    "completed_at",
+    "task_completed_at",
+    "released_at",
+    "earned_at",
+    "paid_at",
+    "created_at"
+  ], "");
+}
+
+function getEarningTaskType(row) {
+  return cleanText(
+    getFirstAvailable(row, [
+      "task_type",
+      "task_category",
+      "category",
+      "service_type",
+      "job_type",
+      "type"
+    ], "Task"),
+    "Task"
+  );
+}
+
+function getEarningTaskTitle(row) {
+  return cleanText(
+    getFirstAvailable(row, [
+      "task_title",
+      "job_title",
+      "title",
+      "task_name",
+      "description"
+    ], getEarningTaskType(row)),
+    getEarningTaskType(row)
+  );
+}
+
+function getEarningStatus(row) {
+  return cleanText(
+    getFirstAvailable(row, [
+      "payout_status",
+      "status",
+      "payment_status"
+    ], "available"),
+    "available"
+  );
+}
+
+function dateInputToTime(value, endOfDay = false) {
+  if (!value) return null;
+
+  const parts = String(value).split("-");
+
+  if (parts.length !== 3) return null;
+
+  const date = new Date(
+    Number(parts[0]),
+    Number(parts[1]) - 1,
+    Number(parts[2]),
+    endOfDay ? 23 : 0,
+    endOfDay ? 59 : 0,
+    endOfDay ? 59 : 0,
+    endOfDay ? 999 : 0
+  );
+
+  return Number.isNaN(date.getTime()) ? null : date.getTime();
+}
+
+function earningDateToTime(value) {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date.getTime();
+}
+
+function populateEarningsTypeFilter() {
+  const select = document.getElementById("earningTypeFilter");
+
+  if (!select) return;
+
+  const currentValue = select.value;
+
+  const types =
+    [...new Set(
+      earningsHistory
+        .map(row => getEarningTaskType(row))
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+
+  select.innerHTML =
+    `<option value="">All task types</option>` +
+    types
+      .map(type => `<option value="${escapeHTML(type)}">${escapeHTML(type)}</option>`)
+      .join("");
+
+  if (types.includes(currentValue)) {
+    select.value = currentValue;
+  }
+}
+
+function clearEarningsFilters() {
+  const start = document.getElementById("earningStartDate");
+  const end = document.getElementById("earningEndDate");
+  const type = document.getElementById("earningTypeFilter");
+
+  if (start) start.value = "";
+  if (end) end.value = "";
+  if (type) type.value = "";
+
+  renderEarningsHistory();
+}
+
+function renderEarningsHistory() {
+  const list = document.getElementById("earningsHistoryList");
+
+  if (!list) return;
+
+  const startValue = document.getElementById("earningStartDate")?.value || "";
+  const endValue = document.getElementById("earningEndDate")?.value || "";
+  const typeValue = document.getElementById("earningTypeFilter")?.value || "";
+
+  const startTime = dateInputToTime(startValue, false);
+  const endTime = dateInputToTime(endValue, true);
+
+  const rows =
+    earningsHistory
+      .filter(row => {
+        const rowType = getEarningTaskType(row);
+        const rowTime = earningDateToTime(getEarningDate(row));
+
+        if (typeValue && rowType !== typeValue) {
+          return false;
+        }
+
+        if (startTime !== null && (rowTime === null || rowTime < startTime)) {
+          return false;
+        }
+
+        if (endTime !== null && (rowTime === null || rowTime > endTime)) {
+          return false;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        const aTime = earningDateToTime(getEarningDate(a)) || 0;
+        const bTime = earningDateToTime(getEarningDate(b)) || 0;
+        return bTime - aTime;
+      });
+
+  if (rows.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        No earnings found for the selected filters.
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = "";
+
+  rows.forEach(row => {
+    const card = document.createElement("div");
+    card.className = "earning-card";
+
+    card.innerHTML = `
+      <div class="earning-top">
+        <div>
+          <div class="earning-title">
+            ${escapeHTML(getEarningTaskTitle(row))}
+          </div>
+
+          <div class="earning-meta">
+            ${escapeHTML(getEarningTaskType(row))}<br>
+            Completed: ${escapeHTML(formatDate(getEarningDate(row)))}
+          </div>
+        </div>
+
+        <div class="earning-amount">
+          ${money(getEarningAmount(row))}
+        </div>
+      </div>
+
+      <div class="earning-detail-row">
+        <div class="earning-detail">
+          <div class="earning-detail-label">Status</div>
+          <div class="earning-detail-value">
+            ${escapeHTML(getEarningStatus(row).replaceAll("_", " "))}
+          </div>
+        </div>
+
+        <div class="earning-detail">
+          <div class="earning-detail-label">Task ID</div>
+          <div class="earning-detail-value">
+            ${escapeHTML(getFirstAvailable(row, ["task_id", "job_id", "assignment_id"], "Not listed"))}
+          </div>
+        </div>
+      </div>
+    `;
+
+    list.appendChild(card);
+  });
+}
+
 function getFirstAvailable(record, keys, fallback = "") {
   if (!record) {
     return fallback;

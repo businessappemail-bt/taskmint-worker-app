@@ -484,9 +484,7 @@
     }
 
     @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+      to { transform: rotate(360deg); }
     }
 
     @keyframes riseIn {
@@ -495,15 +493,10 @@
     }
 
     @media (max-width: 360px) {
-      .hero-title {
-        font-size: 25px;
-      }
-
+      .hero-title { font-size: 25px; }
       .filter-row,
       .job-grid,
-      .button-grid {
-        grid-template-columns: 1fr;
-      }
+      .button-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -582,10 +575,7 @@ let loadedJobs = [];
 let taskDisputesByTaskId = {};
  
 function cleanText(value, fallback = "Not specified") {
-  if (value === null || value === undefined) {
-    return fallback;
-  }
- 
+  if (value === null || value === undefined) return fallback;
   const text = String(value).trim();
   return text === "" ? fallback : text;
 }
@@ -600,65 +590,31 @@ function escapeHTML(value) {
 }
  
 function getFirstAvailable(record, keys, fallback = "") {
-  if (!record) {
-    return fallback;
-  }
- 
+  if (!record) return fallback;
   for (const key of keys) {
-    if (
-      record[key] !== null &&
-      record[key] !== undefined &&
-      String(record[key]).trim() !== ""
-    ) {
+    if (record[key] !== null && record[key] !== undefined && String(record[key]).trim() !== "") {
       return record[key];
     }
   }
- 
   return fallback;
 }
  
 function parseTaskDateWithoutShift(value) {
-  if (!value) {
-    return null;
-  }
-
-  const rawValue =
-    String(value).trim();
-
-  const match =
-    rawValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
-
+  if (!value) return null;
+  const rawValue = String(value).trim();
+  const match = rawValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (match) {
-    return new Date(
-      Number(match[1]),
-      Number(match[2]) - 1,
-      Number(match[3])
-    );
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
   }
-
-  const date =
-    new Date(rawValue);
-
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
+  const date = new Date(rawValue);
+  if (Number.isNaN(date.getTime())) return null;
   return date;
 }
 
 function formatDate(value) {
-  const date =
-    parseTaskDateWithoutShift(value);
-
-  if (!date) {
-    return value || "Not scheduled";
-  }
-
-  return date.toLocaleDateString([], {
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  });
+  const date = parseTaskDateWithoutShift(value);
+  if (!date) return value || "Not scheduled";
+  return date.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
 }
 
 function getDateObject(value) {
@@ -674,385 +630,171 @@ function isSameDay(dateOne, dateTwo) {
 }
  
 function getTaskDate(task, quote = null) {
-  const selectedFlexibleDate =
-    quote &&
-    (
-      quote.selected_flexible_date ||
-      quote.flexible_date_selected ||
-      quote.worker_selected_date ||
-      quote.proposed_date ||
-      quote.selected_date ||
-      quote.scheduled_date ||
-      quote.task_date ||
-      quote.date_needed ||
-      quote.needed_by ||
-      quote.scheduled_start ||
-      quote.due_date
-    );
+  const selectedFlexibleDate = quote && (
+    quote.selected_flexible_date || quote.flexible_date_selected ||
+    quote.worker_selected_date || quote.proposed_date || quote.selected_date ||
+    quote.scheduled_date || quote.task_date || quote.date_needed ||
+    quote.needed_by || quote.scheduled_start || quote.due_date
+  );
 
-  if (
-    selectedFlexibleDate !== null &&
-    selectedFlexibleDate !== undefined &&
-    String(selectedFlexibleDate).trim() !== "" &&
-    String(selectedFlexibleDate).trim() !== "Flexible"
-  ) {
+  if (selectedFlexibleDate !== null && selectedFlexibleDate !== undefined &&
+    String(selectedFlexibleDate).trim() !== "" && String(selectedFlexibleDate).trim() !== "Flexible") {
     return String(selectedFlexibleDate).trim().slice(0, 10);
   }
 
-  if (
-    task &&
-    task.task_date !== null &&
-    task.task_date !== undefined &&
-    String(task.task_date).trim() !== "" &&
-    String(task.task_date).trim() !== "Flexible"
-  ) {
+  if (task && task.task_date !== null && task.task_date !== undefined &&
+    String(task.task_date).trim() !== "" && String(task.task_date).trim() !== "Flexible") {
     return String(task.task_date).trim().slice(0, 10);
   }
 
   return getFirstAvailable(task, [
-    "date_needed",
-    "needed_by",
-    "scheduled_date",
-    "scheduled_start",
-    "service_date",
-    "selected_date",
-    "start_date",
-    "task_start_date",
-    "due_date"
+    "date_needed", "needed_by", "scheduled_date", "scheduled_start",
+    "service_date", "selected_date", "start_date", "task_start_date", "due_date"
   ], "");
 }
  
 function getTaskTitle(task) {
-  return getFirstAvailable(task, [
-    "title",
-    "task_title",
-    "job_title",
-    "category",
-    "service_type"
-  ], "Untitled Job");
+  return getFirstAvailable(task, ["title", "task_title", "job_title", "category", "service_type"], "Untitled Job");
 }
  
 function removeHiddenAddressDetails(textValue) {
-  const text =
-    cleanText(textValue, "");
-
-  if (!text) {
-    return "";
-  }
-
-  return text
-    .split("\n")
-    .filter(line => {
-      const lowered =
-        String(line || "").toLowerCase().trim();
-
-      return !(
-        lowered.startsWith("task address:") ||
-        lowered.startsWith("address:") ||
-        lowered.startsWith("street address:") ||
-        lowered.startsWith("full address:") ||
-        lowered.startsWith("location address:") ||
-        lowered.startsWith("unit:") ||
-        lowered.startsWith("apt:") ||
-        lowered.startsWith("apartment:") ||
-        lowered.startsWith("suite:") ||
-        lowered.startsWith("drop-off address:") ||
-        lowered.startsWith("dropoff address:") ||
-        lowered.startsWith("drop off address:") ||
-        lowered.startsWith("drop-off unit:") ||
-        lowered.startsWith("dropoff unit:") ||
-        lowered.startsWith("drop off unit:") ||
-        lowered.startsWith("drop-off city:") ||
-        lowered.startsWith("dropoff city:") ||
-        lowered.startsWith("drop off city:") ||
-        lowered.startsWith("drop-off state:") ||
-        lowered.startsWith("dropoff state:") ||
-        lowered.startsWith("drop off state:") ||
-        lowered.startsWith("drop-off zip:") ||
-        lowered.startsWith("dropoff zip:") ||
-        lowered.startsWith("drop off zip:")
-      );
-    })
-    .join("\n")
-    .trim();
+  const text = cleanText(textValue, "");
+  if (!text) return "";
+  return text.split("\n").filter(line => {
+    const lowered = String(line || "").toLowerCase().trim();
+    return !(
+      lowered.startsWith("task address:") || lowered.startsWith("address:") ||
+      lowered.startsWith("street address:") || lowered.startsWith("full address:") ||
+      lowered.startsWith("location address:") || lowered.startsWith("unit:") ||
+      lowered.startsWith("apt:") || lowered.startsWith("apartment:") ||
+      lowered.startsWith("suite:") || lowered.startsWith("drop-off address:") ||
+      lowered.startsWith("dropoff address:") || lowered.startsWith("drop off address:") ||
+      lowered.startsWith("drop-off unit:") || lowered.startsWith("dropoff unit:") ||
+      lowered.startsWith("drop off unit:") || lowered.startsWith("drop-off city:") ||
+      lowered.startsWith("dropoff city:") || lowered.startsWith("drop off city:") ||
+      lowered.startsWith("drop-off state:") || lowered.startsWith("dropoff state:") ||
+      lowered.startsWith("drop off state:") || lowered.startsWith("drop-off zip:") ||
+      lowered.startsWith("dropoff zip:") || lowered.startsWith("drop off zip:")
+    );
+  }).join("\n").trim();
 }
 
 function getTaskDetails(task, quote = null) {
-  const detailKeys = [
-    "description",
-    "details",
-    "task_details",
-    "notes",
-    "special_instructions"
-  ];
-
+  const detailKeys = ["description", "details", "task_details", "notes", "special_instructions"];
   let detailsValue = "";
 
   for (const key of detailKeys) {
-    if (
-      task &&
-      task[key] !== null &&
-      task[key] !== undefined &&
-      (
-        typeof task[key] === "object" ||
-        String(task[key]).trim() !== ""
-      )
-    ) {
-      detailsValue =
-        task[key];
+    if (task && task[key] !== null && task[key] !== undefined &&
+      (typeof task[key] === "object" || String(task[key]).trim() !== "")) {
+      detailsValue = task[key];
       break;
     }
   }
 
-  if (
-    detailsValue &&
-    typeof detailsValue === "object" &&
-    !Array.isArray(detailsValue)
-  ) {
-    const detailLines =
-      Object.entries(detailsValue)
-        .filter(([key, value]) => {
-          const loweredKey =
-            String(key || "").toLowerCase();
-
-          if (
-            !canShowFullAddress(task, quote) &&
-            (
-              loweredKey.includes("address") ||
-              loweredKey.includes("unit") ||
-              loweredKey.includes("apt") ||
-              loweredKey.includes("apartment") ||
-              loweredKey.includes("suite") ||
-              loweredKey.includes("dropoff") ||
-              loweredKey.includes("drop_off") ||
-              loweredKey.includes("drop-off")
-            )
-          ) {
-            return false;
-          }
-
-          return (
-            value !== null &&
-            value !== undefined &&
-            String(value).trim() !== ""
-          );
-        })
-        .map(([key, value]) => {
-          const label =
-            key
-              .replaceAll("_", " ")
-              .replace(/\b\w/g, letter => letter.toUpperCase());
-
-          const displayValue =
-            Array.isArray(value)
-              ? value.join(", ")
-              : value;
-
-          return `${label}: ${displayValue}`;
-        });
-
-    return detailLines.length > 0
-      ? detailLines.join("\n")
-      : "No additional task details were provided.";
+  if (detailsValue && typeof detailsValue === "object" && !Array.isArray(detailsValue)) {
+    const detailLines = Object.entries(detailsValue)
+      .filter(([key, value]) => {
+        const loweredKey = String(key || "").toLowerCase();
+        if (!canShowFullAddress(task, quote) && (
+          loweredKey.includes("address") || loweredKey.includes("unit") ||
+          loweredKey.includes("apt") || loweredKey.includes("apartment") ||
+          loweredKey.includes("suite") || loweredKey.includes("dropoff") ||
+          loweredKey.includes("drop_off") || loweredKey.includes("drop-off")
+        )) return false;
+        return value !== null && value !== undefined && String(value).trim() !== "";
+      })
+      .map(([key, value]) => {
+        const label = key.replaceAll("_", " ").replace(/\b\w/g, l => l.toUpperCase());
+        const displayValue = Array.isArray(value) ? value.join(", ") : value;
+        return `${label}: ${displayValue}`;
+      });
+    return detailLines.length > 0 ? detailLines.join("\n") : "No additional task details were provided.";
   }
 
   if (Array.isArray(detailsValue)) {
-    const joinedDetails =
-      detailsValue
-        .filter(Boolean)
-        .join("\n");
-
+    const joinedDetails = detailsValue.filter(Boolean).join("\n");
     return canShowFullAddress(task, quote)
       ? joinedDetails || "No additional task details were provided."
       : removeHiddenAddressDetails(joinedDetails) || "No additional task details were provided.";
   }
 
-  const cleanedDetails =
-    cleanText(
-      detailsValue,
-      "No additional task details were provided."
-    );
-
+  const cleanedDetails = cleanText(detailsValue, "No additional task details were provided.");
   return canShowFullAddress(task, quote)
     ? cleanedDetails
     : removeHiddenAddressDetails(cleanedDetails) || "No additional task details were provided.";
 }
  
 function getTaskCategory(task) {
-  return getFirstAvailable(task, [
-    "category",
-    "task_category",
-    "service_type"
-  ], "Not listed");
+  return getFirstAvailable(task, ["category", "task_category", "service_type"], "Not listed");
 }
 
 function getTaskOrderNumber(task) {
-  return getFirstAvailable(task, [
-    "order_number",
-    "task_order_number"
-  ], "") || `TM-${String(task.id || "").slice(0, 8).toUpperCase()}`;
+  return getFirstAvailable(task, ["order_number", "task_order_number"], "") ||
+    `TM-${String(task.id || "").slice(0, 8).toUpperCase()}`;
 }
  
 function getCityState(task) {
-  const city = getFirstAvailable(task, [
-    "city",
-    "task_city",
-    "service_city"
-  ], "City not listed");
- 
-  const state = getFirstAvailable(task, [
-    "state",
-    "task_state",
-    "service_state"
-  ], "");
- 
+  const city = getFirstAvailable(task, ["city", "task_city", "service_city"], "City not listed");
+  const state = getFirstAvailable(task, ["state", "task_state", "service_state"], "");
   return state ? `${city}, ${state}` : city;
 }
  
 function getFullAddress(task) {
   const street = getFirstAvailable(task, [
-  "location_address",
-  "street_address",
-  "full_address",
-  "address",
-  "task_address",
-  "service_address"
-], "Address not listed");
- 
+    "location_address", "street_address", "full_address", "address", "task_address", "service_address"
+  ], "Address not listed");
   const unit = getFirstAvailable(task, ["unit", "apt", "apartment", "suite"], "");
   const city = getFirstAvailable(task, ["city", "task_city", "service_city"], "");
   const state = getFirstAvailable(task, ["state", "task_state", "service_state"], "");
   const zip = getFirstAvailable(task, ["zip_code", "zip", "postal_code"], "");
- 
   const unitLine = unit ? `, Unit ${unit}` : "";
   const locationLine = [city, state, zip].filter(Boolean).join(" ");
- 
   return `${street}${unitLine}${locationLine ? `<br>${locationLine}` : ""}`;
 }
  
 function getCustomerId(task, quote, assignment) {
-  return getFirstAvailable(assignment, [
-    "customer_id",
-    "customer_user_id",
-    "client_id"
-  ], "") ||
-    getFirstAvailable(quote, [
-      "customer_id",
-      "customer_user_id",
-      "client_id"
-    ], "") ||
-    getFirstAvailable(task, [
-      "customer_id",
-      "customer_user_id",
-      "client_id",
-      "posted_by",
-      "created_by",
-      "user_id",
-      "profile_id"
-    ], "");
+  return getFirstAvailable(assignment, ["customer_id", "customer_user_id", "client_id"], "") ||
+    getFirstAvailable(quote, ["customer_id", "customer_user_id", "client_id"], "") ||
+    getFirstAvailable(task, ["customer_id", "customer_user_id", "client_id", "posted_by", "created_by", "user_id", "profile_id"], "");
 }
+
 function getCustomerNameFromRecords(task, quote, assignment) {
-  return getFirstAvailable(assignment, [
-    "customer_name",
-    "customer_full_name",
-    "client_name",
-    "client_full_name"
-  ], "") ||
-    getFirstAvailable(quote, [
-      "customer_name",
-      "customer_full_name",
-      "client_name",
-      "client_full_name"
-    ], "") ||
-    getFirstAvailable(task, [
-      "customer_name",
-      "customer_full_name",
-      "client_name",
-      "client_full_name",
-      "posted_by_name",
-      "created_by_name"
-    ], "");
+  return getFirstAvailable(assignment, ["customer_name", "customer_full_name", "client_name", "client_full_name"], "") ||
+    getFirstAvailable(quote, ["customer_name", "customer_full_name", "client_name", "client_full_name"], "") ||
+    getFirstAvailable(task, ["customer_name", "customer_full_name", "client_name", "client_full_name", "posted_by_name", "created_by_name"], "");
 }
 
 function getCustomerDisplayName(profile, fallbackName = "Customer") {
-  const fallback =
-    cleanText(fallbackName, "Customer");
-
-  if (!profile) {
-    return fallback;
-  }
-
-  const directName = getFirstAvailable(profile, [
-    "full_name",
-    "name",
-    "display_name",
-    "customer_name",
-    "customer_full_name"
-  ], "");
-
-  if (directName) {
-    return directName;
-  }
-
-  const firstName =
-    profile.first_name ||
-    profile.firstName ||
-    "";
-
-  const lastName =
-    profile.last_name ||
-    profile.lastName ||
-    "";
-
-  const fullName =
-    `${firstName} ${lastName}`.trim();
-
+  const fallback = cleanText(fallbackName, "Customer");
+  if (!profile) return fallback;
+  const directName = getFirstAvailable(profile, ["full_name", "name", "display_name", "customer_name", "customer_full_name"], "");
+  if (directName) return directName;
+  const firstName = profile.first_name || profile.firstName || "";
+  const lastName = profile.last_name || profile.lastName || "";
+  const fullName = `${firstName} ${lastName}`.trim();
   return fullName || fallback;
 }
  
 function getCustomerPhoto(profile) {
-  return getFirstAvailable(profile, [
-    "profile_photo_url",
-    "photo_url",
-    "avatar_url"
-  ], DEFAULT_PROFILE_PHOTO);
+  return getFirstAvailable(profile, ["profile_photo_url", "photo_url", "avatar_url"], DEFAULT_PROFILE_PHOTO);
 }
  
 function getDaysUntil(task, quote = null) {
   const taskDate = getDateObject(getTaskDate(task, quote));
- 
-  if (!taskDate) {
-    return null;
-  }
- 
+  if (!taskDate) return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
- 
   taskDate.setHours(0, 0, 0, 0);
- 
   const difference = taskDate.getTime() - today.getTime();
   return Math.ceil(difference / (1000 * 60 * 60 * 24));
 }
  
 function getCountdownText(task, quote = null) {
   const daysUntil = getDaysUntil(task, quote);
- 
-  if (daysUntil === null) {
-    return "Date not set";
-  }
- 
-  if (daysUntil === 0) {
-    return "Today";
-  }
- 
-  if (daysUntil === 1) {
-    return "Tomorrow";
-  }
- 
-  if (daysUntil > 1) {
-    return `In ${daysUntil} days`;
-  }
- 
+  if (daysUntil === null) return "Date not set";
+  if (daysUntil === 0) return "Today";
+  if (daysUntil === 1) return "Tomorrow";
+  if (daysUntil > 1) return `In ${daysUntil} days`;
   return `${Math.abs(daysUntil)} day${Math.abs(daysUntil) === 1 ? "" : "s"} ago`;
 }
  
@@ -1061,107 +803,43 @@ function normalizeStatus(value) {
 }
 
 function isCustomerCancelledTask(task, quote) {
-  const taskStatus =
-    normalizeStatus(task.status);
-
-  const taskStatusValue =
-    normalizeStatus(task.task_status);
-
-  const quoteStatus =
-    normalizeStatus(quote.status);
-
-  return [
-    "cancelled",
-    "canceled",
-    "customer_cancelled",
-    "customer_canceled"
-  ].includes(taskStatus) ||
-    [
-      "cancelled",
-      "canceled",
-      "customer_cancelled",
-      "customer_canceled"
-    ].includes(taskStatusValue) ||
-    [
-      "customer_cancelled",
-      "customer_canceled"
-    ].includes(quoteStatus);
+  const taskStatus = normalizeStatus(task.status);
+  const taskStatusValue = normalizeStatus(task.task_status);
+  const quoteStatus = normalizeStatus(quote.status);
+  return ["cancelled", "canceled", "customer_cancelled", "customer_canceled"].includes(taskStatus) ||
+    ["cancelled", "canceled", "customer_cancelled", "customer_canceled"].includes(taskStatusValue) ||
+    ["customer_cancelled", "customer_canceled"].includes(quoteStatus);
 }
 
- 
 function prettyStatus(value) {
   return normalizeStatus(value).replaceAll("_", " ");
 }
 
 function isTruthyValue(value) {
-  if (value === true) {
-    return true;
-  }
-
-  if (value === false || value === null || value === undefined) {
-    return false;
-  }
-
-  const normalized =
-    String(value).trim().toLowerCase();
-
-  return [
-    "true",
-    "yes",
-    "y",
-    "1",
-    "verified",
-    "confirmed",
-    "complete",
-    "completed"
-  ].includes(normalized);
+  if (value === true) return true;
+  if (value === false || value === null || value === undefined) return false;
+  const normalized = String(value).trim().toLowerCase();
+  return ["true", "yes", "y", "1", "verified", "confirmed", "complete", "completed"].includes(normalized);
 }
 
 function getCombinedJobStatus(task, quote, assignment) {
-  const assignmentStatus =
-    getFirstAvailable(assignment, [
-      "assignment_status",
-      "status"
-    ], "");
+  const assignmentStatus = getFirstAvailable(assignment, ["assignment_status", "status"], "");
+  const taskStatus = getFirstAvailable(task, ["status", "task_status"], "");
+  const quoteStatus = getFirstAvailable(quote, ["status"], "accepted");
 
-  const taskStatus =
-    getFirstAvailable(task, [
-      "status",
-      "task_status"
-    ], "");
-
-  const quoteStatus =
-    getFirstAvailable(quote, [
-      "status"
-    ], "accepted");
-
-  if (
-    normalizeStatus(assignmentStatus) === "in_progress" ||
+  if (normalizeStatus(assignmentStatus) === "in_progress" ||
     normalizeStatus(taskStatus) === "in_progress" ||
-    task.worker_arrival_confirmed === true ||
-    task.arrival_verified === true ||
-    isTruthyValue(task.worker_arrival_confirmed) ||
-    isTruthyValue(task.arrival_verified) ||
-    (
-      assignment &&
-      (
-        assignment.arrival_verified === true ||
-        isTruthyValue(assignment.arrival_verified)
-      )
-    )
-  ) {
+    task.worker_arrival_confirmed === true || task.arrival_verified === true ||
+    isTruthyValue(task.worker_arrival_confirmed) || isTruthyValue(task.arrival_verified) ||
+    (assignment && (assignment.arrival_verified === true || isTruthyValue(assignment.arrival_verified)))) {
     return "in_progress";
   }
 
-  if (
-    ["worker_completed", "completed", "paid"].includes(normalizeStatus(quoteStatus))
-  ) {
+  if (["worker_completed", "completed", "paid"].includes(normalizeStatus(quoteStatus))) {
     return normalizeStatus(quoteStatus);
   }
 
-  if (
-    ["worker_completed", "completed", "paid"].includes(normalizeStatus(taskStatus))
-  ) {
+  if (["worker_completed", "completed", "paid"].includes(normalizeStatus(taskStatus))) {
     return normalizeStatus(taskStatus);
   }
 
@@ -1169,23 +847,9 @@ function getCombinedJobStatus(task, quote, assignment) {
 }
  
 function isPaymentRecorded(task, quote) {
-  const paymentStatus = String(getFirstAvailable(task, [
-    "payment_status",
-    "quote_payment_status",
-    "escrow_status"
-  ], "")).toLowerCase();
- 
-  const quotePaymentStatus = String(getFirstAvailable(quote, [
-    "payment_status",
-    "escrow_status"
-  ], "")).toLowerCase();
- 
-  const acceptedQuoteId = getFirstAvailable(task, [
-    "accepted_quote_id",
-    "paid_quote_id",
-    "selected_quote_id"
-  ], "");
- 
+  const paymentStatus = String(getFirstAvailable(task, ["payment_status", "quote_payment_status", "escrow_status"], "")).toLowerCase();
+  const quotePaymentStatus = String(getFirstAvailable(quote, ["payment_status", "escrow_status"], "")).toLowerCase();
+  const acceptedQuoteId = getFirstAvailable(task, ["accepted_quote_id", "paid_quote_id", "selected_quote_id"], "");
   return ["paid", "escrowed", "authorized", "held"].includes(paymentStatus) ||
     ["paid", "escrowed", "authorized", "held"].includes(quotePaymentStatus) ||
     acceptedQuoteId;
@@ -1193,89 +857,38 @@ function isPaymentRecorded(task, quote) {
  
 function canShowFullAddress(task, quote) {
   const daysUntil = getDaysUntil(task, quote);
- 
-  return (
-    daysUntil !== null &&
-    daysUntil <= 7 &&
-    isPaymentRecorded(task, quote)
-  );
+  return daysUntil !== null && daysUntil <= 7 && isPaymentRecorded(task, quote);
 }
  
 function getAddressSection(task, quote) {
   if (canShowFullAddress(task, quote)) {
-    return `
-      <div class="info-box">
-        <div class="info-label">Address</div>
-        <div class="info-value">${getFullAddress(task)}</div>
-      </div>
-    `;
+    return `<div class="info-box"><div class="info-label">Address</div><div class="info-value">${getFullAddress(task)}</div></div>`;
   }
- 
-  return `
-    <div class="info-box">
-      <div class="info-label">Location</div>
-      <div class="info-value">${escapeHTML(getCityState(task))}</div>
-    </div>
-  `;
+  return `<div class="info-box"><div class="info-label">Location</div><div class="info-value">${escapeHTML(getCityState(task))}</div></div>`;
 }
  
 function getAddressNote(task, quote) {
   if (canShowFullAddress(task, quote)) {
-    return `
-      <div class="address-note">
-        Full address is visible because the job is within 7 days.
-      </div>
-    `;
+    return `<div class="address-note">Full address is visible because the job is within 7 days.</div>`;
   }
- 
-  return `
-    <div class="address-note">
-      Full address unlocks when payment is recorded and the job is within 7 days. Until then, only city and state are shown.
-    </div>
-  `;
+  return `<div class="address-note">Full address unlocks when payment is recorded and the job is within 7 days. Until then, only city and state are shown.</div>`;
 }
  
 function getStatusPill(status, assignment) {
   const normalized = normalizeStatus(status);
- 
-  if (assignment && assignment.arrival_verified === true) {
-    return `<div class="pill green">In Progress</div>`;
-  }
- 
-  if (normalized === "worker_cancelled" || normalized === "worker_canceled") {
-    return `<div class="pill gray">Worker Cancelled</div>`;
-  }
-
-  if (normalized === "paid") {
-    return `<div class="pill green">Paid</div>`;
-  }
- 
-  if (normalized === "worker_completed") {
-    return `<div class="pill orange">Awaiting Customer Confirmation</div>`;
-  }
-
-  if (normalized === "completed") {
-    return `<div class="pill orange">Awaiting Pay</div>`;
-  }
- 
-  if (normalized === "in_progress") {
-    return `<div class="pill green">In Progress</div>`;
-  }
- 
+  if (assignment && assignment.arrival_verified === true) return `<div class="pill green">In Progress</div>`;
+  if (normalized === "worker_cancelled" || normalized === "worker_canceled") return `<div class="pill gray">Worker Cancelled</div>`;
+  if (normalized === "paid") return `<div class="pill green">Paid</div>`;
+  if (normalized === "worker_completed") return `<div class="pill orange">Awaiting Customer Confirmation</div>`;
+  if (normalized === "completed") return `<div class="pill orange">Awaiting Pay</div>`;
+  if (normalized === "in_progress") return `<div class="pill green">In Progress</div>`;
   return `<div class="pill gray">${escapeHTML(prettyStatus(status))}</div>`;
 }
  
 function shouldShowArrivalBox(quote, assignment) {
   const status = normalizeStatus(quote.status);
- 
-  if (["worker_completed", "completed", "paid"].includes(status)) {
-    return false;
-  }
- 
-  if (assignment && assignment.arrival_verified === true) {
-    return false;
-  }
- 
+  if (["worker_completed", "completed", "paid"].includes(status)) return false;
+  if (assignment && assignment.arrival_verified === true) return false;
   return true;
 }
  
@@ -1284,163 +897,70 @@ function getArrivalSection(job) {
   const quote = job.quote;
   const assignment = job.assignment;
 
-  if (
-    task.worker_arrival_confirmed === true ||
-    task.arrival_verified === true ||
-    (
-      assignment &&
-      assignment.arrival_verified === true &&
-      (
-        assignment.arrived_at ||
-        task.worker_arrival_confirmed === true ||
-        task.arrival_verified === true
-      )
-    )
-  ) {
+  if (task.worker_arrival_confirmed === true || task.arrival_verified === true ||
+    (assignment && assignment.arrival_verified === true &&
+      (assignment.arrived_at || task.worker_arrival_confirmed === true || task.arrival_verified === true))) {
     return `
       <div class="arrival-box" style="display:block;">
         <div class="arrival-title">Arrival Verification</div>
-        <div class="arrival-text">
-          Approval code accepted. This job is marked in progress.
-        </div>
-
-        <input
-          type="text"
-          value="Approval code accepted"
-          disabled
-          class="locked-input"
-        >
-
-        <button disabled>
-          Arrival Verified
-        </button>
+        <div class="arrival-text">Approval code accepted. This job is marked in progress.</div>
+        <input type="text" value="Approval code accepted" disabled class="locked-input">
+        <button disabled>Arrival Verified</button>
       </div>
     `;
   }
 
-  if (!shouldShowArrivalBox(quote, assignment)) {
-    return "";
-  }
+  if (!shouldShowArrivalBox(quote, assignment)) return "";
 
   return `
-    <button class="warning full" onclick="toggleArrivalBox('${task.id}')">
-      Enter Arrival Code
-    </button>
-
+    <button class="warning full" onclick="toggleArrivalBox('${task.id}')">Enter Arrival Code</button>
     <div class="arrival-box" id="arrivalBox-${task.id}">
       <div class="arrival-title">Arrival Verification</div>
-      <div class="arrival-text">
-        Ask the customer for the arrival code assigned to this task. Entering the correct code starts the job.
-      </div>
-
-      <input
-        id="arrivalCode-${task.id}"
-        type="text"
-        placeholder="Enter arrival code"
-        maxlength="6"
-        inputmode="numeric"
-      >
-
-      <button onclick="verifyArrivalCode('${task.id}', '${quote.id}')">
-        Verify / Start Task
-      </button>
+      <div class="arrival-text">Ask the customer for the arrival code assigned to this task. Entering the correct code starts the job.</div>
+      <input id="arrivalCode-${task.id}" type="text" placeholder="Enter arrival code" maxlength="6" inputmode="numeric">
+      <button onclick="verifyArrivalCode('${task.id}', '${quote.id}')">Verify / Start Task</button>
     </div>
   `;
 }
  
-
 function canMarkWorkerComplete(task, quote, assignment) {
-  const taskDate =
-    getDateObject(getTaskDate(task, quote));
-
-  if (!taskDate) {
-    return false;
-  }
-
-  const today =
-    new Date();
-
+  const taskDate = getDateObject(getTaskDate(task, quote));
+  if (!taskDate) return false;
+  const today = new Date();
   today.setHours(0, 0, 0, 0);
   taskDate.setHours(0, 0, 0, 0);
-
-  const status =
-    getCombinedJobStatus(task, quote, assignment);
-
-  const dateReached =
-    taskDate.getTime() <= today.getTime();
-
-  const started =
-    status === "in_progress" ||
+  const status = getCombinedJobStatus(task, quote, assignment);
+  const dateReached = taskDate.getTime() <= today.getTime();
+  const started = status === "in_progress" ||
     normalizeStatus(task.status) === "in_progress" ||
     normalizeStatus(task.task_status) === "in_progress" ||
-    (
-      assignment &&
-      (
-        assignment.arrival_verified === true ||
-        isTruthyValue(assignment.arrival_verified)
-      )
-    ) ||
-    task.worker_arrival_confirmed === true ||
-    task.arrival_verified === true ||
-    isTruthyValue(task.worker_arrival_confirmed) ||
-    isTruthyValue(task.arrival_verified);
-
-  return (
-    dateReached &&
-    started &&
-    !["worker_completed", "completed", "paid"].includes(status)
-  );
+    (assignment && (assignment.arrival_verified === true || isTruthyValue(assignment.arrival_verified))) ||
+    task.worker_arrival_confirmed === true || task.arrival_verified === true ||
+    isTruthyValue(task.worker_arrival_confirmed) || isTruthyValue(task.arrival_verified);
+  return dateReached && started && !["worker_completed", "completed", "paid"].includes(status);
 }
 
 function getWorkerCompleteSection(job) {
-  const task =
-    job.task;
-
-  const quote =
-    job.quote;
-
-  const assignment =
-    job.assignment;
-
-  const dispute =
-    getDisputeForTask(task.id);
+  const task = job.task;
+  const quote = job.quote;
+  const assignment = job.assignment;
+  const dispute = getDisputeForTask(task.id);
 
   if (dispute) {
-    return `
-      <button class="secondary full" disabled>
-        Task Locked During Dispute Review
-      </button>
-    `;
+    return `<button class="secondary full" disabled>Task Locked During Dispute Review</button>`;
   }
 
-  const status =
-    getCombinedJobStatus(task, quote, assignment);
-
-  if (["paid", "completed"].includes(status)) {
-    return "";
-  }
-
+  const status = getCombinedJobStatus(task, quote, assignment);
+  if (["paid", "completed"].includes(status)) return "";
   if (status === "worker_completed") {
-    return `
-      <button class="secondary full" disabled>
-        Waiting for Customer Completion
-      </button>
-    `;
+    return `<button class="secondary full" disabled>Waiting for Customer Completion</button>`;
   }
 
   if (canMarkWorkerComplete(task, quote, assignment)) {
-    return `
-      <button class="full" onclick="markWorkerTaskComplete('${task.id}', '${quote.id}')">
-        Mark Task Complete
-      </button>
-    `;
+    return `<button class="full" onclick="markWorkerTaskComplete('${task.id}', '${quote.id}')">Mark Task Complete</button>`;
   }
 
-  return `
-    <button class="secondary full" disabled>
-      Task Complete Unlocks On Task Date After Arrival Code
-    </button>
-  `;
+  return `<button class="secondary full" disabled>Task Complete Unlocks On Task Date After Arrival Code</button>`;
 }
 
 function getDisputeForTask(taskId) {
@@ -1448,123 +968,58 @@ function getDisputeForTask(taskId) {
 }
 
 function getDisputeSection(job) {
-  const dispute =
-    getDisputeForTask(job.task.id);
-
-  if (!dispute) {
-    return "";
-  }
-
-  return `
-    <div class="dispute-alert">
-      A dispute is open for this task.
-    </div>
-  `;
+  const dispute = getDisputeForTask(job.task.id);
+  if (!dispute) return "";
+  return `<div class="dispute-alert">A dispute is open for this task.</div>`;
 }
 
 function getDisputeButton(job) {
-  const task =
-    job.task;
-
-  const dispute =
-    getDisputeForTask(task.id);
-
-  const orderNumber =
-    getTaskOrderNumber(task);
-
-  const buttonText =
-    dispute
-      ? "View Dispute"
-      : "Dispute Task";
-
-  const disputeId =
-    dispute ? dispute.id : "";
-
+  const task = job.task;
+  const dispute = getDisputeForTask(task.id);
+  const orderNumber = getTaskOrderNumber(task);
+  const buttonText = dispute ? "View Dispute" : "Dispute Task";
+  const disputeId = dispute ? dispute.id : "";
   return `
-    <button
-      class="secondary full"
-      onclick="openWorkerDispute('${escapeHTML(task.id)}', '${escapeHTML(orderNumber)}', '${escapeHTML(disputeId)}')">
+    <button class="secondary full" onclick="openWorkerDispute('${escapeHTML(task.id)}', '${escapeHTML(orderNumber)}', '${escapeHTML(disputeId)}')">
       ${buttonText}
     </button>
   `;
 }
 
 function openWorkerSupportChat(taskId, quoteId, customerId, customerName) {
-  const params =
-    new URLSearchParams();
-
+  const params = new URLSearchParams();
   params.set("task_id", taskId || "");
   params.set("quote_id", quoteId || "");
   params.set("customer_id", customerId || "");
   params.set("customer_name", customerName || "");
   params.set("worker_id", currentWorkerId || "");
-
-  window.location.href =
-    `worker-support-chat.html?${params.toString()}`;
+  window.location.href = `worker-support-chat.html?${params.toString()}`;
 }
 
-
 function openWorkerDispute(taskId, orderNumber, disputeId) {
-  const params =
-    new URLSearchParams();
-
+  const params = new URLSearchParams();
   params.set("task_id", taskId || "");
   params.set("order_number", orderNumber || "");
   params.set("worker_id", currentWorkerId || "");
-
-  if (disputeId) {
-    params.set("dispute_id", disputeId);
-  }
-
-  window.location.href =
-    `worker-disputes.html?${params.toString()}`;
+  if (disputeId) params.set("dispute_id", disputeId);
+  window.location.href = `worker-disputes.html?${params.toString()}`;
 }
 
 async function fetchDisputesForJobs(jobs) {
   taskDisputesByTaskId = {};
-
-  const taskIds =
-    [
-      ...new Set(
-        (jobs || [])
-          .map(job => job.task && job.task.id)
-          .filter(Boolean)
-          .map(String)
-      )
-    ];
-
-  if (taskIds.length === 0) {
-    return;
-  }
-
+  const taskIds = [...new Set((jobs || []).map(job => job.task && job.task.id).filter(Boolean).map(String))];
+  if (taskIds.length === 0) return;
   try {
-    const { data, error } =
-      await supabaseClient
-        .from("disputes")
-        .select("*")
-        .in("task_id", taskIds)
-        .in("status", [
-          "open",
-          "reviewing",
-          "pending",
-          "in_review",
-          "waiting_on_customer",
-          "waiting_on_worker"
-        ])
-        .order("created_at", { ascending: false });
-
-    if (error) {
-      console.warn("Disputes could not be loaded.", error);
-      return;
-    }
-
+    const { data, error } = await supabaseClient
+      .from("disputes")
+      .select("*")
+      .in("task_id", taskIds)
+      .in("status", ["open", "reviewing", "pending", "in_review", "waiting_on_customer", "waiting_on_worker"])
+      .order("created_at", { ascending: false });
+    if (error) { console.warn("Disputes could not be loaded.", error); return; }
     (data || []).forEach(dispute => {
-      const key =
-        String(dispute.task_id || "");
-
-      if (key && !taskDisputesByTaskId[key]) {
-        taskDisputesByTaskId[key] = dispute;
-      }
+      const key = String(dispute.task_id || "");
+      if (key && !taskDisputesByTaskId[key]) taskDisputesByTaskId[key] = dispute;
     });
   } catch (error) {
     console.warn("Disputes could not be loaded.", error);
@@ -1573,17 +1028,12 @@ async function fetchDisputesForJobs(jobs) {
 
 function setLoading() {
   const jobsList = document.getElementById("jobsList");
- 
   jobsList.className = "empty";
-  jobsList.innerHTML = `
-    <div class="loading-spinner"></div>
-    Loading jobs...
-  `;
+  jobsList.innerHTML = `<div class="loading-spinner"></div>Loading jobs...`;
 }
  
 function showEmpty(message) {
   const jobsList = document.getElementById("jobsList");
- 
   jobsList.className = "empty";
   jobsList.innerHTML = message;
 }
@@ -1593,19 +1043,15 @@ function updateSummary(jobs) {
     const status = normalizeStatus(job.quote.status);
     return ["accepted", "in_progress", "worker_completed"].includes(status);
   }).length;
- 
   const today = new Date();
- 
   const todayJobs = jobs.filter(job => {
     const taskDate = getDateObject(getTaskDate(job.task, job.quote));
     return taskDate && isSameDay(taskDate, today);
   }).length;
- 
   const pendingPay = jobs.filter(job => {
     const status = normalizeStatus(job.quote.status);
     return status === "worker_completed" || status === "completed";
   }).length;
- 
   document.getElementById("activeCount").innerText = active;
   document.getElementById("todayCount").innerText = todayJobs;
   document.getElementById("pendingPayCount").innerText = pendingPay;
@@ -1613,39 +1059,18 @@ function updateSummary(jobs) {
  
 async function loadCurrentWorker() {
   const { data, error } = await supabaseClient.auth.getUser();
- 
   if (error || !data || !data.user) {
     showEmpty("No active worker session found. Please log in again.");
     return false;
   }
- 
   currentUser = data.user;
- 
   const ids = [currentUser.id];
- 
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("id, email")
-    .eq("email", currentUser.email)
-    .maybeSingle();
- 
-  if (profile && profile.id) {
-    ids.push(profile.id);
-  }
- 
-  const { data: workerRecord } = await supabaseClient
-    .from("worker_profiles")
-    .select("id, email")
-    .eq("email", currentUser.email)
-    .maybeSingle();
- 
-  if (workerRecord && workerRecord.id) {
-    ids.push(workerRecord.id);
-  }
- 
+  const { data: profile } = await supabaseClient.from("profiles").select("id, email").eq("email", currentUser.email).maybeSingle();
+  if (profile && profile.id) ids.push(profile.id);
+  const { data: workerRecord } = await supabaseClient.from("worker_profiles").select("id, email").eq("email", currentUser.email).maybeSingle();
+  if (workerRecord && workerRecord.id) ids.push(workerRecord.id);
   currentWorkerIds = [...new Set(ids.filter(Boolean).map(String))];
   currentWorkerId = currentWorkerIds[0];
- 
   return true;
 }
  
@@ -1656,252 +1081,121 @@ async function fetchAcceptedQuotes() {
     .in("worker_id", currentWorkerIds)
     .in("status", ["accepted", "in_progress", "worker_completed"])
     .order("created_at", { ascending: false });
- 
-  if (error) {
-    throw error;
-  }
- 
+  if (error) throw error;
   return data || [];
 }
  
 async function fetchAcceptedDirectRequests() {
-  const idFilter =
-    currentWorkerIds
-      .map(id => `accepted_worker_id.eq.${id},assigned_worker_id.eq.${id},worker_id.eq.${id}`)
-      .join(",");
-
+  const idFilter = currentWorkerIds
+    .map(id => `accepted_worker_id.eq.${id},assigned_worker_id.eq.${id},worker_id.eq.${id}`)
+    .join(",");
   const { data, error } = await supabaseClient
     .from("direct_task_requests")
     .select("*")
     .or(idFilter)
     .in("status", ["accepted", "in_progress", "worker_completed"])
     .order("created_at", { ascending: false });
-
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   return data || [];
 }
 
 async function fetchTasksForQuotes(quotes) {
   const taskIds = [...new Set(quotes.map(quote => quote.task_id).filter(Boolean))];
- 
-  if (taskIds.length === 0) {
-    return {};
-  }
- 
-  const { data, error } = await supabaseClient
-    .from("tasks")
-    .select("*")
-    .in("id", taskIds);
- 
-  if (error) {
-    throw error;
-  }
- 
+  if (taskIds.length === 0) return {};
+  const { data, error } = await supabaseClient.from("tasks").select("*").in("id", taskIds);
+  if (error) throw error;
   const taskMap = {};
- 
-  (data || []).forEach(task => {
-    taskMap[task.id] = task;
-  });
- 
+  (data || []).forEach(task => { taskMap[task.id] = task; });
   return taskMap;
 }
  
 async function fetchAssignments(taskIds) {
-  if (taskIds.length === 0) {
-    return {};
-  }
- 
+  if (taskIds.length === 0) return {};
   let data = null;
   let error = null;
- 
-  const firstAttempt = await supabaseClient
-    .from("task_assignments")
-    .select("*")
-    .in("task_id", taskIds)
-    .in("worker_user_id", currentWorkerIds);
- 
+  const firstAttempt = await supabaseClient.from("task_assignments").select("*").in("task_id", taskIds).in("worker_user_id", currentWorkerIds);
   if (!firstAttempt.error) {
     data = firstAttempt.data;
   } else {
     error = firstAttempt.error;
- 
-    const secondAttempt = await supabaseClient
-      .from("task_assignments")
-      .select("*")
-      .in("task_id", taskIds)
-      .in("worker_id", currentWorkerIds);
- 
-    if (!secondAttempt.error) {
-      data = secondAttempt.data;
-      error = null;
-    }
+    const secondAttempt = await supabaseClient.from("task_assignments").select("*").in("task_id", taskIds).in("worker_id", currentWorkerIds);
+    if (!secondAttempt.error) { data = secondAttempt.data; error = null; }
   }
- 
-  if (error) {
-    console.warn("Task assignments could not be loaded.", error);
-    return {};
-  }
- 
+  if (error) { console.warn("Task assignments could not be loaded.", error); return {}; }
   const assignmentMap = {};
- 
-  (data || []).forEach(assignment => {
-    assignmentMap[assignment.task_id] = assignment;
-  });
- 
+  (data || []).forEach(assignment => { assignmentMap[assignment.task_id] = assignment; });
   return assignmentMap;
 }
  
 async function fetchCustomerProfiles(jobs) {
-  const customerIds = [
-    ...new Set(
-      jobs
-        .map(job => getCustomerId(job.task, job.quote, job.assignment))
-        .filter(Boolean)
-        .map(String)
-    )
-  ];
-
-  if (customerIds.length === 0) {
-    return {};
-  }
-
+  const customerIds = [...new Set(jobs.map(job => getCustomerId(job.task, job.quote, job.assignment)).filter(Boolean).map(String))];
+  if (customerIds.length === 0) return {};
   const profileMap = {};
-
   const addProfilesToMap = profiles => {
     (profiles || []).forEach(profile => {
-      const possibleIds = [
-        profile.id,
-        profile.user_id,
-        profile.customer_id,
-        profile.profile_id
-      ]
-        .filter(Boolean)
-        .map(String);
-
-      possibleIds.forEach(id => {
-        profileMap[id] = profile;
-      });
+      const possibleIds = [profile.id, profile.user_id, profile.customer_id, profile.profile_id].filter(Boolean).map(String);
+      possibleIds.forEach(id => { profileMap[id] = profile; });
     });
   };
-
-  const idAttempt = await supabaseClient
-    .from("profiles")
-    .select("*")
-    .in("id", customerIds);
-
-  if (!idAttempt.error) {
-    addProfilesToMap(idAttempt.data);
-  }
-
-  const userIdAttempt = await supabaseClient
-    .from("profiles")
-    .select("*")
-    .in("user_id", customerIds);
-
-  if (!userIdAttempt.error) {
-    addProfilesToMap(userIdAttempt.data);
-  }
-
+  const idAttempt = await supabaseClient.from("profiles").select("*").in("id", customerIds);
+  if (!idAttempt.error) addProfilesToMap(idAttempt.data);
+  const userIdAttempt = await supabaseClient.from("profiles").select("*").in("user_id", customerIds);
+  if (!userIdAttempt.error) addProfilesToMap(userIdAttempt.data);
   return profileMap;
 }
+
 async function loadMyJobs() {
   setLoading();
-
   const workerLoaded = await loadCurrentWorker();
-
-  if (!workerLoaded) {
-    return;
-  }
+  if (!workerLoaded) return;
 
   try {
     const quotes = await fetchAcceptedQuotes();
     const directRequests = await fetchAcceptedDirectRequests();
 
-    if (
-      (!quotes || quotes.length === 0) &&
-      (!directRequests || directRequests.length === 0)
-    ) {
+    if ((!quotes || quotes.length === 0) && (!directRequests || directRequests.length === 0)) {
       loadedJobs = [];
       updateSummary(loadedJobs);
       showEmpty("No accepted or active jobs yet.");
       return;
     }
 
-    const regularQuotes =
-      (quotes || []).filter(quote => quote.task_id);
-
+    const regularQuotes = (quotes || []).filter(quote => quote.task_id);
     const taskMap = await fetchTasksForQuotes(regularQuotes);
     const taskIds = [...new Set(regularQuotes.map(quote => quote.task_id).filter(Boolean))];
     const assignmentMap = await fetchAssignments(taskIds);
 
-    const regularJobs = regularQuotes
-      .map(quote => {
-        const task = taskMap[quote.task_id];
+    const regularJobs = regularQuotes.map(quote => {
+      const task = taskMap[quote.task_id];
+      if (!task) return null;
+      return { quote, task, assignment: assignmentMap[quote.task_id] || null, customerProfile: null, isDirectRequest: false };
+    }).filter(Boolean);
 
-        if (!task) {
-          return null;
-        }
+    const directJobs = (directRequests || []).map(request => {
+      const directQuote = {
+        id: request.accepted_quote_id || request.id,
+        task_id: request.id,
+        direct_request_id: request.id,
+        worker_id: request.accepted_worker_id || request.assigned_worker_id || request.worker_id,
+        customer_id: request.customer_id,
+        status: request.status || "accepted",
+        quote_amount: request.amount_paid || request.paid_amount || request.task_amount || 0,
+        payment_status: request.payment_status,
+        escrow_status: request.escrow_status,
+        is_direct_request: true
+      };
+      return { quote: directQuote, task: request, assignment: null, customerProfile: null, isDirectRequest: true };
+    });
 
-        return {
-          quote: quote,
-          task: task,
-          assignment: assignmentMap[quote.task_id] || null,
-          customerProfile: null,
-          isDirectRequest: false
-        };
-      })
-      .filter(Boolean);
-
-    const directJobs =
-      (directRequests || []).map(request => {
-        const directQuote = {
-          id: request.accepted_quote_id || request.id,
-          task_id: request.id,
-          direct_request_id: request.id,
-          worker_id: request.accepted_worker_id || request.assigned_worker_id || request.worker_id,
-          customer_id: request.customer_id,
-          status: request.status || "accepted",
-          quote_amount:
-            request.amount_paid ||
-            request.paid_amount ||
-            request.task_amount ||
-            0,
-          payment_status: request.payment_status,
-          escrow_status: request.escrow_status,
-          is_direct_request: true
-        };
-
-        return {
-          quote: directQuote,
-          task: request,
-          assignment: null,
-          customerProfile: null,
-          isDirectRequest: true
-        };
-      });
-
-    loadedJobs = [
-      ...regularJobs,
-      ...directJobs
-    ].filter(job => !isCustomerCancelledTask(job.task, job.quote));
-
+    loadedJobs = [...regularJobs, ...directJobs].filter(job => !isCustomerCancelledTask(job.task, job.quote));
     const customerProfiles = await fetchCustomerProfiles(loadedJobs);
-
     loadedJobs = loadedJobs.map(job => {
-      const customerId =
-        String(getCustomerId(job.task, job.quote, job.assignment) || "");
-
-      job.customerProfile =
-        customerProfiles[customerId] || null;
-
+      const customerId = String(getCustomerId(job.task, job.quote, job.assignment) || "");
+      job.customerProfile = customerProfiles[customerId] || null;
       return job;
     });
 
     await fetchDisputesForJobs(loadedJobs);
-
     updateSummary(loadedJobs);
     renderJobs();
   } catch (error) {
@@ -1914,52 +1208,26 @@ function jobMatchesFilters(job) {
   const selectedStatus = document.getElementById("statusFilter").value;
   const selectedDate = document.getElementById("dateFilter").value;
   const status = normalizeStatus(job.quote.status);
- 
-  if (selectedStatus && status !== selectedStatus) {
-    return false;
-  }
- 
-  if (!selectedDate) {
-    return true;
-  }
- 
+  if (selectedStatus && status !== selectedStatus) return false;
+  if (!selectedDate) return true;
   const taskDate = getDateObject(getTaskDate(job.task, job.quote));
- 
-  if (!taskDate) {
-    return false;
-  }
- 
+  if (!taskDate) return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   taskDate.setHours(0, 0, 0, 0);
- 
-  if (selectedDate === "today") {
-    return isSameDay(taskDate, today);
-  }
- 
-  if (selectedDate === "upcoming") {
-    return taskDate.getTime() > today.getTime();
-  }
- 
-  if (selectedDate === "past") {
-    return taskDate.getTime() < today.getTime();
-  }
- 
+  if (selectedDate === "today") return isSameDay(taskDate, today);
+  if (selectedDate === "upcoming") return taskDate.getTime() > today.getTime();
+  if (selectedDate === "past") return taskDate.getTime() < today.getTime();
   return true;
 }
  
 function renderJobs() {
   const jobsList = document.getElementById("jobsList");
   const jobs = loadedJobs.filter(jobMatchesFilters);
- 
-  if (jobs.length === 0) {
-    showEmpty("No jobs match this filter.");
-    return;
-  }
- 
+  if (jobs.length === 0) { showEmpty("No jobs match this filter."); return; }
   jobsList.className = "";
   jobsList.innerHTML = "";
- 
+
   jobs.forEach(job => {
     const task = job.task;
     const quote = job.quote;
@@ -1972,10 +1240,10 @@ function renderJobs() {
     const taskDate = formatDate(getTaskDate(task, quote));
     const countdown = getCountdownText(task, quote);
     const quoteAmount = quote.quote_amount || quote.amount || "0";
- 
+
     const div = document.createElement("div");
     div.className = "job-card";
- 
+
     div.innerHTML = `
       <div class="job-head">
         <div>
@@ -1986,12 +1254,7 @@ function renderJobs() {
       </div>
  
       <div class="customer-row">
-        <img
-          class="customer-photo"
-          src="${escapeHTML(customerPhoto)}"
-          alt="Customer profile photo"
-          onerror="this.src='${DEFAULT_PROFILE_PHOTO}'"
-        >
+        <img class="customer-photo" src="${escapeHTML(customerPhoto)}" alt="Customer profile photo" onerror="this.src='${DEFAULT_PROFILE_PHOTO}'">
         <div>
           <div class="customer-name">${escapeHTML(customerName)}</div>
           <div class="customer-meta">Customer for this task</div>
@@ -2003,14 +1266,11 @@ function renderJobs() {
           <div class="info-label">Date</div>
           <div class="info-value">${escapeHTML(taskDate)}</div>
         </div>
- 
         <div class="info-box">
           <div class="info-label">Quote</div>
           <div class="info-value">$${escapeHTML(quoteAmount)}</div>
         </div>
- 
         ${getAddressSection(task, quote)}
- 
         <div class="info-box">
           <div class="info-label">Status</div>
           <div class="info-value">${escapeHTML(prettyStatus(status))}</div>
@@ -2019,527 +1279,162 @@ function renderJobs() {
  
       ${getAddressNote(task, quote)}
  
-      <span class="details-toggle" onclick="toggleDetails('${task.id}')">
-        View task details
-      </span>
- 
-      <div class="details-box" id="details-${task.id}">
-        ${escapeHTML(getTaskDetails(task, quote))}
-      </div>
+      <span class="details-toggle" onclick="toggleDetails('${task.id}')">View task details</span>
+      <div class="details-box" id="details-${task.id}">${escapeHTML(getTaskDetails(task, quote))}</div>
  
       <div class="button-grid">
-        <button class="secondary" onclick="messageCustomer('${task.id}', '${customerId}')">
-          Message
-        </button>
-
-        <button
-          style="background:#ff9800;color:white;"
-          onclick="openWorkerSupportChat('${task.id}', '${quote.id}', '${customerId}', '${escapeHTML(customerName)}')">
-          Contact TaskMint Support
-        </button>
-
-        <button class="cancel-task" onclick="cancelWorkerTask('${task.id}', '${quote.id}', '${customerId}')">
-          Cancel Task
-        </button>
-
+        <button class="secondary" onclick="messageCustomer('${task.id}', '${customerId}')">Message</button>
+        <button style="background:#ff9800;color:white;" onclick="openWorkerSupportChat('${task.id}', '${quote.id}', '${customerId}', '${escapeHTML(customerName)}')">Contact TaskMint Support</button>
+        <button class="cancel-task" onclick="cancelWorkerTask('${task.id}', '${quote.id}', '${customerId}')">Cancel Task</button>
         ${getDisputeButton(job)}
-
- 
         ${getArrivalSection(job)}
-
         ${getWorkerCompleteSection(job)}
       </div>
     `;
- 
+
     jobsList.appendChild(div);
   });
 }
  
 function toggleDetails(taskId) {
   const details = document.getElementById(`details-${taskId}`);
- 
-  if (!details) {
-    return;
-  }
- 
+  if (!details) return;
   details.style.display = details.style.display === "block" ? "none" : "block";
 }
  
 function toggleArrivalBox(taskId) {
   const box = document.getElementById(`arrivalBox-${taskId}`);
- 
-  if (!box) {
-    return;
-  }
- 
+  if (!box) return;
   box.style.display = box.style.display === "block" ? "none" : "block";
 }
  
 async function verifyArrivalCode(taskId, quoteId) {
   const codeInput = document.getElementById(`arrivalCode-${taskId}`);
   const code = codeInput ? codeInput.value.trim() : "";
+  if (!code) { alert("Enter the arrival code from the customer."); return; }
 
-  if (!code) {
-    alert("Enter the arrival code from the customer.");
-    return;
-  }
-
-  const job =
-    loadedJobs.find(item => String(item.task.id) === String(taskId));
-
-  const isDirectRequest =
-    job && job.isDirectRequest === true;
+  const job = loadedJobs.find(item => String(item.task.id) === String(taskId));
+  const isDirectRequest = job && job.isDirectRequest === true;
 
   if (isDirectRequest) {
-    const validCode =
-      String(job.task.arrival_code || "").trim();
-
-    if (!validCode || validCode !== code) {
-      alert("Invalid arrival code.");
-      return;
-    }
-
-    const { error: directRequestError } =
-      await supabaseClient
-        .from("direct_task_requests")
-        .update({
-          status: "in_progress",
-          worker_arrival_confirmed: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", taskId);
-
-    if (directRequestError) {
-      alert(directRequestError.message);
-      return;
-    }
-
+    const validCode = String(job.task.arrival_code || "").trim();
+    if (!validCode || validCode !== code) { alert("Invalid arrival code."); return; }
+    const { error } = await supabaseClient.from("direct_task_requests").update({ status: "in_progress", worker_arrival_confirmed: true, updated_at: new Date().toISOString() }).eq("id", taskId);
+    if (error) { alert(error.message); return; }
     alert("Arrival verified. Task started.");
     loadMyJobs();
     return;
   }
 
   let assignment = null;
-  let assignmentError = null;
-
-  const firstAttempt = await supabaseClient
-    .from("task_assignments")
-    .select("*")
-    .eq("task_id", taskId)
-    .in("worker_user_id", currentWorkerIds)
-    .eq("arrival_code", code)
-    .maybeSingle();
-
+  const firstAttempt = await supabaseClient.from("task_assignments").select("*").eq("task_id", taskId).in("worker_user_id", currentWorkerIds).eq("arrival_code", code).maybeSingle();
   if (!firstAttempt.error && firstAttempt.data) {
     assignment = firstAttempt.data;
   } else {
-    assignmentError = firstAttempt.error;
-
-    const secondAttempt = await supabaseClient
-      .from("task_assignments")
-      .select("*")
-      .eq("task_id", taskId)
-      .in("worker_id", currentWorkerIds)
-      .eq("arrival_code", code)
-      .maybeSingle();
-
-    if (!secondAttempt.error && secondAttempt.data) {
-      assignment = secondAttempt.data;
-      assignmentError = null;
-    }
+    const secondAttempt = await supabaseClient.from("task_assignments").select("*").eq("task_id", taskId).in("worker_id", currentWorkerIds).eq("arrival_code", code).maybeSingle();
+    if (!secondAttempt.error && secondAttempt.data) assignment = secondAttempt.data;
   }
 
   if (assignment) {
-    const { error: updateAssignmentError } = await supabaseClient
-      .from("task_assignments")
-      .update({
-        arrival_verified: true,
-        assignment_status: "in_progress",
-        arrived_at: new Date().toISOString()
-      })
-      .eq("id", assignment.id);
-
-    if (updateAssignmentError) {
-      alert("Error verifying arrival.");
-      return;
-    }
+    const { error } = await supabaseClient.from("task_assignments").update({ arrival_verified: true, assignment_status: "in_progress", arrived_at: new Date().toISOString() }).eq("id", assignment.id);
+    if (error) { alert("Error verifying arrival."); return; }
   } else {
-    const { data: taskRecord, error: taskCodeError } =
-      await supabaseClient
-        .from("tasks")
-        .select("arrival_code")
-        .eq("id", taskId)
-        .maybeSingle();
-
-    if (taskCodeError || !taskRecord) {
-      alert("Invalid arrival code.");
-      return;
-    }
-
-    const validCodes = [
-      String(taskRecord.arrival_code || "").trim()
-    ];
-
-    if (!validCodes.includes(code)) {
-      alert("Invalid arrival code.");
-      return;
-    }
+    const { data: taskRecord, error: taskCodeError } = await supabaseClient.from("tasks").select("arrival_code").eq("id", taskId).maybeSingle();
+    if (taskCodeError || !taskRecord) { alert("Invalid arrival code."); return; }
+    if (String(taskRecord.arrival_code || "").trim() !== code) { alert("Invalid arrival code."); return; }
   }
 
-  await supabaseClient
-    .from("worker_quotes")
-    .update({ status: "in_progress" })
-    .eq("id", quoteId);
-
-  await supabaseClient
-    .from("tasks")
-    .update({
-      status: "in_progress",
-      worker_arrival_confirmed: true,
-      arrival_verified: true,
-      arrived_at: new Date().toISOString()
-    })
-    .eq("id", taskId);
-
+  await supabaseClient.from("worker_quotes").update({ status: "in_progress" }).eq("id", quoteId);
+  await supabaseClient.from("tasks").update({ status: "in_progress", worker_arrival_confirmed: true, arrival_verified: true, arrived_at: new Date().toISOString() }).eq("id", taskId);
   alert("Arrival verified. Task started.");
-  loadMyJobs();
-}
- 
-
-
-async function reportWorkerTaskIssue(taskId, quoteId, sourceType, issueType) {
-  const notes =
-    prompt("Describe the issue:");
-
-  if (notes === null) {
-    return;
-  }
-
-  const tableName =
-    sourceType === "direct_request"
-      ? "direct_task_requests"
-      : "tasks";
-
-  const updateData = {
-    issue_status: issueType,
-    issue_notes: notes,
-    updated_at: new Date().toISOString()
-  };
-
-  if (issueType === "customer_no_show") {
-    updateData.no_show_reported_by = "worker";
-    updateData.no_show_reported_at = new Date().toISOString();
-  }
-
-  if (issueType === "worker_needs_help") {
-    updateData.incomplete_work_reported_by = "worker";
-    updateData.incomplete_work_reported_at = new Date().toISOString();
-  }
-
-  const { error } =
-    await supabaseClient
-      .from(tableName)
-      .update(updateData)
-      .eq("id", taskId);
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  if (quoteId) {
-    await supabaseClient
-      .from("worker_quotes")
-      .update({
-        issue_status: issueType,
-        issue_notes: notes,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", quoteId);
-  }
-
-  alert("Issue reported successfully.");
   loadMyJobs();
 }
 
 async function markWorkerTaskComplete(taskId, quoteId) {
-  const job =
-    loadedJobs.find(item => item.task.id === taskId);
-
-  if (!job) {
-    alert("Job not found.");
-    return;
-  }
-
+  const job = loadedJobs.find(item => item.task.id === taskId);
+  if (!job) { alert("Job not found."); return; }
   if (!canMarkWorkerComplete(job.task, job.quote, job.assignment)) {
     alert("You can mark this task complete on the task date after the arrival code has been verified.");
     return;
   }
-
-  const confirmed =
-    confirm("Mark this task complete from your side? The customer will still need to confirm completion.");
-
-  if (!confirmed) {
-    return;
-  }
+  const confirmed = confirm("Mark this task complete from your side? The customer will still need to confirm completion.");
+  if (!confirmed) return;
 
   if (job.isDirectRequest === true) {
-    const { error: directRequestError } =
-      await supabaseClient
-        .from("direct_task_requests")
-        .update({
-          status: "worker_completed",
-          worker_completed: true,
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", taskId);
-
-    if (directRequestError) {
-      alert(directRequestError.message);
-      return;
-    }
-
+    const { error } = await supabaseClient.from("direct_task_requests").update({ status: "worker_completed", worker_completed: true, completed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", taskId);
+    if (error) { alert(error.message); return; }
     alert("Task marked complete. Waiting for customer confirmation.");
     loadMyJobs();
     return;
   }
 
-  const { error: quoteError } =
-    await supabaseClient
-      .from("worker_quotes")
-      .update({
-        status: "worker_completed",
-        worker_completed_at: new Date().toISOString()
-      })
-      .eq("id", quoteId);
-
-  if (quoteError) {
-    alert(quoteError.message);
-    return;
-  }
-
- const { error: taskError } =
-    await supabaseClient
-      .from("tasks")
-      .update({
-        status: "worker_completed",
-        worker_completed: true,
-        worker_completed_at: new Date().toISOString()
-      })
-      .eq("id", taskId);
-
-  if (taskError) {
-    alert(taskError.message);
-    return;
-  }
-
+  const { error: quoteError } = await supabaseClient.from("worker_quotes").update({ status: "worker_completed", worker_completed_at: new Date().toISOString() }).eq("id", quoteId);
+  if (quoteError) { alert(quoteError.message); return; }
+  const { error: taskError } = await supabaseClient.from("tasks").update({ status: "worker_completed", worker_completed: true, worker_completed_at: new Date().toISOString() }).eq("id", taskId);
+  if (taskError) { alert(taskError.message); return; }
   alert("Task marked complete. Waiting for customer confirmation.");
   loadMyJobs();
 }
 
-
 async function getWorkerCancellationCount() {
-  const { count, error } =
-    await supabaseClient
-      .from("worker_quotes")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .in("worker_id", currentWorkerIds)
-      .in("status", [
-        "worker_cancelled",
-        "worker_canceled"
-      ]);
-
-  if (error || count === null || count === undefined) {
-    return 0;
-  }
-
+  const { count, error } = await supabaseClient.from("worker_quotes").select("id", { count: "exact", head: true }).in("worker_id", currentWorkerIds).in("status", ["worker_cancelled", "worker_canceled"]);
+  if (error || count === null || count === undefined) return 0;
   return Number(count || 0);
 }
 
 async function getOrCreateTaskConversation(task, quote, customerId) {
-  const cleanCustomerId =
-    customerId ||
-    getCustomerId(task, quote, null) ||
-    "";
-
-  if (!cleanCustomerId || !currentWorkerId) {
-    return "";
-  }
-
-  const { data: existingConversation } =
-    await supabaseClient
-      .from("task_conversations")
-      .select("id")
-      .eq("task_id", task.id)
-      .eq("customer_id", cleanCustomerId)
-      .eq("worker_id", currentWorkerId)
-      .maybeSingle();
-
+  const cleanCustomerId = customerId || getCustomerId(task, quote, null) || "";
+  if (!cleanCustomerId || !currentWorkerId) return "";
+  const { data: existingConversation } = await supabaseClient.from("task_conversations").select("id").eq("task_id", task.id).eq("customer_id", cleanCustomerId).eq("worker_id", currentWorkerId).maybeSingle();
   if (existingConversation && existingConversation.id) {
-    await supabaseClient
-      .from("task_conversations")
-      .update({
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", existingConversation.id);
-
+    await supabaseClient.from("task_conversations").update({ updated_at: new Date().toISOString() }).eq("id", existingConversation.id);
     return existingConversation.id;
   }
-
-  const { data: newConversation } =
-    await supabaseClient
-      .from("task_conversations")
-      .insert([
-        {
-          task_id: task.id,
-          customer_id: cleanCustomerId,
-          worker_id: currentWorkerId,
-          conversation_type: "task",
-          updated_at: new Date().toISOString()
-        }
-      ])
-      .select("id")
-      .maybeSingle();
-
+  const { data: newConversation } = await supabaseClient.from("task_conversations").insert([{ task_id: task.id, customer_id: cleanCustomerId, worker_id: currentWorkerId, conversation_type: "task", updated_at: new Date().toISOString() }]).select("id").maybeSingle();
   return newConversation?.id || "";
 }
 
 async function notifyCustomerWorkerCancelled(job, customerId) {
-  const task =
-    job.task;
-
-  const quote =
-    job.quote;
-
-  const cleanCustomerId =
-    customerId ||
-    getCustomerId(task, quote, job.assignment) ||
-    "";
-
-  const conversationId =
-    await getOrCreateTaskConversation(task, quote, cleanCustomerId);
-
-  const message =
-    `The worker cancelled your task: ${getTaskTitle(task)}. Your refund will be processed according to TaskMint payment rules.`;
-
+  const task = job.task;
+  const quote = job.quote;
+  const cleanCustomerId = customerId || getCustomerId(task, quote, job.assignment) || "";
+  const conversationId = await getOrCreateTaskConversation(task, quote, cleanCustomerId);
+  const message = `The worker cancelled your task: ${getTaskTitle(task)}. Your refund will be processed according to TaskMint payment rules.`;
   if (conversationId) {
-    await supabaseClient
-      .from("task_messages")
-      .insert([
-        {
-          conversation_id: conversationId,
-          task_id: task.id,
-          sender_id: currentWorkerId,
-          sender_type: "worker",
-          receiver_id: cleanCustomerId,
-          customer_id: cleanCustomerId,
-          worker_id: currentWorkerId,
-          message: message,
-          is_read: false
-        }
-      ]);
+    await supabaseClient.from("task_messages").insert([{ conversation_id: conversationId, task_id: task.id, sender_id: currentWorkerId, sender_type: "worker", receiver_id: cleanCustomerId, customer_id: cleanCustomerId, worker_id: currentWorkerId, message, is_read: false }]);
   }
 }
 
 async function cancelWorkerTask(taskId, quoteId, customerId) {
-  const job =
-    loadedJobs.find(item => String(item.task.id) === String(taskId));
+  const job = loadedJobs.find(item => String(item.task.id) === String(taskId));
+  if (!job) { alert("Job not found."); return; }
+  const cancellationCount = await getWorkerCancellationCount();
+  const warningMessage = cancellationCount >= 4
+    ? "Cancel this task? You have reached the 5th cancellation threshold. Your ranking may drop after this cancellation."
+    : "Cancel this task? After your 5th cancellation, your worker ranking may drop. This task will be removed from My Jobs. The customer will be notified that the worker cancelled and that a refund will be processed.";
+  const confirmed = confirm(warningMessage);
+  if (!confirmed) return;
 
-  if (!job) {
-    alert("Job not found.");
-    return;
-  }
+  const cancelledAt = new Date().toISOString();
+  const refundAmount = job.task.amount_paid || job.task.paid_amount || job.task.task_amount || job.quote.quote_amount || job.quote.amount || 0;
 
-  const cancellationCount =
-    await getWorkerCancellationCount();
-
-  const warningMessage =
-    cancellationCount >= 4
-      ? "Cancel this task? You have reached the 5th cancellation threshold. Your ranking may drop after this cancellation."
-      : "Cancel this task? After your 5th cancellation, your worker ranking may drop. This task will be removed from My Jobs. The customer will be notified that the worker cancelled and that a refund will be processed.";
-
-  const confirmed =
-    confirm(warningMessage);
-
-  if (!confirmed) {
-    return;
-  }
-
-  const cancelledAt =
-    new Date().toISOString();
-
-  const refundAmount =
-    job.task.amount_paid ||
-    job.task.paid_amount ||
-    job.task.task_amount ||
-    job.quote.quote_amount ||
-    job.quote.amount ||
-    0;
-
-  const { error: quoteError } =
-    await supabaseClient
-      .from("worker_quotes")
-      .update({
-        status: "worker_cancelled"
-      })
-      .eq("id", quoteId);
-
-  if (quoteError) {
-    alert(quoteError.message);
-    return;
-  }
+  const { error: quoteError } = await supabaseClient.from("worker_quotes").update({ status: "worker_cancelled" }).eq("id", quoteId);
+  if (quoteError) { alert(quoteError.message); return; }
 
   let taskError = null;
-
   if (job.isDirectRequest === true) {
-    const directRequestUpdate =
-      await supabaseClient
-        .from("direct_task_requests")
-        .update({
-          status: "worker_cancelled",
-          payment_status: "refund_pending",
-          escrow_status: "refund_pending",
-          updated_at: cancelledAt
-        })
-        .eq("id", taskId);
-
-    taskError =
-      directRequestUpdate.error;
+    const directRequestUpdate = await supabaseClient.from("direct_task_requests").update({ status: "worker_cancelled", payment_status: "refund_pending", escrow_status: "refund_pending", updated_at: cancelledAt }).eq("id", taskId);
+    taskError = directRequestUpdate.error;
   } else {
-    const taskUpdate =
-      await supabaseClient
-        .from("tasks")
-        .update({
-          status: "worker_cancelled",
-          task_status: "worker_cancelled",
-          payment_status: "refund_pending",
-          escrow_status: "refund_pending",
-          refund_amount: refundAmount,
-          updated_at: cancelledAt
-        })
-        .eq("id", taskId);
-
-    taskError =
-      taskUpdate.error;
+    const taskUpdate = await supabaseClient.from("tasks").update({ status: "worker_cancelled", task_status: "worker_cancelled", payment_status: "refund_pending", escrow_status: "refund_pending", refund_amount: refundAmount, updated_at: cancelledAt }).eq("id", taskId);
+    taskError = taskUpdate.error;
   }
 
-  if (taskError) {
-    alert(taskError.message);
-    return;
-  }
-
+  if (taskError) { alert(taskError.message); return; }
   await notifyCustomerWorkerCancelled(job, customerId);
-
-  loadedJobs =
-    loadedJobs.filter(item => String(item.task.id) !== String(taskId));
-
+  loadedJobs = loadedJobs.filter(item => String(item.task.id) !== String(taskId));
   updateSummary(loadedJobs);
   renderJobs();
-
   alert("Task cancelled. It has been removed from My Jobs. The customer has been notified that the worker cancelled and that a refund will be processed.");
 }
 

@@ -3312,6 +3312,51 @@ async function loadWorkerEarnings(workerId) {
     return fallbackTotal;
   }
 
+
+  async function loadReservedPayoutTotal() {
+    const { data: payoutRows, error: payoutError } =
+      await supabaseClient
+        .from("worker_payouts")
+        .select("*")
+        .in("worker_id", workerIds);
+
+    if (payoutError || !payoutRows || payoutRows.length === 0) {
+      return 0;
+    }
+
+    const inactiveStatuses = [
+      "denied",
+      "failed",
+      "rejected",
+      "blocked",
+      "cancelled",
+      "canceled"
+    ];
+
+    return payoutRows.reduce((total, payout) => {
+      const status = String(
+        payout.status ||
+        payout.payout_status ||
+        payout.request_status ||
+        "requested"
+      ).toLowerCase();
+
+      if (inactiveStatuses.includes(status)) {
+        return total;
+      }
+
+      const payoutAmount =
+        getFirstAmount(payout, [
+          "amount",
+          "payout_amount",
+          "requested_amount",
+          "net_amount"
+        ]) || 0;
+
+      return total + payoutAmount;
+    }, 0);
+  }
+
   if (workerIds.length === 0) {
     setEarningsDisplay(0);
     return;
@@ -3323,6 +3368,9 @@ async function loadWorkerEarnings(workerId) {
       .select("*")
       .in("worker_id", workerIds);
 
+  const reservedPayoutTotal =
+    await loadReservedPayoutTotal();
+
   if (!error && data && data.length > 0) {
     let total = 0;
 
@@ -3331,7 +3379,7 @@ async function loadWorkerEarnings(workerId) {
     });
 
     if (total > 0) {
-      setEarningsDisplay(total);
+      setEarningsDisplay(Math.max(total - reservedPayoutTotal, 0));
       return;
     }
   }
@@ -3339,7 +3387,7 @@ async function loadWorkerEarnings(workerId) {
   const fallbackTotal =
     await loadCompletedTaskFallback();
 
-  setEarningsDisplay(fallbackTotal);
+  setEarningsDisplay(Math.max(fallbackTotal - reservedPayoutTotal, 0));
 
 }
 

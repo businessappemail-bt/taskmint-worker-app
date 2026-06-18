@@ -690,6 +690,20 @@ function formatTimeOption(value) {
   return `${hour}:${minute} ${suffix}`;
 }
 
+function normalizeTimeValue(value) {
+  if (!value) {
+    return "";
+  }
+
+  const parts = String(value).split(":");
+
+  if (parts.length < 2) {
+    return String(value);
+  }
+
+  return `${String(parts[0]).padStart(2, "0")}:${String(parts[1]).padStart(2, "0")}`;
+}
+
 function createTimeOptions() {
   const values = [];
 
@@ -737,7 +751,9 @@ function syncTimeSelect(day, kind) {
   const input = document.getElementById(`${day}${kind}`);
 
   if (select && input) {
-    select.value = input.value || "";
+    const normalizedValue = normalizeTimeValue(input.value);
+    input.value = normalizedValue;
+    select.value = normalizedValue || "";
   }
 }
 
@@ -945,8 +961,8 @@ async function loadAvailability() {
         document.getElementById(`${lower}Available`).checked = true;
         document.getElementById(`${lower}Start`).disabled = false;
         document.getElementById(`${lower}End`).disabled = false;
-        document.getElementById(`${lower}Start`).value = row.start_time || "";
-        document.getElementById(`${lower}End`).value = row.end_time || "";
+        document.getElementById(`${lower}Start`).value = normalizeTimeValue(row.start_time);
+        document.getElementById(`${lower}End`).value = normalizeTimeValue(row.end_time);
         setModernTimeControls(lower, true);
         syncTimeSelect(lower, "Start");
         syncTimeSelect(lower, "End");

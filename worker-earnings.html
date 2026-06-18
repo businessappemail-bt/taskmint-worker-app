@@ -1401,17 +1401,26 @@ async function loadAvailableBalance() {
       ...derivedRows
     ];
 
-  availableBalance = allRows
-    .filter(row => isAvailableEarning(row))
-    .reduce((total, row) => total + getEarningAmount(row), 0);
+  const totalAvailableEarnings =
+    allRows
+      .filter(row => isAvailableEarning(row))
+      .reduce((total, row) => total + getEarningAmount(row), 0);
+
+  const reservedPayouts =
+    await loadReservedPayoutAmount();
+
+  availableBalance =
+    Math.max(Number((totalAvailableEarnings - reservedPayouts).toFixed(2)), 0);
 
   document.getElementById("availableBalance").innerText =
     money(availableBalance);
 
   document.getElementById("balanceSubtext").innerText =
-    availableBalance > 0
-      ? "You can request this available amount for payout."
-      : "Completed and released jobs will show here.";
+    reservedPayouts > 0 && availableBalance <= 0
+      ? "Your available balance is already tied to a payout request."
+      : availableBalance > 0
+        ? "You can request this available amount for payout."
+        : "Completed and released jobs will show here.";
 
   updatePayoutButtons();
 }
@@ -1484,6 +1493,48 @@ function requestCreatedAt(row) {
     "created_at",
     "submitted_at"
   ], "");
+}
+
+function isReservedPayoutStatus(status) {
+  return [
+    "requested",
+    "pending",
+    "processing",
+    "approved",
+    "flagged",
+    "blocked"
+  ].includes(String(status || "").toLowerCase());
+}
+
+function reservedPayoutAmount(row) {
+  return Number(
+    getFirstAvailable(row, [
+      "amount",
+      "payout_amount",
+      "requested_amount",
+      "net_amount"
+    ], 0)
+  );
+}
+
+async function loadReservedPayoutAmount() {
+  if (!currentWorkerIds || currentWorkerIds.length === 0) {
+    return 0;
+  }
+
+  const { data, error } =
+    await supabaseClient
+      .from("worker_payouts")
+      .select("*")
+      .in("worker_id", currentWorkerIds);
+
+  if (error || !data) {
+    return 0;
+  }
+
+  return data
+    .filter(row => isReservedPayoutStatus(requestStatus(row)))
+    .reduce((total, row) => total + reservedPayoutAmount(row), 0);
 }
  
 async function loadPayoutRequests() {
@@ -1692,6 +1743,18 @@ async function requestPayout(payoutSpeed) {
   if (availableBalance <= 0) {
     setActionMessage("No available balance to request.", "#b00020");
     return;
+  }
+
+  const reservedPayouts =
+    await loadReservedPayoutAmount();
+
+  if (reservedPayouts > 0) {
+    await loadAvailableBalance();
+
+    if (availableBalance <= 0) {
+      setActionMessage("Your available balance is already tied to a payout request.", "#b00020");
+      return;
+    }
   }
 
   if (selectedSpeed === "instant" && netAmount <= 0) {

@@ -1032,6 +1032,20 @@ async function loadPendingQuotes() {
             </div>
           </div>
 
+          <div class="info-box">
+            <div class="info-label">Submitted</div>
+            <div class="info-value">
+              ${escapeHTML(submittedDate)}
+            </div>
+          </div>
+
+          <div class="info-box">
+            <div class="info-label">Status</div>
+            <div class="info-value">
+              ${escapeHTML(quote.status || "pending")}
+            </div>
+          </div>
+
           <div class="info-box full-row">
             <div class="info-label">Quote Message</div>
             <div class="info-value">

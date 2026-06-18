@@ -3,414 +3,59 @@
 <head>
   <title>Pending Quotes - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #ffffff;
-      --surface: #f2f7f4;
-      --surface2: #e6f4eb;
-      --border: #e2ebe5;
-      --accent: #0b7a28;
-      --text: #111111;
-      --muted: #6b7870;
-      --danger: #b00020;
-      --warning-bg: #fffbeb;
-      --warning-border: #f0c040;
-      --warning-text: #7a4f00;
+      --bg: #ffffff; --surface: #f2f7f4; --surface2: #e6f4eb; --border: #e2ebe5;
+      --accent: #0b7a28; --text: #111111; --muted: #6b7870; --danger: #b00020;
+      --warning-bg: #fffbeb; --warning-border: #f0c040; --warning-text: #7a4f00;
     }
-
-    body {
-      margin: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding-bottom: 90px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 470px;
-      padding: 20px 16px 30px;
-    }
-
-    .top-bar {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      width: 100%;
-      max-width: 470px;
-      background: rgba(255,255,255,0.97);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 13px 20px;
-      margin: -20px -16px 20px;
-    }
-
-    .back,
-    .refresh {
-      color: var(--accent);
-      font-weight: 800;
-      cursor: pointer;
-      font-size: 14px;
-      text-decoration: none;
-    }
-
-    .refresh {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 8px 11px;
-      font-size: 12px;
-    }
-
-    .hero {
-      background: var(--accent);
-      color: white;
-      border-radius: 22px;
-      padding: 24px 20px;
-      margin-bottom: 14px;
-      box-shadow: 0 8px 24px rgba(11,122,40,0.22);
-      position: relative;
-      overflow: hidden;
-      opacity: 0;
-      animation: riseIn 0.35s 0.05s forwards;
-    }
-
-    .hero::before {
-      content: "";
-      position: absolute;
-      width: 155px;
-      height: 155px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.10);
-      top: -65px;
-      right: -55px;
-    }
-
-    .hero::after {
-      content: "";
-      position: absolute;
-      width: 92px;
-      height: 92px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.07);
-      bottom: -45px;
-      left: -35px;
-    }
-
-    .hero h1 {
-      margin: 0 0 7px;
-      font-size: 29px;
-      font-weight: 800;
-      line-height: 1.08;
-      letter-spacing: -0.5px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .hero p {
-      margin: 0;
-      font-size: 13px;
-      line-height: 1.5;
-      color: rgba(255,255,255,0.82);
-      position: relative;
-      z-index: 2;
-    }
-
-    .summary-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 12px;
-      opacity: 0;
-      animation: riseIn 0.35s 0.1s forwards;
-    }
-
-    .summary-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 15px;
-    }
-
-    .summary-label {
-      color: var(--accent);
-      font-size: 10.5px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-    }
-
-    .summary-value {
-      font-size: 24px;
-      font-weight: 800;
-      margin-top: 7px;
-      line-height: 1;
-    }
-
-    .quote-card {
-      background: #fff;
-      border-radius: 20px;
-      padding: 15px;
-      margin-bottom: 12px;
-      border: 1px solid var(--border);
-      opacity: 0;
-      animation: riseIn 0.35s 0.12s forwards;
-    }
-
-    .quote-summary {
-      cursor: pointer;
-    }
-
-    .quote-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: flex-start;
-    }
-
-    .quote-title {
-      font-size: 17px;
-      font-weight: 800;
-      margin-bottom: 5px;
-      line-height: 1.25;
-      letter-spacing: -0.1px;
-    }
-
-    .quote-sub {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.35;
-    }
-
-    .quote-amount {
-      background: var(--surface2);
-      color: var(--accent);
-      border-radius: 16px;
-      padding: 10px;
-      font-size: 17px;
-      font-weight: 800;
-      white-space: nowrap;
-      min-width: 86px;
-      text-align: center;
-      border: 1px solid #cfead7;
-    }
-
-    .status-pill {
-      display: inline-block;
-      margin-top: 8px;
-      background: var(--warning-bg);
-      color: var(--warning-text);
-      border: 1px solid var(--warning-border);
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: capitalize;
-    }
-
-    .expand-hint {
-      margin-top: 10px;
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .quote-details {
-      display: none;
-      margin-top: 13px;
-      border-top: 1px solid var(--border);
-      padding-top: 13px;
-    }
-
-    .quote-details.open {
-      display: block;
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .info-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 11px;
-      min-height: 72px;
-    }
-
-    .info-label {
-      color: var(--accent);
-      font-size: 10.5px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 6px;
-    }
-
-    .info-value {
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1.35;
-      word-break: break-word;
-      color: var(--text);
-    }
-
-    .full-row {
-      grid-column: 1 / -1;
-    }
-
-    .message-box,
-    .task-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-
-    .box-title {
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--text);
-      margin-bottom: 6px;
-    }
-
-    .box-text {
-      font-size: 13px;
-      color: var(--text);
-      line-height: 1.45;
-      white-space: pre-wrap;
-    }
-
-    .message-preview {
-      display: grid;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .message-item {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 13px;
-      padding: 10px;
-      font-size: 12px;
-      line-height: 1.35;
-    }
-
-    .message-meta {
-      color: var(--accent);
-      font-weight: 800;
-      margin-bottom: 4px;
-      font-size: 11px;
-    }
-
-    .button-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 9px;
-      margin-top: 12px;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 13px;
-      background: var(--accent);
-      color: white;
-      font-size: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: opacity 0.18s, transform 0.18s, box-shadow 0.18s;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-
-    button:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 14px rgba(11,122,40,0.10);
-    }
-
-    button.secondary {
-      background: white;
-      color: var(--accent);
-      border: 1px solid var(--border);
-    }
-
-    button.danger {
-      background: var(--danger);
-      color: white;
-      grid-column: 1 / -1;
-    }
-
-    .empty {
-      background: var(--surface);
-      padding: 24px 18px;
-      border-radius: 20px;
-      text-align: center;
-      color: var(--muted);
-      border: 1px solid var(--border);
-      line-height: 1.45;
-      font-size: 13px;
-    }
-
-    .small-text {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.4;
-      font-weight: 700;
-    }
-
-    #status {
-      text-align: center;
-      color: var(--danger);
-      font-size: 13px;
-      font-weight: 800;
-      margin: 10px 0;
-      line-height: 1.4;
-    }
-
-    @keyframes riseIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 360px) {
-      .hero h1 {
-        font-size: 25px;
-      }
-
-      .info-grid,
-      .button-grid {
-        grid-template-columns: 1fr;
-      }
-
-      button.danger {
-        grid-column: auto;
-      }
-    }
+    body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 90px; display: flex; flex-direction: column; align-items: center; }
+    .container { width: 100%; max-width: 470px; padding: 20px 16px 30px; }
+    .top-bar { position: sticky; top: 0; z-index: 40; width: 100%; max-width: 470px; background: rgba(255,255,255,0.97); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 13px 20px; margin: -20px -16px 20px; }
+    .back, .refresh { color: var(--accent); font-weight: 800; cursor: pointer; font-size: 14px; text-decoration: none; }
+    .refresh { background: var(--surface2); border: 1px solid var(--border); border-radius: 999px; padding: 8px 11px; font-size: 12px; }
+    .hero { background: var(--accent); color: white; border-radius: 22px; padding: 24px 20px; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(11,122,40,0.22); position: relative; overflow: hidden; opacity: 0; animation: riseIn 0.35s 0.05s forwards; }
+    .hero::before { content: ""; position: absolute; width: 155px; height: 155px; border-radius: 50%; background: rgba(255,255,255,0.10); top: -65px; right: -55px; }
+    .hero::after { content: ""; position: absolute; width: 92px; height: 92px; border-radius: 50%; background: rgba(255,255,255,0.07); bottom: -45px; left: -35px; }
+    .hero h1 { margin: 0 0 7px; font-size: 29px; font-weight: 800; line-height: 1.08; letter-spacing: -0.5px; position: relative; z-index: 2; }
+    .hero p { margin: 0; font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.82); position: relative; z-index: 2; }
+    .summary-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; opacity: 0; animation: riseIn 0.35s 0.1s forwards; }
+    .summary-box { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 15px; }
+    .summary-label { color: var(--accent); font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; }
+    .summary-value { font-size: 24px; font-weight: 800; margin-top: 7px; line-height: 1; }
+    .quote-card { background: #fff; border-radius: 20px; padding: 15px; margin-bottom: 12px; border: 1px solid var(--border); opacity: 0; animation: riseIn 0.35s 0.12s forwards; }
+    .quote-summary { cursor: pointer; }
+    .quote-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .quote-title { font-size: 17px; font-weight: 800; margin-bottom: 5px; line-height: 1.25; letter-spacing: -0.1px; }
+    .quote-sub { color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .quote-amount { background: var(--surface2); color: var(--accent); border-radius: 16px; padding: 10px; font-size: 17px; font-weight: 800; white-space: nowrap; min-width: 86px; text-align: center; border: 1px solid #cfead7; }
+    .status-pill { display: inline-block; margin-top: 8px; background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border); border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 800; text-transform: capitalize; }
+    .expand-hint { margin-top: 10px; color: var(--accent); font-size: 12px; font-weight: 800; }
+    .quote-details { display: none; margin-top: 13px; border-top: 1px solid var(--border); padding-top: 13px; }
+    .quote-details.open { display: block; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .info-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 11px; min-height: 72px; }
+    .info-label { color: var(--accent); font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+    .info-value { font-size: 13px; font-weight: 700; line-height: 1.35; word-break: break-word; color: var(--text); }
+    .full-row { grid-column: 1 / -1; }
+    .task-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 12px; margin-bottom: 12px; }
+    .box-title { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .box-text { font-size: 13px; color: var(--text); line-height: 1.45; white-space: pre-wrap; }
+    .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 12px; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 13px; background: var(--accent); color: white; font-size: 12px; font-weight: 800; cursor: pointer; transition: opacity 0.18s, transform 0.18s, box-shadow 0.18s; font-family: 'Plus Jakarta Sans', sans-serif; }
+    button:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(11,122,40,0.10); }
+    button.secondary { background: white; color: var(--accent); border: 1px solid var(--border); }
+    button.danger { background: var(--danger); color: white; grid-column: 1 / -1; }
+    .empty { background: var(--surface); padding: 24px 18px; border-radius: 20px; text-align: center; color: var(--muted); border: 1px solid var(--border); line-height: 1.45; font-size: 13px; }
+    .small-text { color: var(--muted); font-size: 12px; line-height: 1.4; font-weight: 700; }
+    #status { text-align: center; color: var(--danger); font-size: 13px; font-weight: 800; margin: 10px 0; line-height: 1.4; }
+    @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 360px) { .hero h1 { font-size: 25px; } .info-grid, .button-grid { grid-template-columns: 1fr; } button.danger { grid-column: auto; } }
   </style>
 </head>
-
 <body>
 
 <div class="container">
@@ -430,7 +75,6 @@
       <div class="summary-label">Pending Quotes</div>
       <div class="summary-value" id="pendingCount">0</div>
     </div>
-
     <div class="summary-box">
       <div class="summary-label">Total Quoted</div>
       <div class="summary-value" id="quotedTotal">$0.00</div>
@@ -456,639 +100,264 @@ let currentWorkerId = null;
 let currentWorkerIds = [];
 
 function escapeHTML(value) {
-  if (value === null || value === undefined) {
-    return "";
-  }
-
+  if (value === null || value === undefined) return "";
   return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
 function formatMoney(value) {
-  const numberValue = Number(value || 0);
-
-  if (Number.isNaN(numberValue)) {
-    return "$0.00";
-  }
-
-  return "$" + numberValue.toFixed(2);
+  const n = Number(value || 0);
+  return isNaN(n) ? "$0.00" : "$" + n.toFixed(2);
 }
 
+// ── DATE FIX: parse YYYY-MM-DD in LOCAL time, never UTC ─────────────────────
+// new Date("2025-06-18") → UTC midnight → shows June 17 in US timezones.
+// new Date(2025, 5, 18)  → local midnight → shows June 18 correctly.
 function formatDate(value) {
-  if (!value) {
-    return "Not listed";
+  if (!value) return "Not listed";
+  const m = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) {
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    return isNaN(d.getTime()) ? value : d.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
   }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString([], {
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  });
+  // timestamp with time component — already carries offset info
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? value : d.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
 }
 
 function formatDateTime(value) {
-  if (!value) {
-    return "Not listed";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleString([], {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
+  if (!value) return "Not listed";
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? value : d.toLocaleString([], { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
 function getFirstAvailable(record, keys, fallback = "") {
-  if (!record) {
-    return fallback;
-  }
-
+  if (!record) return fallback;
   for (const key of keys) {
-    if (
-      record[key] !== null &&
-      record[key] !== undefined &&
-      String(record[key]).trim() !== ""
-    ) {
-      return record[key];
-    }
+    if (record[key] !== null && record[key] !== undefined && String(record[key]).trim() !== "") return record[key];
   }
-
   return fallback;
 }
 
 function getTaskTitle(task) {
-  return getFirstAvailable(task, [
-    "title",
-    "task_title",
-    "job_title",
-    "category",
-    "service_type"
-  ], "Task");
+  return getFirstAvailable(task, ["title","task_title","job_title","category","service_type"], "Task");
 }
 
 function getTaskCategory(task) {
-  return getFirstAvailable(task, [
-    "category",
-    "task_category",
-    "service_type"
-  ], "Other");
+  return getFirstAvailable(task, ["category","task_category","service_type"], "Other");
 }
 
 function getTaskDate(task) {
-  return getFirstAvailable(task, [
-    "task_date",
-    "date_needed",
-    "needed_by",
-    "scheduled_date",
-    "scheduled_start",
-    "due_date"
-  ], "");
+  return getFirstAvailable(task, ["task_date","date_needed","needed_by","scheduled_date","scheduled_start","due_date"], "");
 }
 
 function getCityState(task) {
-  const city = getFirstAvailable(task, [
-    "city",
-    "task_city",
-    "service_city"
-  ], "");
-
-  const state = getFirstAvailable(task, [
-    "state",
-    "task_state",
-    "service_state"
-  ], "");
-
-  if (!city && !state) {
-    return "Location not listed";
-  }
-
+  const city  = getFirstAvailable(task, ["city","task_city","service_city"], "");
+  const state = getFirstAvailable(task, ["state","task_state","service_state"], "");
+  if (!city && !state) return "Location not listed";
   return `${city}${state ? ", " + state : ""}`;
 }
 
 function getTaskDetails(task) {
-  const rawDetails =
-    getFirstAvailable(task, [
-      "task_details",
-      "description",
-      "details",
-      "additional_notes",
-      "notes",
-      "special_instructions"
-    ], "");
-
-  if (rawDetails && typeof rawDetails === "object") {
-    return Object.keys(rawDetails)
-      .map(key => {
-        const label =
-          key.replaceAll("_", " ").replace(/\\b\\w/g, char => char.toUpperCase());
-
-        const value =
-          Array.isArray(rawDetails[key])
-            ? rawDetails[key].join(", ")
-            : rawDetails[key];
-
-        return `${label}: ${value || "Not answered"}`;
-      })
-      .join("\\n");
+  const raw = getFirstAvailable(task, ["task_details","description","details","additional_notes","notes","special_instructions"], "");
+  if (raw && typeof raw === "object") {
+    return Object.keys(raw).map(key => {
+      const label = key.replaceAll("_"," ").replace(/\b\w/g, c => c.toUpperCase());
+      const val = Array.isArray(raw[key]) ? raw[key].join(", ") : raw[key];
+      return `${label}: ${val || "Not answered"}`;
+    }).join("\n");
   }
-
-  return rawDetails || "No additional task details were provided.";
+  return raw || "No additional task details were provided.";
 }
 
 function getCustomerId(task, quote) {
-  return (
-    quote.customer_id ||
-    getFirstAvailable(task, [
-      "customer_id",
-      "client_id",
-      "posted_by",
-      "created_by",
-      "user_id",
-      "profile_id"
-    ], "")
-  );
+  return quote.customer_id || getFirstAvailable(task, ["customer_id","client_id","posted_by","created_by","user_id","profile_id"], "");
 }
 
 function getCustomerName(profile) {
-  if (!profile) {
-    return "Customer";
-  }
-
-  const fullName =
-    profile.full_name ||
-    `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
-
+  if (!profile) return "Customer";
+  const fullName = profile.full_name || `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
   if (fullName) {
-    const parts = fullName.trim().split(/\\s+/);
-
-    if (parts.length > 1) {
-      return `${parts[0]} ${parts[parts.length - 1].charAt(0).toUpperCase()}.`;
-    }
-
-    return parts[0];
+    const parts = fullName.trim().split(/\s+/);
+    return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1].charAt(0).toUpperCase()}.` : parts[0];
   }
-
   return "Customer";
 }
 
 async function loadCurrentWorker() {
-  const { data, error } =
-    await supabaseClient.auth.getSession();
-
+  const { data, error } = await supabaseClient.auth.getSession();
   if (error || !data.session || !data.session.user) {
-    document.getElementById("quotesList").innerHTML =
-      `<div class="empty">No active worker session found. Please log in again.</div>`;
+    document.getElementById("quotesList").innerHTML = `<div class="empty">No active worker session found. Please log in again.</div>`;
     return false;
   }
-
   currentUser = data.session.user;
-
   const ids = [currentUser.id];
-
-  const { data: profile } =
-    await supabaseClient
-      .from("profiles")
-      .select("id, email")
-      .eq("email", currentUser.email)
-      .maybeSingle();
-
-  if (profile && profile.id) {
-    ids.push(profile.id);
-  }
-
-  const { data: workerRecord } =
-    await supabaseClient
-      .from("worker_profiles")
-      .select("id, email")
-      .eq("email", currentUser.email)
-      .maybeSingle();
-
-  if (workerRecord && workerRecord.id) {
-    ids.push(workerRecord.id);
-  }
-
-  currentWorkerIds =
-    [...new Set(ids.filter(Boolean).map(String))];
-
-  currentWorkerId =
-    currentWorkerIds[0] || currentUser.id;
-
+  const { data: profile } = await supabaseClient.from("profiles").select("id,email").eq("email", currentUser.email).maybeSingle();
+  if (profile?.id) ids.push(profile.id);
+  const { data: workerRecord } = await supabaseClient.from("worker_profiles").select("id,email").eq("email", currentUser.email).maybeSingle();
+  if (workerRecord?.id) ids.push(workerRecord.id);
+  currentWorkerIds = [...new Set(ids.filter(Boolean).map(String))];
+  currentWorkerId = currentWorkerIds[0] || currentUser.id;
   return true;
 }
 
 async function fetchTaskForQuote(quote) {
-  const possibleTaskIds = [
-    quote.task_id,
-    quote.job_id,
-    quote.request_id,
-    quote.direct_request_id,
-    quote.task_uuid
-  ]
-    .filter(Boolean)
-    .map(String);
-
-  if (possibleTaskIds.length === 0) {
-    return null;
+  const possibleIds = [quote.task_id, quote.job_id, quote.request_id, quote.direct_request_id, quote.task_uuid].filter(Boolean).map(String);
+  if (!possibleIds.length) return null;
+  for (const taskId of possibleIds) {
+    const { data: task } = await supabaseClient.from("tasks").select("*").eq("id", taskId).maybeSingle();
+    if (task) return { ...task, source_type: "marketplace" };
+    const { data: directTask } = await supabaseClient.from("direct_task_requests").select("*").eq("id", taskId).maybeSingle();
+    if (directTask) return { ...directTask, source_type: "direct_quote" };
   }
-
-  for (const taskId of possibleTaskIds) {
-    const { data: task } =
-      await supabaseClient
-        .from("tasks")
-        .select("*")
-        .eq("id", taskId)
-        .maybeSingle();
-
-    if (task) {
-      return {
-        ...task,
-        source_type: "marketplace"
-      };
-    }
-
-    const { data: directTask } =
-      await supabaseClient
-        .from("direct_task_requests")
-        .select("*")
-        .eq("id", taskId)
-        .maybeSingle();
-
-    if (directTask) {
-      return {
-        ...directTask,
-        source_type: "direct_quote"
-      };
-    }
-  }
-
   return null;
 }
 
 async function fetchCustomerProfile(customerId) {
-  if (!customerId) {
-    return null;
-  }
-
-  const { data } =
-    await supabaseClient
-      .from("profiles")
-      .select("id, first_name, last_name, full_name, email")
-      .eq("id", customerId)
-      .maybeSingle();
-
+  if (!customerId) return null;
+  const { data } = await supabaseClient.from("profiles").select("id,first_name,last_name,full_name,email").eq("id", customerId).maybeSingle();
   return data || null;
 }
 
-async function fetchQuoteMessages(quote) {
-  const taskId =
-    quote.task_id || "";
-
-  const customerId =
-    quote.customer_id || "";
-
-  if (!taskId && !customerId) {
-    return [];
-  }
-
-  let query =
-    supabaseClient
-      .from("task_messages")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(3);
-
-  if (taskId && customerId) {
-    query = query
-      .eq("task_id", taskId)
-      .or(`quote_id.eq.${quote.id},customer_id.eq.${customerId}`);
-  } else if (taskId) {
-    query = query.eq("task_id", taskId);
-  } else {
-    query = query.eq("customer_id", customerId);
-  }
-
-  const { data, error } =
-    await query;
-
-  if (error || !data) {
-    return [];
-  }
-
-  return data;
-}
-
 function toggleQuoteDetails(id) {
-  const box =
-    document.getElementById(id);
-
-  if (!box) {
-    return;
-  }
-
-  box.classList.toggle("open");
+  const box = document.getElementById(id);
+  if (box) box.classList.toggle("open");
 }
 
 function editQuote(quoteId, taskId = "", customerId = "") {
   localStorage.setItem("selectedQuoteId", quoteId);
-
-  if (taskId) {
-    localStorage.setItem("selectedQuoteTaskId", taskId);
-    localStorage.setItem("selectedTaskId", taskId);
-  }
-
-  if (customerId) {
-    localStorage.setItem("selectedCustomerId", customerId);
-  }
-
+  if (taskId) { localStorage.setItem("selectedQuoteTaskId", taskId); localStorage.setItem("selectedTaskId", taskId); }
+  if (customerId) localStorage.setItem("selectedCustomerId", customerId);
   window.location.href = "edit-quote.html";
 }
 
 async function messageCustomerFromQuote(quoteId, taskId = "", customerId = "") {
   localStorage.setItem("selectedQuoteId", quoteId);
-
-  if (taskId) {
-    localStorage.setItem("selectedMessageTaskId", taskId);
-    localStorage.setItem("selectedTaskId", taskId);
-  }
-
-  if (customerId) {
-    localStorage.setItem("selectedCustomerId", customerId);
-  }
-
+  if (taskId) { localStorage.setItem("selectedMessageTaskId", taskId); localStorage.setItem("selectedTaskId", taskId); }
+  if (customerId) localStorage.setItem("selectedCustomerId", customerId);
   localStorage.setItem("messageContext", "quote");
-
   try {
     if (taskId && customerId && currentWorkerId) {
-      await supabaseClient
-        .from("task_conversations")
-        .upsert({
-          task_id: taskId,
-          quote_id: quoteId,
-          worker_id: currentWorkerId,
-          customer_id: customerId,
-          conversation_type: "quote",
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: "task_id,worker_id,customer_id"
-        });
+      await supabaseClient.from("task_conversations").upsert({
+        task_id: taskId, quote_id: quoteId, worker_id: currentWorkerId,
+        customer_id: customerId, conversation_type: "quote", updated_at: new Date().toISOString()
+      }, { onConflict: "task_id,worker_id,customer_id" });
     }
-  } catch (error) {
-    console.warn("Quote conversation could not be created yet.", error);
-  }
-
+  } catch (e) { console.warn("Quote conversation could not be created.", e); }
   window.location.href = "worker-task-message.html";
 }
 
 async function cancelQuote(quoteId) {
-  const confirmed =
-    confirm("Are you sure you want to cancel this quote?");
-
-  if (!confirmed) {
-    return;
-  }
-
-  const { error } =
-    await supabaseClient
-      .from("worker_quotes")
-      .update({
-        status: "canceled",
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", quoteId);
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
+  if (!confirm("Are you sure you want to cancel this quote?")) return;
+  const { error } = await supabaseClient.from("worker_quotes").update({ status: "canceled", updated_at: new Date().toISOString() }).eq("id", quoteId);
+  if (error) { alert(error.message); return; }
   alert("Quote canceled.");
   loadPendingQuotes();
 }
 
 async function loadPendingQuotes() {
-  const loaded =
-    await loadCurrentWorker();
+  const loaded = await loadCurrentWorker();
+  if (!loaded) return;
 
-  if (!loaded) {
-    return;
-  }
+  const list = document.getElementById("quotesList");
+  const statusEl = document.getElementById("status");
+  statusEl.innerText = "";
+  list.innerHTML = `<div class="empty">Loading pending quotes...</div>`;
 
-  const list =
-    document.getElementById("quotesList");
+  const { data: quotes, error } = await supabaseClient
+    .from("worker_quotes")
+    .select("*")
+    .in("worker_id", currentWorkerIds)
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
 
-  const status =
-    document.getElementById("status");
+  if (error) { list.innerHTML = `<div class="empty">${escapeHTML(error.message)}</div>`; return; }
 
-  status.innerText = "";
-  list.innerHTML =
-    `<div class="empty">Loading pending quotes...</div>`;
-
-  const { data: quotes, error } =
-    await supabaseClient
-      .from("worker_quotes")
-      .select("*")
-      .in("worker_id", currentWorkerIds)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
-
-  if (error) {
-    list.innerHTML =
-      `<div class="empty">${escapeHTML(error.message)}</div>`;
-    return;
-  }
-
-  if (!quotes || quotes.length === 0) {
+  if (!quotes || !quotes.length) {
     document.getElementById("pendingCount").innerText = "0";
     document.getElementById("quotedTotal").innerText = "$0.00";
-
-    list.innerHTML =
-      `<div class="empty">No pending quotes yet.</div>`;
+    list.innerHTML = `<div class="empty">No pending quotes yet.</div>`;
     return;
   }
 
-  document.getElementById("pendingCount").innerText =
-    String(quotes.length);
-
+  document.getElementById("pendingCount").innerText = String(quotes.length);
   let totalQuoted = 0;
-
   list.innerHTML = "";
 
   for (const quote of quotes) {
-    const amount =
-      Number(quote.quote_amount || quote.amount || 0);
+    const amount = Number(quote.quote_amount || quote.amount || 0);
+    if (!isNaN(amount)) totalQuoted += amount;
 
-    if (!Number.isNaN(amount)) {
-      totalQuoted += amount;
-    }
+    const task = await fetchTaskForQuote(quote);
+    const customerId = getCustomerId(task || {}, quote);
+    const customerProfile = await fetchCustomerProfile(customerId);
+    const detailsId = `quote-details-${quote.id}`;
+    const submittedDate = formatDateTime(quote.created_at);
 
-    const task =
-      await fetchTaskForQuote(quote);
-
-    const customerId =
-      getCustomerId(task || {}, quote);
-
-    const customerProfile =
-      await fetchCustomerProfile(customerId);
-
-    const messages =
-      await fetchQuoteMessages(quote);
-
-    const detailsId =
-      `quote-details-${quote.id}`;
-
-    const submittedDate =
-      formatDateTime(quote.created_at);
-
-    const card =
-      document.createElement("div");
-
-    card.className =
-      "quote-card";
-
-    const messagePreviewHtml =
-      messages && messages.length > 0
-        ? messages.map(message => `
-            <div class="message-item">
-              <div class="message-meta">
-                ${escapeHTML(message.sender_type || "Message")} • ${escapeHTML(formatDateTime(message.created_at))}
-              </div>
-              ${escapeHTML(message.message || message.body || message.content || "")}
-            </div>
-          `).join("")
-        : `<div class="small-text">No quote messages found yet.</div>`;
-
+    const card = document.createElement("div");
+    card.className = "quote-card";
     card.innerHTML = `
       <div class="quote-summary" onclick="toggleQuoteDetails('${detailsId}')">
         <div class="quote-top">
           <div>
-            <div class="quote-title">
-              ${escapeHTML(task ? getTaskTitle(task) : "Pending Quote")}
-            </div>
-
-            <div class="quote-sub">
-              Submitted ${escapeHTML(submittedDate)}
-            </div>
-
-            <div class="status-pill">
-              Pending
-            </div>
+            <div class="quote-title">${escapeHTML(task ? getTaskTitle(task) : "Pending Quote")}</div>
+            <div class="quote-sub">Submitted ${escapeHTML(submittedDate)}</div>
+            <div class="status-pill">Pending</div>
           </div>
-
-          <div class="quote-amount">
-            ${escapeHTML(formatMoney(amount))}
-          </div>
+          <div class="quote-amount">${escapeHTML(formatMoney(amount))}</div>
         </div>
-
-        <div class="expand-hint">
-          Tap to open full quote and task details
-        </div>
+        <div class="expand-hint">Tap to open full quote and task details</div>
       </div>
 
       <div class="quote-details" id="${detailsId}">
         <div class="info-grid">
           <div class="info-box">
             <div class="info-label">Customer</div>
-            <div class="info-value">
-              ${escapeHTML(getCustomerName(customerProfile))}
-            </div>
+            <div class="info-value">${escapeHTML(getCustomerName(customerProfile))}</div>
           </div>
-
           <div class="info-box">
             <div class="info-label">Location</div>
-            <div class="info-value">
-              ${escapeHTML(task ? getCityState(task) : "Location not listed")}
-            </div>
+            <div class="info-value">${escapeHTML(task ? getCityState(task) : "Location not listed")}</div>
           </div>
-
           <div class="info-box">
             <div class="info-label">Date Needed</div>
-            <div class="info-value">
-              ${escapeHTML(task ? formatDate(getTaskDate(task)) : "Not listed")}
-            </div>
+            <div class="info-value">${escapeHTML(task ? formatDate(getTaskDate(task)) : "Not listed")}</div>
           </div>
-
           <div class="info-box">
             <div class="info-label">Category</div>
-            <div class="info-value">
-              ${escapeHTML(task ? getTaskCategory(task) : "Not listed")}
-            </div>
+            <div class="info-value">${escapeHTML(task ? getTaskCategory(task) : "Not listed")}</div>
           </div>
-
           <div class="info-box">
             <div class="info-label">Submitted</div>
-            <div class="info-value">
-              ${escapeHTML(submittedDate)}
-            </div>
+            <div class="info-value">${escapeHTML(submittedDate)}</div>
           </div>
-
           <div class="info-box">
             <div class="info-label">Status</div>
-            <div class="info-value">
-              ${escapeHTML(quote.status || "pending")}
-            </div>
+            <div class="info-value">${escapeHTML(quote.status || "pending")}</div>
           </div>
-
           <div class="info-box full-row">
             <div class="info-label">Quote Message</div>
-            <div class="info-value">
-              ${escapeHTML(quote.message || "No quote message listed.")}
-            </div>
+            <div class="info-value">${escapeHTML(quote.message || "No quote message listed.")}</div>
           </div>
         </div>
 
         <div class="task-box">
           <div class="box-title">Full Task Information</div>
-          <div class="box-text">
-            ${escapeHTML(task ? getTaskDetails(task) : "Task information could not be loaded.")}
-          </div>
-        </div>
-
-        <div class="message-box">
-          <div class="box-title">Messages Tied to This Quote</div>
-          <div class="message-preview">
-            ${messagePreviewHtml}
-          </div>
+          <div class="box-text">${escapeHTML(task ? getTaskDetails(task) : "Task information could not be loaded.")}</div>
         </div>
 
         <div class="button-grid">
-          <button onclick="editQuote('${escapeHTML(quote.id)}', '${escapeHTML(quote.task_id || "")}', '${escapeHTML(customerId || "")}')">
-            Edit Quote
-          </button>
-
-          <button class="secondary" onclick="messageCustomerFromQuote('${escapeHTML(quote.id)}', '${escapeHTML(quote.task_id || "")}', '${escapeHTML(customerId || "")}')">
-            Reply / Message
-          </button>
-
-          <button class="danger" onclick="cancelQuote('${escapeHTML(quote.id)}')">
-            Cancel Quote
-          </button>
+          <button onclick="editQuote('${escapeHTML(quote.id)}', '${escapeHTML(quote.task_id || "")}', '${escapeHTML(customerId || "")}')">Edit Quote</button>
+          <button class="secondary" onclick="messageCustomerFromQuote('${escapeHTML(quote.id)}', '${escapeHTML(quote.task_id || "")}', '${escapeHTML(customerId || "")}')">Reply / Message</button>
+          <button class="danger" onclick="cancelQuote('${escapeHTML(quote.id)}')">Cancel Quote</button>
         </div>
-      </div>
-    `;
+      </div>`;
 
     list.appendChild(card);
   }
 
-  document.getElementById("quotedTotal").innerText =
-    formatMoney(totalQuoted);
+  document.getElementById("quotedTotal").innerText = formatMoney(totalQuoted);
 }
 
 loadPendingQuotes();

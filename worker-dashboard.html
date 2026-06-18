@@ -2188,22 +2188,12 @@
     <div id="ratingScore">0.0</div>
   </div>
 
-  <!-- PENDING QUOTES -->
-  <div class="section-header" id="pendingQuotesSection">
-    <div class="section-label" style="margin:0;">Pending Quotes</div>
-    <span class="section-link" onclick="window.location.href='view-pending-quotes.html'">View All</span>
+  <!-- PENDING QUOTES COMPATIBILITY ELEMENTS -->
+  <div style="display:none;" aria-hidden="true">
+    <div id="pendingQuotesCard"></div>
+    <div id="pendingQuotesList"></div>
+    <div id="pendingQuotes">0</div>
   </div>
-
-  <div
-    id="pendingQuotesCard"
-    class="next-task-empty"
-    onclick="window.location.href='view-pending-quotes.html'"
-    style="cursor:pointer;">
-    Loading pending quotes...
-  </div>
-
-  <div id="pendingQuotesList" style="display:none;"></div>
-  <div id="pendingQuotes" style="display:none;">0</div>
 
   <!-- QUICK ACTIONS -->
   <div class="section-label" id="quickActionsSection">Quick Actions</div>
@@ -2214,6 +2204,15 @@
       <div class="r-text">
         <div class="r-title">Find Work</div>
         <div class="r-sub">Browse open tasks near you.</div>
+      </div>
+      <div class="r-chev">›</div>
+    </div>
+
+    <div class="row-card" onclick="window.location.href='view-pending-quotes.html'">
+      <div class="r-icon">💬</div>
+      <div class="r-text">
+        <div class="r-title">Pending Quotes</div>
+        <div class="r-sub">View and manage quotes waiting on customers.</div>
       </div>
       <div class="r-chev">›</div>
     </div>
@@ -2264,7 +2263,7 @@
       <div class="r-chev">›</div>
     </div>
 
-    <div class="row-card wide-tool" onclick="window.location.href='worker-settings.html'">
+    <div class="row-card" onclick="window.location.href='worker-settings.html'">
       <div class="r-icon">⚙️</div>
       <div class="r-text">
         <div class="r-title">Settings</div>
@@ -3191,6 +3190,128 @@ async function loadWorkerEarnings(workerId) {
     }
   }
 
+  function getFirstAmount(record, keys) {
+    if (!record || typeof record !== "object") {
+      return null;
+    }
+
+    for (const key of keys) {
+      if (
+        record[key] !== null &&
+        record[key] !== undefined &&
+        String(record[key]).trim() !== ""
+      ) {
+        const numericAmount =
+          Number(record[key]);
+
+        if (!Number.isNaN(numericAmount)) {
+          return numericAmount;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  function calculateNetAmount(record) {
+    const directNet =
+      getFirstAmount(record, [
+        "worker_payout",
+        "net_amount",
+        "payout_amount",
+        "worker_pay",
+        "amount_earned",
+        "earnings_amount",
+        "worker_amount",
+        "net_worker_amount"
+      ]);
+
+    if (directNet !== null) {
+      return directNet;
+    }
+
+    const grossAmount =
+      getFirstAmount(record, [
+        "quote_amount",
+        "accepted_quote_amount",
+        "final_price",
+        "final_amount",
+        "task_amount",
+        "total_amount",
+        "amount",
+        "price",
+        "budget"
+      ]);
+
+    if (grossAmount === null) {
+      return 0;
+    }
+
+    return grossAmount * 0.85;
+  }
+
+  async function loadCompletedTaskFallback() {
+    const { data: completedTasks, error: completedTasksError } =
+      await supabaseClient
+        .from("tasks")
+        .select("*")
+        .or(
+          `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
+        )
+        .eq("status", "completed")
+        .eq("customer_completed", true);
+
+    if (completedTasksError || !completedTasks || completedTasks.length === 0) {
+      return 0;
+    }
+
+    const taskIds =
+      completedTasks
+        .map((task) => task.id)
+        .filter(Boolean);
+
+    let quoteMap = {};
+
+    if (taskIds.length > 0) {
+      const { data: acceptedQuotes } =
+        await supabaseClient
+          .from("worker_quotes")
+          .select("*")
+          .in("worker_id", workerIds)
+          .in("task_id", taskIds)
+          .in("status", [
+            "accepted",
+            "approved",
+            "completed",
+            "paid"
+          ]);
+
+      (acceptedQuotes || []).forEach((quote) => {
+        if (quote.task_id) {
+          quoteMap[String(quote.task_id)] = quote;
+        }
+      });
+    }
+
+    let fallbackTotal = 0;
+
+    completedTasks.forEach((task) => {
+      const relatedQuote =
+        quoteMap[String(task.id)] || null;
+
+      const amountFromQuote =
+        calculateNetAmount(relatedQuote);
+
+      const amountFromTask =
+        calculateNetAmount(task);
+
+      fallbackTotal +=
+        amountFromQuote > 0 ? amountFromQuote : amountFromTask;
+    });
+
+    return fallbackTotal;
+  }
+
   if (workerIds.length === 0) {
     setEarningsDisplay(0);
     return;
@@ -3202,36 +3323,26 @@ async function loadWorkerEarnings(workerId) {
       .select("*")
       .in("worker_id", workerIds);
 
-  if (error || !data) {
-    setEarningsDisplay(0);
-    return;
+  if (!error && data && data.length > 0) {
+    let total = 0;
+
+    data.forEach((item) => {
+      total += calculateNetAmount(item);
+    });
+
+    if (total > 0) {
+      setEarningsDisplay(total);
+      return;
+    }
   }
 
-  let total = 0;
+  const fallbackTotal =
+    await loadCompletedTaskFallback();
 
-  data.forEach((item) => {
-    const amount =
-      item.worker_payout ??
-      item.net_amount ??
-      item.payout_amount ??
-      item.worker_pay ??
-      item.amount_earned ??
-      item.earnings_amount ??
-      item.amount ??
-      item.total_amount ??
-      0;
-
-    const numericAmount =
-      Number(amount || 0);
-
-    if (!Number.isNaN(numericAmount)) {
-      total += numericAmount;
-    }
-  });
-
-  setEarningsDisplay(total);
+  setEarningsDisplay(fallbackTotal);
 
 }
+
 
 function formatScheduleTime(value) {
 

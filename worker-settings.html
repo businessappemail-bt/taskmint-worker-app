@@ -636,7 +636,7 @@
       <div class="toggle-row">
         <div>
           <div class="row-text">Pause Worker Profile</div>
-          <div class="row-sub">Hide your profile from new quote requests.</div>
+          <div class="row-sub">Stops customers from sending new direct quote requests.</div>
         </div>
         <label class="switch" aria-label="Pause Worker Profile">
           <input type="checkbox" id="pauseMode" onchange="markUnsaved()">
@@ -647,7 +647,7 @@
       <div class="toggle-row">
         <div>
           <div class="row-text">Profile Visible</div>
-          <div class="row-sub">Allow customers to view your public worker profile.</div>
+          <div class="row-sub">Show your profile in Browse Workers. Customers can still view your profile from quotes you send.</div>
         </div>
         <label class="switch" aria-label="Profile Visible">
           <input type="checkbox" id="profileVisible" checked onchange="markUnsaved()">
@@ -715,10 +715,10 @@
       <div class="toggle-row">
         <div>
           <div class="row-text">SMS Alerts</div>
-          <div class="row-sub">Receive urgent job and schedule updates by text.</div>
+          <div class="row-sub">Locked on for active job notifications.</div>
         </div>
         <label class="switch" aria-label="SMS Alerts">
-          <input type="checkbox" id="smsNotifications" onchange="markUnsaved()">
+          <input type="checkbox" id="smsNotifications" checked disabled>
           <span class="slider"></span>
         </label>
       </div>
@@ -904,7 +904,7 @@ async function loadSettings() {
       profile.email_notifications !== false;
 
     document.getElementById("smsNotifications").checked =
-      profile.sms_notifications === true;
+      true;
 
     document.getElementById("jobAlerts").checked =
       profile.job_alerts !== false;
@@ -948,7 +948,7 @@ async function saveSettings() {
       pause_mode: document.getElementById("pauseMode").checked,
       profile_visible: document.getElementById("profileVisible").checked,
       email_notifications: document.getElementById("emailNotifications").checked,
-      sms_notifications: document.getElementById("smsNotifications").checked,
+      sms_notifications: true,
       job_alerts: document.getElementById("jobAlerts").checked,
       account_type: "worker"
     });

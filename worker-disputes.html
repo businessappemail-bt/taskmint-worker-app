@@ -251,7 +251,7 @@ async function submitDispute(){
   if(containsBlockedWords(details)){status.style.color="#b00020";status.innerText="Please remove inappropriate language.";return;}
   try{
     const evidenceUrl=await uploadEvidence(evidenceFile);
-    const{error}=await supabaseClient.from("disputes").insert({task_id:taskId,worker_id:currentWorkerId,opened_by:"worker",reason,details,description:details,evidence_url:evidenceUrl,status:"open"});
+    const{error}=await supabaseClient.from("disputes").insert({task_id:taskId,worker_id:currentWorkerId,opened_by:currentWorkerId,reason,details,description:details,evidence_url:evidenceUrl,status:"open"});
     if(error) throw error;
     await supabaseClient.from("tasks").update({status:"dispute_open",dispute_status:"open",escrow_status:"disputed",updated_at:new Date().toISOString()}).eq("id",taskId);
     status.style.color="#0b7a28";

@@ -1622,22 +1622,33 @@ function getPillClass(status) {
   if (["approved"].includes(status)) {
     return "pill-approved";
   }
- 
+
   if (["paid", "completed"].includes(status)) {
     return "pill-paid";
   }
- 
+
   if (["denied", "failed", "rejected"].includes(status)) {
     return "pill-denied";
   }
- 
-  if (["requested", "processing"].includes(status)) {
+
+  if (["requested", "processing", "blocked"].includes(status)) {
     return "pill-processing";
   }
- 
+
   return "pill-pending";
 }
- 
+
+function getWorkerVisiblePayoutStatus(status, payoutSpeed) {
+  const normalizedStatus = String(status || "").toLowerCase();
+  const normalizedSpeed = String(payoutSpeed || "").toLowerCase();
+
+  if (normalizedStatus === "blocked" && normalizedSpeed === "instant") {
+    return "Processing — please wait 3–5 minutes";
+  }
+
+  return normalizedStatus.replaceAll("_", " ");
+}
+
 function renderPayoutRequests() {
   const list = document.getElementById("payoutRequestsList");
  
@@ -1695,11 +1706,13 @@ function renderPayoutRequests() {
 
     const note = status === "denied" || status === "failed" || status === "rejected"
       ? `Reason: ${cleanText(denialReason, "No reason listed")}`
-      : stripeReference
-        ? `Stripe reference: ${stripeReference}`
-        : payoutSpeed === "instant"
-          ? `Instant payout fee: ${money(feeAmount)}. Estimated payout after fee: ${money(netAmount)}.`
-          : "Free Friday payout. Stripe status will update after processing.";
+      : status === "blocked" && payoutSpeed === "instant"
+        ? `Processing — please wait 3–5 minutes. Instant payout fee: ${money(feeAmount)}. Estimated payout after fee: ${money(netAmount)}.`
+        : stripeReference
+          ? `Stripe reference: ${stripeReference}`
+          : payoutSpeed === "instant"
+            ? `Instant payout fee: ${money(feeAmount)}. Estimated payout after fee: ${money(netAmount)}.`
+            : "Free Friday payout. Stripe status will update after processing.";
  
     list.innerHTML += `
       <div class="request-card">
@@ -1714,7 +1727,7 @@ function renderPayoutRequests() {
           </div>
  
           <div class="status-pill ${getPillClass(status)}">
-            ${status.replaceAll("_", " ")}
+            ${escapeHTML(getWorkerVisiblePayoutStatus(status, payoutSpeed))}
           </div>
         </div>
  

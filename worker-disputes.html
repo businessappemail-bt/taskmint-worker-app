@@ -416,7 +416,7 @@ async function loadDisputeMessages(disputeId, containerId){
   const visible=data.filter(m=>{
     const vt=String(m.visible_to||"").toLowerCase();
     const sr=String(m.sender_role||m.sender_type||"").toLowerCase();
-    const isAdminToWorker = vt==="worker";
+    const isAdminToWorker = vt==="worker" && sr!=="worker";
     const isWorkerMessage = sr==="worker";
     return isAdminToWorker || isWorkerMessage;
   });
@@ -458,31 +458,21 @@ async function sendWorkerReply(disputeId){
   const insertPayload = {
     dispute_id: disputeId,
     sender_type: "worker",
-    visible_to: "admin",
+    sender_role: "worker",
+    sender_id: currentUser.id,
+    visible_to: "worker",
     message: message,
-    is_read: false
+    is_read: false,
+    created_at: new Date().toISOString()
   };
-  // Add optional columns — Supabase will ignore unknown ones only if schema allows
-  // sender_role and sender_id require the SQL migration to have been run
-  try { insertPayload.sender_role = "worker"; } catch(e){}
-  try { insertPayload.sender_id   = currentWorkerId; } catch(e){}
 
   const{error}=await supabaseClient.from("dispute_messages").insert(insertPayload);
 
   if(error){
     if(status){
       status.style.color="#b00020";
-      // If sender_role column missing, retry without it
-      if(error.message&&(error.message.includes("sender_role")||error.message.includes("sender_id"))){
-        const{error:e2}=await supabaseClient.from("dispute_messages").insert({
-          dispute_id:disputeId,sender_type:"worker",visible_to:"admin",message,is_read:false
-        });
-        if(e2){status.innerText=e2.message;return;}
-        // success on retry
-      } else {
-        status.innerText=error.message;
-        return;
-      }
+      status.innerText=error.message;
+      return;
     } else { return; }
   }
 
@@ -499,4 +489,3 @@ async function sendWorkerReply(disputeId){
 init();
 </script>
 </body>
-</html>

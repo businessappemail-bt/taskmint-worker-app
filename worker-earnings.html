@@ -1681,10 +1681,13 @@ async function requestPayout(payoutSpeed) {
   const selectedSpeed = payoutSpeed === "instant" ? "instant" : "standard";
   const button = selectedSpeed === "instant" ? instantButton : standardButton;
   const originalText = button ? button.innerText : "";
-  const feeAmount = selectedSpeed === "instant"
+  const instantFeeAmount = selectedSpeed === "instant"
     ? calculateInstantFee(availableBalance)
     : 0;
-  const netAmount = Math.max(availableBalance - feeAmount, 0);
+  const taskmintGrossAmount = Number((availableBalance / (1 - TASKMINT_SERVICE_FEE_RATE)).toFixed(2));
+  const taskmintFeeAmount = Number((taskmintGrossAmount - availableBalance).toFixed(2));
+  const feeAmount = instantFeeAmount;
+  const netAmount = Math.max(availableBalance - instantFeeAmount, 0);
 
   if (availableBalance <= 0) {
     setActionMessage("No available balance to request.", "#b00020");
@@ -1698,7 +1701,7 @@ async function requestPayout(payoutSpeed) {
 
   const confirmMessage =
     selectedSpeed === "instant"
-      ? `Request instant payout for ${money(availableBalance)}? Instant fee: ${money(feeAmount)}. You receive: ${money(netAmount)}.`
+      ? `Request instant payout for ${money(availableBalance)}? Instant fee: ${money(instantFeeAmount)}. You receive: ${money(netAmount)}.`
       : `Request free Friday payout for ${money(availableBalance)}?`;
 
   const confirmed = confirm(confirmMessage);
@@ -1729,8 +1732,15 @@ async function requestPayout(payoutSpeed) {
           worker_id: currentWorkerId,
           worker_email: currentUser.email,
           amount: availableBalance,
+          gross_amount: taskmintGrossAmount,
+          platform_fee: taskmintFeeAmount,
+          taskmint_fee: taskmintFeeAmount,
+          taskmint_fee_amount: taskmintFeeAmount,
+          instant_fee: instantFeeAmount,
           payout_speed: selectedSpeed,
-          fee_amount: feeAmount,
+          payout_type: selectedSpeed === "instant" ? "instant" : "friday",
+          payment_type: selectedSpeed === "instant" ? "instant" : "free_friday",
+          fee_amount: instantFeeAmount,
           net_amount: netAmount,
           status: "requested",
           requested_at: new Date().toISOString(),
@@ -1764,8 +1774,12 @@ async function requestPayout(payoutSpeed) {
           worker_id: currentWorkerId,
           payout_request_id: requestRow.id,
           amount: availableBalance,
+          gross_amount: taskmintGrossAmount,
+          taskmint_fee_amount: taskmintFeeAmount,
+          taskmint_fee: taskmintFeeAmount,
+          instant_fee: instantFeeAmount,
           payout_speed: selectedSpeed,
-          fee_amount: feeAmount,
+          fee_amount: instantFeeAmount,
           net_amount: netAmount
         })
       }

@@ -158,6 +158,7 @@ function money(v){ return "$"+(Number(v||0)).toFixed(2); }
 function containsBlockedWords(t){ return blockedWords.some(w=>t.toLowerCase().includes(w)); }
 
 function getDisputeDetails(d){ return d.details||d.description||d.additional_notes||""; }
+function getMessageText(m){ return m.message || m.body || m.content || m.text || m.note || ""; }
 function getDisputeOrderNumber(d){
   return d.order_number||d.task_order_number||selectedOrderNumber||
     (d.task_id?"TM-"+String(d.task_id).slice(0,8).toUpperCase():"Not linked");
@@ -418,7 +419,7 @@ async function loadDisputeMessages(disputeId, containerId){
   const visible=data.filter(m=>{
     const vt=String(m.visible_to||"").toLowerCase();
     const sr=String(m.sender_role||m.sender_type||"").toLowerCase();
-    return vt==="worker" || sr==="worker";
+    return vt==="worker" || vt==="workers" || vt==="worker_app" || vt==="worker_only" || sr==="worker";
   });
 
   if(!visible.length){container.innerHTML="<div class='small-text'>No messages yet. TaskMint will respond within 7 days.</div>";return;}
@@ -433,14 +434,19 @@ async function loadDisputeMessages(disputeId, containerId){
     container.innerHTML+=`
       <div class="msg-item ${fromClass}">
         <div class="msg-sender ${senderClass}">${senderLabel}</div>
-        <div>${esc(msg.message||"")}</div>
+        <div>${esc(getMessageText(msg))}</div>
         ${msg.attachment_url?`<a href="${esc(msg.attachment_url)}" target="_blank" style="color:var(--accent);font-size:12px;">View attachment ↗</a>`:""}
         <div class="msg-time">${formatDateTime(msg.created_at)}</div>
       </div>`;
   });
 
   // Mark admin messages as read
-  await supabaseClient.from("dispute_messages").update({is_read:true}).eq("dispute_id",disputeId).in("visible_to",["worker"]).neq("sender_type","worker");
+  await supabaseClient
+    .from("dispute_messages")
+    .update({is_read:true})
+    .eq("dispute_id",disputeId)
+    .in("visible_to",["worker","workers","worker_app","worker_only"])
+    .neq("sender_type","worker");
   unreadDisputeIds.delete(String(disputeId));
 }
 

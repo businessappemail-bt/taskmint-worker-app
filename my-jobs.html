@@ -953,7 +953,7 @@ function getWorkerCompleteSection(job) {
   const status = getCombinedJobStatus(task, quote, assignment);
   if (["paid", "completed"].includes(status)) return "";
   if (status === "worker_completed") {
-    return `<button class="secondary full" disabled>Waiting for Customer Completion</button>`;
+    return `<button class="secondary full" disabled>Waiting on Customer</button>`;
   }
 
   if (canMarkWorkerComplete(task, quote, assignment)) {

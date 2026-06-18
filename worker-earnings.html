@@ -747,6 +747,7 @@ let earningsHistory = [];
 
 const INSTANT_PAYOUT_FEE_RATE = 0.015;
 const INSTANT_PAYOUT_MIN_FEE = 1.00;
+const TASKMINT_SERVICE_FEE_RATE = 0.15;
  
 function money(value) {
   const amount = Number(value || 0);
@@ -1187,34 +1188,231 @@ function updatePayoutButtons() {
   }
 }
  
+
+function getNumericFirstAvailable(record, keys, fallback = 0) {
+  const rawValue =
+    getFirstAvailable(record, keys, fallback);
+
+  const numericValue =
+    Number(rawValue || 0);
+
+  return Number.isNaN(numericValue)
+    ? Number(fallback || 0)
+    : numericValue;
+}
+
+function getCompletedTaskDate(task) {
+  return getFirstAvailable(task, [
+    "completed_at",
+    "customer_completed_at",
+    "task_completed_at",
+    "completion_date",
+    "completed_date",
+    "updated_at",
+    "created_at"
+  ], "");
+}
+
+function getCompletedTaskTitle(task) {
+  return cleanText(
+    getFirstAvailable(task, [
+      "title",
+      "task_title",
+      "job_title",
+      "category",
+      "service_type"
+    ], "Completed Task"),
+    "Completed Task"
+  );
+}
+
+function getCompletedTaskType(task) {
+  return cleanText(
+    getFirstAvailable(task, [
+      "category",
+      "task_category",
+      "service_type",
+      "job_type",
+      "type"
+    ], "Task"),
+    "Task"
+  );
+}
+
+function getGrossTaskAmount(task, quote) {
+  return getNumericFirstAvailable(quote, [
+    "worker_payout",
+    "worker_pay",
+    "net_payout",
+    "quote_amount",
+    "amount",
+    "total_amount",
+    "price",
+    "accepted_amount"
+  ], 0) ||
+  getNumericFirstAvailable(task, [
+    "worker_payout",
+    "worker_pay",
+    "worker_payout_amount",
+    "quote_amount",
+    "accepted_amount",
+    "task_amount",
+    "amount_paid",
+    "paid_amount",
+    "amount",
+    "price",
+    "total_amount"
+  ], 0);
+}
+
+function getNetWorkerAmount(task, quote) {
+  const directWorkerAmount =
+    getNumericFirstAvailable(quote, [
+      "worker_payout",
+      "worker_pay",
+      "net_payout"
+    ], 0) ||
+    getNumericFirstAvailable(task, [
+      "worker_payout",
+      "worker_pay",
+      "worker_payout_amount",
+      "net_payout"
+    ], 0);
+
+  if (directWorkerAmount > 0) {
+    return directWorkerAmount;
+  }
+
+  const grossAmount =
+    getGrossTaskAmount(task, quote);
+
+  if (grossAmount <= 0) {
+    return 0;
+  }
+
+  return Number((grossAmount * (1 - TASKMINT_SERVICE_FEE_RATE)).toFixed(2));
+}
+
+async function loadCompletedTaskDerivedEarnings(existingTaskIds = []) {
+  if (!currentWorkerIds || currentWorkerIds.length === 0) {
+    return [];
+  }
+
+  const { data: completedTasks, error: taskError } =
+    await supabaseClient
+      .from("tasks")
+      .select("*")
+      .or(
+        `worker_id.in.(${currentWorkerIds.join(",")}),accepted_worker_id.in.(${currentWorkerIds.join(",")}),assigned_worker_id.in.(${currentWorkerIds.join(",")})`
+      )
+      .eq("status", "completed")
+      .eq("customer_completed", true);
+
+  if (taskError || !completedTasks || completedTasks.length === 0) {
+    return [];
+  }
+
+  const existingTaskIdSet =
+    new Set(
+      (existingTaskIds || [])
+        .filter(Boolean)
+        .map(String)
+    );
+
+  const taskIds =
+    completedTasks
+      .map((task) => task.id)
+      .filter(Boolean)
+      .map(String);
+
+  const quoteMap = {};
+
+  if (taskIds.length > 0) {
+    const { data: quoteRows } =
+      await supabaseClient
+        .from("worker_quotes")
+        .select("*")
+        .in("task_id", taskIds)
+        .in("worker_id", currentWorkerIds);
+
+    (quoteRows || []).forEach((quote) => {
+      if (quote.task_id) {
+        quoteMap[String(quote.task_id)] = quote;
+      }
+    });
+  }
+
+  return completedTasks
+    .filter((task) => task.id && !existingTaskIdSet.has(String(task.id)))
+    .map((task) => {
+      const quote =
+        quoteMap[String(task.id)] || null;
+
+      const grossAmount =
+        getGrossTaskAmount(task, quote);
+
+      const workerAmount =
+        getNetWorkerAmount(task, quote);
+
+      return {
+        id: `completed-task-${task.id}`,
+        task_id: task.id,
+        worker_id: currentWorkerId || currentWorkerIds[0],
+        task_title: getCompletedTaskTitle(task),
+        task_type: getCompletedTaskType(task),
+        category: getCompletedTaskType(task),
+        gross_amount: grossAmount,
+        taskmint_fee: Number((grossAmount - workerAmount).toFixed(2)),
+        amount: workerAmount,
+        worker_payout: workerAmount,
+        payout_status: "available",
+        status: "available",
+        completed_at: getCompletedTaskDate(task),
+        created_at: getCompletedTaskDate(task),
+        source_type: "completed_task"
+      };
+    })
+    .filter((row) => Number(row.amount || 0) > 0);
+}
+
 async function loadAvailableBalance() {
   const { data, error } =
     await supabaseClient
       .from("worker_earnings")
       .select("*")
       .in("worker_id", currentWorkerIds);
- 
-  if (error || !data) {
-    availableBalance = 0;
-    document.getElementById("availableBalance").innerText = money(0);
-    document.getElementById("balanceSubtext").innerText =
-      "No available earnings found yet.";
-    updatePayoutButtons();
-    return;
-  }
- 
-  availableBalance = data
+
+  const earningsRows =
+    error || !data
+      ? []
+      : data;
+
+  const existingTaskIds =
+    earningsRows
+      .map(row => row.task_id || row.job_id || row.assignment_id)
+      .filter(Boolean);
+
+  const derivedRows =
+    await loadCompletedTaskDerivedEarnings(existingTaskIds);
+
+  const allRows =
+    [
+      ...earningsRows,
+      ...derivedRows
+    ];
+
+  availableBalance = allRows
     .filter(row => isAvailableEarning(row))
     .reduce((total, row) => total + getEarningAmount(row), 0);
- 
+
   document.getElementById("availableBalance").innerText =
     money(availableBalance);
- 
+
   document.getElementById("balanceSubtext").innerText =
     availableBalance > 0
       ? "You can request this available amount for payout."
       : "Completed and released jobs will show here.";
- 
+
   updatePayoutButtons();
 }
 
@@ -1228,8 +1426,26 @@ async function loadEarningsHistory() {
       .in("worker_id", currentWorkerIds)
       .order("created_at", { ascending: false });
 
-  if (error || !data) {
-    earningsHistory = [];
+  const earningsRows =
+    error || !data
+      ? []
+      : data;
+
+  const existingTaskIds =
+    earningsRows
+      .map(row => row.task_id || row.job_id || row.assignment_id)
+      .filter(Boolean);
+
+  const derivedRows =
+    await loadCompletedTaskDerivedEarnings(existingTaskIds);
+
+  earningsHistory =
+    [
+      ...earningsRows,
+      ...derivedRows
+    ];
+
+  if (!earningsHistory || earningsHistory.length === 0) {
     list.innerHTML = `
       <div class="empty">
         No earnings history found yet.
@@ -1238,11 +1454,10 @@ async function loadEarningsHistory() {
     return;
   }
 
-  earningsHistory = data;
   populateEarningsTypeFilter();
   renderEarningsHistory();
 }
- 
+
 function requestAmount(row) {
   return Number(
     getFirstAvailable(row, [

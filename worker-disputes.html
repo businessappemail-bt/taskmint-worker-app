@@ -158,7 +158,6 @@ function money(v){ return "$"+(Number(v||0)).toFixed(2); }
 function containsBlockedWords(t){ return blockedWords.some(w=>t.toLowerCase().includes(w)); }
 
 function getDisputeDetails(d){ return d.details||d.description||d.additional_notes||""; }
-function getMessageText(m){ return m.message || m.body || m.content || m.text || m.note || ""; }
 function getDisputeOrderNumber(d){
   return d.order_number||d.task_order_number||selectedOrderNumber||
     (d.task_id?"TM-"+String(d.task_id).slice(0,8).toUpperCase():"Not linked");
@@ -413,13 +412,13 @@ async function loadDisputeMessages(disputeId, containerId){
 
   if(error||!data){container.innerHTML="<div class='small-text'>Unable to load messages.</div>";return;}
 
-  // Filter to messages worker should see:
-  // - visible_to = "worker" (admin sent to worker)
-  // - sender_type/role = "worker" (worker's own messages back)
+  // Show: admin→worker messages (visible_to="worker") + worker's own replies (sender_type="worker")
   const visible=data.filter(m=>{
     const vt=String(m.visible_to||"").toLowerCase();
     const sr=String(m.sender_role||m.sender_type||"").toLowerCase();
-    return vt==="worker" || vt==="workers" || vt==="worker_app" || vt==="worker_only" || sr==="worker";
+    const isAdminToWorker = vt==="worker";
+    const isWorkerMessage = sr==="worker";
+    return isAdminToWorker || isWorkerMessage;
   });
 
   if(!visible.length){container.innerHTML="<div class='small-text'>No messages yet. TaskMint will respond within 7 days.</div>";return;}
@@ -427,26 +426,22 @@ async function loadDisputeMessages(disputeId, containerId){
   container.innerHTML="";
   visible.forEach(msg=>{
     const sr=String(msg.sender_role||msg.sender_type||"").toLowerCase();
-    const isAdmin=sr==="admin"||sr==="taskmint";
+    const isAdmin=sr==="admin"||sr==="taskmint"||sr==="";
     const fromClass=isAdmin?"from-admin":"from-worker";
     const senderClass=isAdmin?"admin-sender":"worker-sender";
     const senderLabel=isAdmin?"TaskMint Support":"You";
+    const msgText=msg.message||msg.body||msg.content||msg.text||"";
     container.innerHTML+=`
       <div class="msg-item ${fromClass}">
         <div class="msg-sender ${senderClass}">${senderLabel}</div>
-        <div>${esc(getMessageText(msg))}</div>
+        <div>${esc(msgText)}</div>
         ${msg.attachment_url?`<a href="${esc(msg.attachment_url)}" target="_blank" style="color:var(--accent);font-size:12px;">View attachment ↗</a>`:""}
         <div class="msg-time">${formatDateTime(msg.created_at)}</div>
       </div>`;
   });
 
-  // Mark admin messages as read
-  await supabaseClient
-    .from("dispute_messages")
-    .update({is_read:true})
-    .eq("dispute_id",disputeId)
-    .in("visible_to",["worker","workers","worker_app","worker_only"])
-    .neq("sender_type","worker");
+  // Mark admin→worker messages as read
+  await supabaseClient.from("dispute_messages").update({is_read:true}).eq("dispute_id",disputeId).eq("visible_to","worker");
   unreadDisputeIds.delete(String(disputeId));
 }
 
@@ -459,18 +454,37 @@ async function sendWorkerReply(disputeId){
   if(containsBlockedWords(message)){if(status){status.style.color="#b00020";status.innerText="Please remove inappropriate language.";}return;}
   if(status){status.style.color="#666";status.innerText="Sending...";}
 
-  const{error}=await supabaseClient.from("dispute_messages").insert({
-    dispute_id:disputeId,
-    sender_type:"worker",
-    sender_role:"worker",
-    sender_id:currentWorkerId,
-    visible_to:"admin",   // goes to admin queue
-    message,
-    is_read:false,
-    created_at:new Date().toISOString()
-  });
+  // Build insert — only include columns that definitely exist
+  const insertPayload = {
+    dispute_id: disputeId,
+    sender_type: "worker",
+    visible_to: "admin",
+    message: message,
+    is_read: false
+  };
+  // Add optional columns — Supabase will ignore unknown ones only if schema allows
+  // sender_role and sender_id require the SQL migration to have been run
+  try { insertPayload.sender_role = "worker"; } catch(e){}
+  try { insertPayload.sender_id   = currentWorkerId; } catch(e){}
 
-  if(error){if(status){status.style.color="#b00020";status.innerText=error.message;}return;}
+  const{error}=await supabaseClient.from("dispute_messages").insert(insertPayload);
+
+  if(error){
+    if(status){
+      status.style.color="#b00020";
+      // If sender_role column missing, retry without it
+      if(error.message&&(error.message.includes("sender_role")||error.message.includes("sender_id"))){
+        const{error:e2}=await supabaseClient.from("dispute_messages").insert({
+          dispute_id:disputeId,sender_type:"worker",visible_to:"admin",message,is_read:false
+        });
+        if(e2){status.innerText=e2.message;return;}
+        // success on retry
+      } else {
+        status.innerText=error.message;
+        return;
+      }
+    } else { return; }
+  }
 
   // Update dispute updated_at so admin sees new activity
   await supabaseClient.from("disputes").update({updated_at:new Date().toISOString()}).eq("id",disputeId);
@@ -478,7 +492,7 @@ async function sendWorkerReply(disputeId){
   input.value="";
   if(status){status.style.color="#0b7a28";status.innerText="Reply sent to TaskMint support.";}
 
-  // Reload messages so worker sees their own reply in the thread
+  // Reload messages so worker sees their own reply appear immediately
   await loadDisputeMessages(disputeId,`messages-${disputeId}`);
 }
 

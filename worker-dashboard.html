@@ -2186,10 +2186,24 @@
     <div id="earningsAmount">$0.00</div>
     <div id="completedTasks">0</div>
     <div id="ratingScore">0.0</div>
-    <div id="pendingQuotes">0</div>
-    <div id="pendingQuotesCard"></div>
-    <div id="pendingQuotesList"></div>
   </div>
+
+  <!-- PENDING QUOTES -->
+  <div class="section-header" id="pendingQuotesSection">
+    <div class="section-label" style="margin:0;">Pending Quotes</div>
+    <span class="section-link" onclick="window.location.href='view-pending-quotes.html'">View All</span>
+  </div>
+
+  <div
+    id="pendingQuotesCard"
+    class="next-task-empty"
+    onclick="window.location.href='view-pending-quotes.html'"
+    style="cursor:pointer;">
+    Loading pending quotes...
+  </div>
+
+  <div id="pendingQuotesList" style="display:none;"></div>
+  <div id="pendingQuotes" style="display:none;">0</div>
 
   <!-- QUICK ACTIONS -->
   <div class="section-label" id="quickActionsSection">Quick Actions</div>
@@ -2644,7 +2658,7 @@ async function loadPendingQuotesByEmail(email) {
 
   const { data: workerProfile } =
     await supabaseClient
-      .from("workers")
+      .from("worker_profiles")
       .select("id")
       .eq("email", email)
       .maybeSingle();
@@ -2657,7 +2671,7 @@ async function loadPendingQuotesByEmail(email) {
     [...new Set(workerIds.filter(Boolean).map(String))];
 
   if (uniqueWorkerIds.length === 0) {
-    container.innerHTML = `
+    document.getElementById("pendingQuotesCard").innerHTML = `
       <div class="small-text">
         Worker record not found for pending quotes.
       </div>
@@ -2674,7 +2688,7 @@ async function loadPendingQuotesByEmail(email) {
       .order("created_at", { ascending: false });
 
   if (error) {
-    container.innerHTML = `
+    document.getElementById("pendingQuotesCard").innerHTML = `
       <div class="small-text">
         Error loading quotes.
       </div>
@@ -2686,16 +2700,27 @@ async function loadPendingQuotesByEmail(email) {
     pendingQuotesCount.innerText =
       "0";
 
-    container.innerHTML = `
+    document.getElementById("pendingQuotesCard").innerHTML = `
       <div class="small-text">
         No pending quotes yet. Browse available tasks to send your next quote.
       </div>
     `;
+
+    container.innerHTML = "";
     return;
   }
 
   pendingQuotesCount.innerText =
     quotes.length;
+
+  document.getElementById("pendingQuotesCard").innerHTML = `
+    <div class="next-task-mini-title">
+      ${quotes.length} pending quote${quotes.length === 1 ? "" : "s"}
+    </div>
+    <div class="next-task-mini-meta">
+      Quotes waiting on customer action. Tap to view, manage, or cancel pending quotes.
+    </div>
+  `;
 
   container.innerHTML = "";
 

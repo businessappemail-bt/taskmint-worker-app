@@ -603,6 +603,12 @@
       <div class="quick-sub">Manage where payouts are sent.</div>
     </div>
 
+    <div class="quick-card" onclick="goTo('worker-verification.html')" data-search="verification status approval background check id documents">
+      <div class="quick-icon">✅</div>
+      <div class="quick-title">Verification Status</div>
+      <div class="quick-sub">View ID, approval, and background check status.</div>
+    </div>
+
     <div class="quick-card" onclick="goTo('worker-support.html')" data-search="support help contact disputes account issues">
       <div class="quick-icon">❓</div>
       <div class="quick-title">Support</div>
@@ -612,45 +618,6 @@
 
   <div class="no-results" id="noResults">
     No settings match that search.
-  </div>
-
-  <div class="card settings-section" data-search="account edit profile verification approval background check photo experience services service area">
-    <button class="section-header" type="button" onclick="toggleSection(this)">
-      <div class="section-left">
-        <div class="section-icon">👤</div>
-        <div>
-          <div class="section-title">Account</div>
-          <div class="section-sub">Profile details and verification status.</div>
-        </div>
-      </div>
-      <div class="chevron">⌄</div>
-    </button>
-
-    <div class="section-body">
-      <div class="row" onclick="goTo('worker-profile-edit.html')">
-        <div>
-          <div class="row-text">Edit Profile</div>
-          <div class="row-sub">Update photo, experience, services, and service area.</div>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-
-      <div class="row" onclick="viewPublicProfile()">
-        <div>
-          <div class="row-text">View Public Profile</div>
-          <div class="row-sub">Preview the profile customers see before choosing you.</div>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-
-      <div class="row" onclick="goTo('worker-verification.html')">
-        <div>
-          <div class="row-text">Verification Status</div>
-          <div class="row-sub">View ID, approval, and background check status.</div>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-    </div>
   </div>
 
   <div class="card settings-section" data-search="work preferences availability schedule pause worker profile visible hide public profile">
@@ -666,14 +633,6 @@
     </button>
 
     <div class="section-body">
-      <div class="row" onclick="goTo('worker-availability.html')">
-        <div>
-          <div class="row-text">Availability Schedule</div>
-          <div class="row-sub">Set working days, times, and blocked dates.</div>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-
       <div class="toggle-row">
         <div>
           <div class="row-text">Pause Worker Profile</div>
@@ -711,22 +670,6 @@
     </button>
 
     <div class="section-body">
-      <div class="row" onclick="goTo('worker-payout-info.html')">
-        <div>
-          <div class="row-text">Payout Information</div>
-          <div class="row-sub">Update ACH or debit card payout setup.</div>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-
-      <div class="row" onclick="goTo('worker-payout-status.html')">
-        <div>
-          <div class="row-text">Payout Status</div>
-          <div class="row-sub">Track pending, processing, and paid payouts.</div>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-
       <div class="row" onclick="goTo('worker-earnings.html')">
         <div>
           <div class="row-text">Earnings History</div>
@@ -806,14 +749,6 @@
     </button>
 
     <div class="section-body">
-      <div class="row" onclick="goTo('worker-disputes.html')">
-        <div>
-          <div class="row-text">Dispute Center</div>
-          <div class="row-sub">View or respond to job-related disputes.</div>
-        </div>
-        <div class="arrow">›</div>
-      </div>
-
       <div class="row" onclick="goTo('worker-blocked-customers.html')">
         <div>
           <div class="row-text">Blocked Customers</div>

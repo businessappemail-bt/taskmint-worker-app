@@ -3510,14 +3510,35 @@ function dashboardEscapeHTML(value) {
 
 }
 
-function getTaskDateDisplay(value) {
+function getTaskDateDisplay(value, task = null, quote = null) {
 
-  if (isFlexibleScheduleValue(value)) {
+  let displayValue =
+    value;
+
+  if (isFlexibleScheduleValue(displayValue) && (task || quote)) {
+    displayValue =
+      getFirstScheduledValue([quote, task], [
+        "confirmed_date",
+        "confirmedDate",
+        "scheduled_start",
+        "scheduledStart",
+        "scheduled_at",
+        "scheduledAt",
+        "scheduled_date",
+        "task_date",
+        "date_needed",
+        "needed_by",
+        "due_date",
+        "date"
+      ]);
+  }
+
+  if (isFlexibleScheduleValue(displayValue)) {
     return "Date not set";
   }
 
   const rawValue =
-    String(value).trim();
+    String(displayValue).trim();
 
   const match =
     rawValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -3573,29 +3594,112 @@ function getTaskCityState(task) {
 
 function getWorkerPayAmount(task, quote) {
 
-  const amount =
+  const directWorkerAmount =
     quote?.worker_payout ||
     quote?.worker_pay ||
-    quote?.quote_amount ||
-    quote?.amount ||
-    quote?.total_amount ||
+    quote?.net_payout ||
+    quote?.worker_amount ||
     task?.worker_payout ||
     task?.worker_pay ||
+    task?.worker_payout_amount ||
+    task?.net_payout ||
+    task?.worker_amount ||
+    0;
+
+  const directNumericAmount =
+    Number(directWorkerAmount || 0);
+
+  if (!Number.isNaN(directNumericAmount) && directNumericAmount > 0) {
+    return `$${directNumericAmount.toFixed(2)}`;
+  }
+
+  const grossAmount =
+    quote?.quote_amount ||
+    quote?.accepted_quote_amount ||
+    quote?.amount ||
+    quote?.total_amount ||
+    quote?.price ||
     task?.quote_amount ||
+    task?.accepted_amount ||
     task?.task_amount ||
     task?.amount_paid ||
     task?.paid_amount ||
     task?.amount ||
+    task?.total_amount ||
+    task?.price ||
+    0;
+
+  const grossNumericAmount =
+    Number(grossAmount || 0);
+
+  if (Number.isNaN(grossNumericAmount)) {
+    return String(grossAmount || "$0.00");
+  }
+
+  const workerNetAmount =
+    grossNumericAmount * 0.85;
+
+  return `$${workerNetAmount.toFixed(2)}`;
+
+}
+
+function getTaskGrossAmount(task, quote) {
+
+  const amount =
+    quote?.quote_amount ||
+    quote?.accepted_quote_amount ||
+    quote?.amount ||
+    quote?.total_amount ||
+    quote?.price ||
+    task?.quote_amount ||
+    task?.accepted_amount ||
+    task?.task_amount ||
+    task?.amount_paid ||
+    task?.paid_amount ||
+    task?.amount ||
+    task?.total_amount ||
+    task?.price ||
     0;
 
   const numericAmount =
     Number(amount || 0);
 
-  if (Number.isNaN(numericAmount)) {
-    return String(amount || "$0.00");
-  }
+  return Number.isNaN(numericAmount) ? 0 : numericAmount;
 
-  return `$${numericAmount.toFixed(2)}`;
+}
+
+function getWorkerPayBreakdown(task, quote) {
+
+  const grossAmount =
+    getTaskGrossAmount(task, quote);
+
+  const workerPayText =
+    getWorkerPayAmount(task, quote);
+
+  const workerPayAmount =
+    Number(String(workerPayText).replace(/[^0-9.-]/g, "")) || 0;
+
+  const taskmintFee =
+    Math.max(grossAmount - workerPayAmount, 0);
+
+  return {
+    grossAmount,
+    taskmintFee,
+    workerPayAmount
+  };
+
+}
+
+function saveAcceptedJobBreakdown(task, quote) {
+
+  const breakdown =
+    getWorkerPayBreakdown(task, quote);
+
+  localStorage.setItem("selectedTaskId", task?.id || quote?.task_id || "");
+  localStorage.setItem("selectedAcceptedTaskId", task?.id || quote?.task_id || "");
+  localStorage.setItem("selectedAcceptedTaskGrossAmount", String(breakdown.grossAmount));
+  localStorage.setItem("selectedAcceptedTaskTaskmintFee", String(breakdown.taskmintFee));
+  localStorage.setItem("selectedAcceptedTaskWorkerPay", String(breakdown.workerPayAmount));
 
 }
 
@@ -3754,7 +3858,7 @@ function renderNextAcceptedTask(jobs) {
     );
 
   const dateDisplay =
-    getTaskDateDisplay(scheduleValue);
+    getTaskDateDisplay(scheduleValue, task, quote);
 
   const timeDisplay =
     formatScheduleTime(getTaskScheduleTime(task, quote) || scheduleValue);
@@ -3793,11 +3897,11 @@ function renderNextAcceptedTask(jobs) {
               );
 
             return `
-              <div class="next-task-mini" onclick="window.location.href='my-jobs.html'">
+              <div class="next-task-mini" onclick="saveAcceptedJobBreakdown(miniTask, miniQuote); window.location.href='my-jobs.html'">
                 <div>
                   <div class="next-task-mini-title">${dashboardEscapeHTML(getTaskTitle(miniTask))}</div>
                   <div class="next-task-mini-meta">
-                    ${dashboardEscapeHTML(getTaskDateDisplay(miniSchedule))} • ${dashboardEscapeHTML(formatScheduleTime(getTaskScheduleTime(miniTask, miniQuote) || miniSchedule))}<br>
+                    ${dashboardEscapeHTML(getTaskDateDisplay(miniSchedule, miniTask, miniQuote))} • ${dashboardEscapeHTML(formatScheduleTime(getTaskScheduleTime(miniTask, miniQuote) || miniSchedule))}<br>
                     ${dashboardEscapeHTML(getTaskCityState(miniTask))} • ${dashboardEscapeHTML(miniCustomer)}
                   </div>
                 </div>
@@ -3850,7 +3954,7 @@ function renderNextAcceptedTask(jobs) {
     </div>
 
     <div class="next-task-actions">
-      <button type="button" onclick="window.location.href='my-jobs.html'">
+      <button type="button" onclick="saveAcceptedJobBreakdown(task, quote); window.location.href='my-jobs.html'">
         Open My Jobs
       </button>
 
@@ -4221,12 +4325,12 @@ async function loadTodaySchedule(workerId) {
     const task = job.task;
     const quote = job.quote;
     const scheduleValue = getTaskScheduleDate(task, quote);
-    const date = getTaskDateDisplay(scheduleValue);
+    const date = getTaskDateDisplay(scheduleValue, task, quote);
     const time = formatScheduleTime(getTaskScheduleTime(task, quote) || scheduleValue);
     const payAmount = getWorkerPayAmount(task, quote);
 
     container.innerHTML += `
-      <div class="schedule-card" onclick="window.location.href='my-jobs.html'">
+      <div class="schedule-card" onclick="saveAcceptedJobBreakdown(task, quote); window.location.href='my-jobs.html'">
         <div class="schedule-title">
           ${dashboardEscapeHTML(getTaskTitle(task))}
         </div>

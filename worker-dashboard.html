@@ -3324,13 +3324,13 @@ async function loadWorkerEarnings(workerId) {
       return 0;
     }
 
-    const inactiveStatuses = [
-      "denied",
-      "failed",
-      "rejected",
-      "blocked",
-      "cancelled",
-      "canceled"
+    const reservedStatuses = [
+      "requested",
+      "pending",
+      "processing",
+      "approved",
+      "flagged",
+      "blocked"
     ];
 
     return payoutRows.reduce((total, payout) => {
@@ -3338,10 +3338,10 @@ async function loadWorkerEarnings(workerId) {
         payout.status ||
         payout.payout_status ||
         payout.request_status ||
-        "requested"
+        ""
       ).toLowerCase();
 
-      if (inactiveStatuses.includes(status)) {
+      if (!reservedStatuses.includes(status)) {
         return total;
       }
 

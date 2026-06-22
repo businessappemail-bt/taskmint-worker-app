@@ -329,15 +329,15 @@ function renderDisputes(container,disputes,allowReplies){
     const closedStatuses=["resolved","rejected","closed","cancelled"];
     if(closedStatuses.includes(s)){
       const cls=s==="resolved"?"outcome-resolved":s==="rejected"?"outcome-rejected":"outcome-closed";
-      const closedBy=dispute.closed_by_email||dispute.resolved_by_email||"";
       const closedAt=dispute.closed_at||dispute.resolved_at||dispute.updated_at||"";
+      const closeReason=dispute.resolution_note||dispute.closed_reason||"";
       const paymentAction=dispute.admin_payment_action?"Payment: "+dispute.admin_payment_action.replaceAll("_"," "):"";
       const custRefund=dispute.admin_payment_amount_customer>0?` · Customer refund: ${money(dispute.admin_payment_amount_customer)}`:"";
       const wrkPayout=dispute.admin_payment_amount_worker>0?` · Worker payout: ${money(dispute.admin_payment_amount_worker)}`:"";
       outcomeBanner=`<div class="outcome-banner ${cls}">
         <strong>${s.charAt(0).toUpperCase()+s.slice(1)}</strong>${paymentAction?` · ${paymentAction}`:""}${custRefund}${wrkPayout}
-        ${closedBy?`<br>Closed by: ${esc(closedBy)}`:""}${closedAt?` · ${formatDate(closedAt)}`:""}
-        ${dispute.resolution_note?`<br>${esc(dispute.resolution_note)}`:""}
+        <br>Closed by: TaskMint admin${closedAt?` · ${formatDate(closedAt)}`:""}
+        ${closeReason?`<br>${esc(closeReason)}`:""}
       </div>`;
     }
 

@@ -744,6 +744,7 @@ let currentWorkerIds = [];
 let availableBalance = 0;
 let payoutRequests = [];
 let earningsHistory = [];
+let payoutRequestInProgress = false;
 
 const INSTANT_PAYOUT_FEE_RATE = 0.015;
 const INSTANT_PAYOUT_MIN_FEE = 1.00;
@@ -1168,6 +1169,12 @@ function updatePayoutButtons() {
   const instantFeeBox = document.getElementById("instantFeeAmount");
   const instantNetBox = document.getElementById("instantNetAmount");
 
+  if (payoutRequestInProgress) {
+    if (standardButton) standardButton.disabled = true;
+    if (instantButton) instantButton.disabled = true;
+    return;
+  }
+
   const instantFee = calculateInstantFee(availableBalance);
   const instantNet = Math.max(availableBalance - instantFee, 0);
 
@@ -1501,6 +1508,8 @@ function isReservedPayoutStatus(status) {
     "pending",
     "processing",
     "approved",
+    "paid",
+    "completed",
     "flagged",
     "blocked"
   ].includes(String(status || "").toLowerCase());
@@ -1739,21 +1748,105 @@ function renderPayoutRequests() {
   });
 }
  
+
+function buildPayoutLockKey(amount, selectedSpeed) {
+  return [
+    currentWorkerId,
+    "available-balance",
+    selectedSpeed,
+    Number(amount || 0).toFixed(2)
+  ].join(":");
+}
+
+async function hasActiveDuplicatePayout(lockKey) {
+  const { data } =
+    await supabaseClient
+      .from("worker_payouts")
+      .select("id,status,payout_lock_key")
+      .eq("worker_id", currentWorkerId)
+      .in("status", [
+        "requested",
+        "pending",
+        "approved",
+        "processing",
+        "paid",
+        "completed",
+        "blocked"
+      ])
+      .or(`payout_lock_key.eq.${lockKey},and(payout_lock_key.is.null,amount.eq.${Number(availableBalance || 0).toFixed(2)})`)
+      .limit(1);
+
+  return data && data.length > 0;
+}
+
+function lockPayoutButtons(message = "Submitting...") {
+  payoutRequestInProgress = true;
+
+  availableBalance = 0;
+
+  const standardButton =
+    document.getElementById("standardPayoutButton");
+
+  const instantButton =
+    document.getElementById("instantPayoutButton");
+
+  if (standardButton) {
+    standardButton.disabled = true;
+    standardButton.innerText = message;
+  }
+
+  if (instantButton) {
+    instantButton.disabled = true;
+    instantButton.innerText = message;
+  }
+
+  updatePayoutButtons();
+}
+
+function unlockPayoutButtons(standardText = "Request Free Friday Payout", instantText = "Request Instant Payout") {
+  payoutRequestInProgress = false;
+
+  const standardButton =
+    document.getElementById("standardPayoutButton");
+
+  const instantButton =
+    document.getElementById("instantPayoutButton");
+
+  if (standardButton) {
+    standardButton.innerText = standardText;
+  }
+
+  if (instantButton) {
+    instantButton.innerText = instantText;
+  }
+
+  updatePayoutButtons();
+}
+
 async function requestPayout(payoutSpeed) {
+  if (payoutRequestInProgress) {
+    setActionMessage("A payout request is already being submitted. Please wait.", "#b00020");
+    return;
+  }
+
   const standardButton = document.getElementById("standardPayoutButton");
   const instantButton = document.getElementById("instantPayoutButton");
   const selectedSpeed = payoutSpeed === "instant" ? "instant" : "standard";
-  const button = selectedSpeed === "instant" ? instantButton : standardButton;
-  const originalText = button ? button.innerText : "";
-  const instantFeeAmount = selectedSpeed === "instant"
-    ? calculateInstantFee(availableBalance)
-    : 0;
-  const taskmintGrossAmount = Number((availableBalance / (1 - TASKMINT_SERVICE_FEE_RATE)).toFixed(2));
-  const taskmintFeeAmount = Number((taskmintGrossAmount - availableBalance).toFixed(2));
-  const feeAmount = instantFeeAmount;
-  const netAmount = Math.max(availableBalance - instantFeeAmount, 0);
+  const originalStandardText = standardButton ? standardButton.innerText : "Request Free Friday Payout";
+  const originalInstantText = instantButton ? instantButton.innerText : "Request Instant Payout";
+  const balanceAtRequest = Number(availableBalance || 0);
 
-  if (availableBalance <= 0) {
+  const instantFeeAmount = selectedSpeed === "instant"
+    ? calculateInstantFee(balanceAtRequest)
+    : 0;
+
+  const taskmintGrossAmount = Number((balanceAtRequest / (1 - TASKMINT_SERVICE_FEE_RATE)).toFixed(2));
+  const taskmintFeeAmount = Number((taskmintGrossAmount - balanceAtRequest).toFixed(2));
+  const feeAmount = instantFeeAmount;
+  const netAmount = Math.max(balanceAtRequest - instantFeeAmount, 0);
+  const payoutLockKey = buildPayoutLockKey(balanceAtRequest, selectedSpeed);
+
+  if (balanceAtRequest <= 0) {
     setActionMessage("No available balance to request.", "#b00020");
     return;
   }
@@ -1770,6 +1863,15 @@ async function requestPayout(payoutSpeed) {
     }
   }
 
+  const duplicateExists =
+    await hasActiveDuplicatePayout(payoutLockKey);
+
+  if (duplicateExists) {
+    await loadPayoutPage();
+    setActionMessage("This payout has already been requested or processed.", "#b00020");
+    return;
+  }
+
   if (selectedSpeed === "instant" && netAmount <= 0) {
     setActionMessage("Instant payout amount is too low after the fee.", "#b00020");
     return;
@@ -1777,8 +1879,8 @@ async function requestPayout(payoutSpeed) {
 
   const confirmMessage =
     selectedSpeed === "instant"
-      ? `Request instant payout for ${money(availableBalance)}? Instant fee: ${money(instantFeeAmount)}. You receive: ${money(netAmount)}.`
-      : `Request free Friday payout for ${money(availableBalance)}?`;
+      ? `Request instant payout for ${money(balanceAtRequest)}? Instant fee: ${money(instantFeeAmount)}. You receive: ${money(netAmount)}.`
+      : `Request free Friday payout for ${money(balanceAtRequest)}?`;
 
   const confirmed = confirm(confirmMessage);
 
@@ -1786,18 +1888,7 @@ async function requestPayout(payoutSpeed) {
     return;
   }
 
-  if (standardButton) {
-    standardButton.disabled = true;
-  }
-
-  if (instantButton) {
-    instantButton.disabled = true;
-  }
-
-  if (button) {
-    button.innerText = "Submitting...";
-  }
-
+  lockPayoutButtons("Submitting...");
   setActionMessage("Submitting payout request...", "#666");
 
   try {
@@ -1807,7 +1898,7 @@ async function requestPayout(payoutSpeed) {
         .insert({
           worker_id: currentWorkerId,
           worker_email: currentUser.email,
-          amount: availableBalance,
+          amount: balanceAtRequest,
           gross_amount: taskmintGrossAmount,
           platform_fee: taskmintFeeAmount,
           taskmint_fee: taskmintFeeAmount,
@@ -1818,6 +1909,8 @@ async function requestPayout(payoutSpeed) {
           payment_type: selectedSpeed === "instant" ? "instant" : "free_friday",
           fee_amount: instantFeeAmount,
           net_amount: netAmount,
+          payout_amount: netAmount,
+          payout_lock_key: payoutLockKey,
           status: "requested",
           requested_at: new Date().toISOString(),
           scheduled_payout_day: selectedSpeed === "standard" ? "Friday" : null
@@ -1826,7 +1919,17 @@ async function requestPayout(payoutSpeed) {
         .single();
 
     if (insertError) {
-      setActionMessage(insertError.message, "#b00020");
+      if (
+        String(insertError.message || "").toLowerCase().includes("duplicate") ||
+        String(insertError.message || "").toLowerCase().includes("unique")
+      ) {
+        setActionMessage("This payout has already been requested.", "#b00020");
+      } else {
+        setActionMessage(insertError.message, "#b00020");
+      }
+
+      await loadPayoutPage();
+      unlockPayoutButtons(originalStandardText, originalInstantText);
       return;
     }
 
@@ -1849,7 +1952,7 @@ async function requestPayout(payoutSpeed) {
         body: JSON.stringify({
           worker_id: currentWorkerId,
           payout_request_id: requestRow.id,
-          amount: availableBalance,
+          amount: balanceAtRequest,
           gross_amount: taskmintGrossAmount,
           taskmint_fee_amount: taskmintFeeAmount,
           taskmint_fee: taskmintFeeAmount,
@@ -1884,16 +1987,13 @@ async function requestPayout(payoutSpeed) {
       error.message || "Something went wrong requesting payout.",
       "#b00020"
     );
-  } finally {
-    if (button) {
-      button.innerText = originalText;
-    }
-
-    updatePayoutButtons();
+    await loadPayoutPage();
+    unlockPayoutButtons(originalStandardText, originalInstantText);
   }
 }
 
 async function loadPayoutPage() {
+  payoutRequestInProgress = false;
   setActionMessage("", "#666");
  
   const ready = await getCurrentWorker();

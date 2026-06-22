@@ -1512,8 +1512,6 @@ function isReservedPayoutStatus(status) {
     "pending",
     "processing",
     "approved",
-    "paid",
-    "completed",
     "flagged",
     "blocked"
   ].includes(String(status || "").toLowerCase());
@@ -1784,8 +1782,6 @@ async function hasActiveDuplicatePayout(lockKey, requestedAmount) {
         "pending",
         "approved",
         "processing",
-        "paid",
-        "completed",
         "blocked"
       ])
       .limit(25);
@@ -1794,7 +1790,7 @@ async function hasActiveDuplicatePayout(lockKey, requestedAmount) {
     return false;
   }
 
-  const amountValue =
+  const requested =
     Number(requestedAmount || 0).toFixed(2);
 
   return data.some(row => {
@@ -1803,8 +1799,8 @@ async function hasActiveDuplicatePayout(lockKey, requestedAmount) {
 
     return (
       row.payout_lock_key === lockKey ||
-      existingAmount === amountValue ||
-      ["requested", "pending", "approved", "processing"].includes(requestStatus(row))
+      existingAmount === requested ||
+      ["requested", "pending", "approved", "processing", "blocked"].includes(requestStatus(row))
     );
   });
 }
@@ -1846,13 +1842,7 @@ function lockPayoutButtons(message = "Submitting...", reservedAmount = 0) {
     instantButton.innerText = message;
   }
 
-  if (document.getElementById("instantFeeAmount")) {
-    document.getElementById("instantFeeAmount").innerText = money(0);
-  }
-
-  if (document.getElementById("instantNetAmount")) {
-    document.getElementById("instantNetAmount").innerText = money(0);
-  }
+  updatePayoutButtons();
 }
 
 function unlockPayoutButtons(standardText = "Request Free Friday Payout", instantText = "Request Instant Payout") {
@@ -2057,6 +2047,7 @@ async function requestPayout(payoutSpeed) {
 }
 
 async function loadPayoutPage() {
+  payoutRequestInProgress = false;
   setActionMessage("", "#666");
  
   const ready = await getCurrentWorker();

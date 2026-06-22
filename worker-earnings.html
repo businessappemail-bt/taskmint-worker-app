@@ -745,6 +745,7 @@ let availableBalance = 0;
 let payoutRequests = [];
 let earningsHistory = [];
 let payoutRequestInProgress = false;
+let localReservedPayoutAmount = 0;
 
 const INSTANT_PAYOUT_FEE_RATE = 0.015;
 const INSTANT_PAYOUT_MIN_FEE = 1.00;
@@ -1416,14 +1417,17 @@ async function loadAvailableBalance() {
   const reservedPayouts =
     await loadReservedPayoutAmount();
 
+  const totalReservedPayouts =
+    Number(reservedPayouts || 0) + Number(localReservedPayoutAmount || 0);
+
   availableBalance =
-    Math.max(Number((totalAvailableEarnings - reservedPayouts).toFixed(2)), 0);
+    Math.max(Number((totalAvailableEarnings - totalReservedPayouts).toFixed(2)), 0);
 
   document.getElementById("availableBalance").innerText =
     money(availableBalance);
 
   document.getElementById("balanceSubtext").innerText =
-    reservedPayouts > 0 && availableBalance <= 0
+    totalReservedPayouts > 0 && availableBalance <= 0
       ? "Your available balance is already tied to a payout request."
       : availableBalance > 0
         ? "You can request this available amount for payout."
@@ -1568,6 +1572,17 @@ async function loadPayoutRequests() {
   }
  
   payoutRequests = data || [];
+
+  const serverReservedAmount =
+    payoutRequests
+      .filter(row => isReservedPayoutStatus(requestStatus(row)))
+      .reduce((total, row) => total + reservedPayoutAmount(row), 0);
+
+  if (serverReservedAmount > 0) {
+    localReservedPayoutAmount = 0;
+    payoutRequestInProgress = false;
+  }
+
   renderPayoutRequests();
   await updateSummary();
 }
@@ -1758,11 +1773,11 @@ function buildPayoutLockKey(amount, selectedSpeed) {
   ].join(":");
 }
 
-async function hasActiveDuplicatePayout(lockKey) {
+async function hasActiveDuplicatePayout(lockKey, requestedAmount) {
   const { data } =
     await supabaseClient
       .from("worker_payouts")
-      .select("id,status,payout_lock_key")
+      .select("id,status,payout_lock_key,amount,net_amount,payout_amount")
       .eq("worker_id", currentWorkerId)
       .in("status", [
         "requested",
@@ -1773,16 +1788,47 @@ async function hasActiveDuplicatePayout(lockKey) {
         "completed",
         "blocked"
       ])
-      .or(`payout_lock_key.eq.${lockKey},and(payout_lock_key.is.null,amount.eq.${Number(availableBalance || 0).toFixed(2)})`)
-      .limit(1);
+      .limit(25);
 
-  return data && data.length > 0;
+  if (!data || data.length === 0) {
+    return false;
+  }
+
+  const amountValue =
+    Number(requestedAmount || 0).toFixed(2);
+
+  return data.some(row => {
+    const existingAmount =
+      Number(getFirstAvailable(row, ["amount", "payout_amount", "net_amount"], 0)).toFixed(2);
+
+    return (
+      row.payout_lock_key === lockKey ||
+      existingAmount === amountValue ||
+      ["requested", "pending", "approved", "processing"].includes(requestStatus(row))
+    );
+  });
 }
 
-function lockPayoutButtons(message = "Submitting...") {
+function lockPayoutButtons(message = "Submitting...", reservedAmount = 0) {
   payoutRequestInProgress = true;
+  localReservedPayoutAmount =
+    Math.max(Number(localReservedPayoutAmount || 0), Number(reservedAmount || 0));
 
   availableBalance = 0;
+
+  const balanceBox =
+    document.getElementById("availableBalance");
+
+  const balanceSubtext =
+    document.getElementById("balanceSubtext");
+
+  if (balanceBox) {
+    balanceBox.innerText = money(0);
+  }
+
+  if (balanceSubtext) {
+    balanceSubtext.innerText = "Your available balance is already tied to a payout request.";
+  }
 
   const standardButton =
     document.getElementById("standardPayoutButton");
@@ -1800,11 +1846,18 @@ function lockPayoutButtons(message = "Submitting...") {
     instantButton.innerText = message;
   }
 
-  updatePayoutButtons();
+  if (document.getElementById("instantFeeAmount")) {
+    document.getElementById("instantFeeAmount").innerText = money(0);
+  }
+
+  if (document.getElementById("instantNetAmount")) {
+    document.getElementById("instantNetAmount").innerText = money(0);
+  }
 }
 
 function unlockPayoutButtons(standardText = "Request Free Friday Payout", instantText = "Request Instant Payout") {
   payoutRequestInProgress = false;
+  localReservedPayoutAmount = 0;
 
   const standardButton =
     document.getElementById("standardPayoutButton");
@@ -1864,7 +1917,7 @@ async function requestPayout(payoutSpeed) {
   }
 
   const duplicateExists =
-    await hasActiveDuplicatePayout(payoutLockKey);
+    await hasActiveDuplicatePayout(payoutLockKey, balanceAtRequest);
 
   if (duplicateExists) {
     await loadPayoutPage();
@@ -1888,7 +1941,7 @@ async function requestPayout(payoutSpeed) {
     return;
   }
 
-  lockPayoutButtons("Submitting...");
+  lockPayoutButtons("Submitting...", balanceAtRequest);
   setActionMessage("Submitting payout request...", "#666");
 
   try {
@@ -1932,6 +1985,17 @@ async function requestPayout(payoutSpeed) {
       unlockPayoutButtons(originalStandardText, originalInstantText);
       return;
     }
+
+    payoutRequests =
+      [requestRow, ...payoutRequests];
+
+    renderPayoutRequests();
+
+    document.getElementById("availableBalance").innerText =
+      money(0);
+
+    document.getElementById("balanceSubtext").innerText =
+      "Your available balance is already tied to a payout request.";
 
     const { data: sessionData } =
       await supabaseClient.auth.getSession();
@@ -1993,7 +2057,6 @@ async function requestPayout(payoutSpeed) {
 }
 
 async function loadPayoutPage() {
-  payoutRequestInProgress = false;
   setActionMessage("", "#666");
  
   const ready = await getCurrentWorker();

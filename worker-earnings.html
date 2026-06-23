@@ -1428,7 +1428,7 @@ async function loadAvailableBalance() {
 
   document.getElementById("balanceSubtext").innerText =
     totalReservedPayouts > 0 && availableBalance <= 0
-      ? "Your available balance is already tied to a payout request."
+      ? "Your released balance has already been requested or paid out."
       : availableBalance > 0
         ? "You can request this available amount for payout."
         : "Completed and released jobs will show here.";
@@ -1512,6 +1512,8 @@ function isReservedPayoutStatus(status) {
     "pending",
     "processing",
     "approved",
+    "paid",
+    "completed",
     "flagged",
     "blocked"
   ].includes(String(status || "").toLowerCase());
@@ -1673,7 +1675,7 @@ function getWorkerVisiblePayoutStatus(status, payoutSpeed) {
 
 function renderPayoutRequests() {
   const list = document.getElementById("payoutRequestsList");
-
+ 
   if (!payoutRequests || payoutRequests.length === 0) {
     list.innerHTML = `
       <div class="empty">
@@ -1682,9 +1684,9 @@ function renderPayoutRequests() {
     `;
     return;
   }
-
+ 
   list.innerHTML = "";
-
+ 
   payoutRequests.forEach(row => {
     const status = requestStatus(row);
     const submitted = requestCreatedAt(row);
@@ -1694,111 +1696,73 @@ function renderPayoutRequests() {
       "paid_at",
       "updated_at"
     ], "");
-
+ 
     const denialReason = getFirstAvailable(row, [
       "denial_reason",
       "rejection_reason",
-      "failure_reason",
-      "stripe_processing_error"
+      "failure_reason"
     ], "");
-
+ 
     const stripeReference = getFirstAvailable(row, [
       "stripe_transfer_id",
       "stripe_payout_id",
       "stripe_payment_intent_id",
       "stripe_reference"
     ], "");
-
+ 
     const payoutSpeed = getFirstAvailable(row, [
       "payout_speed",
       "payout_type",
       "speed"
     ], "standard");
 
-    const requestTotal = requestAmount(row);
-
-    const grossAmount = Number(getFirstAvailable(row, [
-      "gross_amount",
-      "task_amount",
-      "paid_amount",
-      "amount_paid"
-    ], 0));
-
-    const taskmintFeeAmount = Number(getFirstAvailable(row, [
-      "taskmint_fee_amount",
-      "taskmint_fee",
-      "platform_fee"
-    ], 0));
-
-    const instantFeeAmount = Number(getFirstAvailable(row, [
-      "instant_fee",
+    const feeAmount = Number(getFirstAvailable(row, [
       "fee_amount",
+      "instant_fee",
       "processing_fee"
     ], 0));
 
     const netAmount = Number(getFirstAvailable(row, [
       "net_amount",
-      "payout_amount",
       "net_payout_amount",
       "amount_after_fee"
-    ], requestTotal));
+    ], requestAmount(row)));
 
-    const shownGross =
-      grossAmount > 0
-        ? grossAmount
-        : Number((requestTotal / (1 - TASKMINT_SERVICE_FEE_RATE)).toFixed(2));
-
-    const shownTaskmintFee =
-      taskmintFeeAmount > 0
-        ? taskmintFeeAmount
-        : Number((shownGross * TASKMINT_SERVICE_FEE_RATE).toFixed(2));
-
-    const shownAfterTaskmintFee =
-      Number((shownGross - shownTaskmintFee).toFixed(2));
-
-    const shownWorkerReceives =
-      netAmount > 0
-        ? netAmount
-        : Number((shownAfterTaskmintFee - instantFeeAmount).toFixed(2));
-
-    const note =
-      status === "denied" || status === "failed" || status === "rejected"
-        ? `Reason: ${cleanText(denialReason, "No reason listed")}`
+    const note = status === "denied" || status === "failed" || status === "rejected"
+      ? `Reason: ${cleanText(denialReason, "No reason listed")}`
+      : status === "blocked" && payoutSpeed === "instant"
+        ? `Processing — please wait 3–5 minutes. Instant payout fee: ${money(feeAmount)}. Estimated payout after fee: ${money(netAmount)}.`
         : stripeReference
           ? `Stripe reference: ${stripeReference}`
-          : status === "blocked"
-            ? "This payout is being held for review."
-            : "Payout submitted. Stripe status will update after processing.";
-
+          : payoutSpeed === "instant"
+            ? `Instant payout fee: ${money(feeAmount)}. Estimated payout after fee: ${money(netAmount)}.`
+            : "Free Friday payout. Stripe status will update after processing.";
+ 
     list.innerHTML += `
       <div class="request-card">
         <div class="request-top">
           <div>
-            <div class="request-amount">${money(requestTotal)}</div>
+            <div class="request-amount">${money(requestAmount(row))}</div>
             <div class="request-meta">
               Type: ${cleanText(payoutSpeed).replaceAll("_", " ")}<br>
               Submitted: ${formatDateTime(submitted)}<br>
               Last Update: ${formatDateTime(processedAt)}
             </div>
           </div>
-
+ 
           <div class="status-pill ${getPillClass(status)}">
             ${escapeHTML(getWorkerVisiblePayoutStatus(status, payoutSpeed))}
           </div>
         </div>
-
+ 
         <div class="request-note">
-          <div><strong>Customer paid / gross:</strong> ${money(shownGross)}</div>
-          <div><strong>TaskMint fee:</strong> ${money(shownTaskmintFee)}</div>
-          <div><strong>After TaskMint fee:</strong> ${money(shownAfterTaskmintFee)}</div>
-          <div><strong>Instant fee:</strong> ${money(instantFeeAmount)}</div>
-          <div><strong>Worker receives:</strong> ${money(shownWorkerReceives)}</div>
-          <div style="margin-top:8px;">${escapeHTML(note)}</div>
+          ${note}
         </div>
       </div>
     `;
   });
 }
+ 
 
 function buildPayoutLockKey(amount, selectedSpeed) {
   return [
@@ -1810,25 +1774,21 @@ function buildPayoutLockKey(amount, selectedSpeed) {
 }
 
 async function hasActiveDuplicatePayout(lockKey, requestedAmount) {
-  const activeStatuses = [
-    "requested",
-    "pending",
-    "approved",
-    "processing",
-    "flagged",
-    "blocked"
-  ];
-
-  const { data, error } =
+  const { data } =
     await supabaseClient
       .from("worker_payouts")
-      .select("id,status,payout_status,payout_lock_key,amount,net_amount,payout_amount,created_at")
-      .in("worker_id", currentWorkerIds)
-      .in("status", activeStatuses)
-      .order("created_at", { ascending: false })
+      .select("id,status,payout_lock_key,amount,net_amount,payout_amount")
+      .eq("worker_id", currentWorkerId)
+      .in("status", [
+        "requested",
+        "pending",
+        "approved",
+        "processing",
+        "blocked"
+      ])
       .limit(25);
 
-  if (error || !data || data.length === 0) {
+  if (!data || data.length === 0) {
     return false;
   }
 
@@ -1836,24 +1796,13 @@ async function hasActiveDuplicatePayout(lockKey, requestedAmount) {
     Number(requestedAmount || 0).toFixed(2);
 
   return data.some(row => {
-    const status =
-      requestStatus(row);
-
     const existingAmount =
-      Number(
-        getFirstAvailable(row, [
-          "amount",
-          "payout_amount",
-          "net_amount"
-        ], 0)
-      ).toFixed(2);
+      Number(getFirstAvailable(row, ["amount", "payout_amount", "net_amount"], 0)).toFixed(2);
 
     return (
-      activeStatuses.includes(status) &&
-      (
-        row.payout_lock_key === lockKey ||
-        existingAmount === requested
-      )
+      row.payout_lock_key === lockKey ||
+      existingAmount === requested ||
+      ["requested", "pending", "approved", "processing", "blocked"].includes(requestStatus(row))
     );
   });
 }
@@ -1876,7 +1825,7 @@ function lockPayoutButtons(message = "Submitting...", reservedAmount = 0) {
   }
 
   if (balanceSubtext) {
-    balanceSubtext.innerText = "Your available balance is already tied to a payout request.";
+    balanceSubtext.innerText = "Your released balance has already been requested or paid out.";
   }
 
   const standardButton =
@@ -1925,8 +1874,6 @@ async function requestPayout(payoutSpeed) {
     return;
   }
 
-  await loadAvailableBalance();
-
   const standardButton = document.getElementById("standardPayoutButton");
   const instantButton = document.getElementById("instantPayoutButton");
   const selectedSpeed = payoutSpeed === "instant" ? "instant" : "standard";
@@ -1934,37 +1881,41 @@ async function requestPayout(payoutSpeed) {
   const originalInstantText = instantButton ? instantButton.innerText : "Request Instant Payout";
   const balanceAtRequest = Number(availableBalance || 0);
 
+  const instantFeeAmount = selectedSpeed === "instant"
+    ? calculateInstantFee(balanceAtRequest)
+    : 0;
+
+  const taskmintGrossAmount = Number((balanceAtRequest / (1 - TASKMINT_SERVICE_FEE_RATE)).toFixed(2));
+  const taskmintFeeAmount = Number((taskmintGrossAmount - balanceAtRequest).toFixed(2));
+  const feeAmount = instantFeeAmount;
+  const netAmount = Math.max(balanceAtRequest - instantFeeAmount, 0);
+  const payoutLockKey = buildPayoutLockKey(balanceAtRequest, selectedSpeed);
+
   if (balanceAtRequest <= 0) {
     setActionMessage("No available balance to request.", "#b00020");
-    updatePayoutButtons();
     return;
   }
 
-  const payoutLockKey =
-    buildPayoutLockKey(balanceAtRequest, selectedSpeed);
+  const reservedPayouts =
+    await loadReservedPayoutAmount();
+
+  if (reservedPayouts > 0) {
+    await loadAvailableBalance();
+
+    if (availableBalance <= 0) {
+      setActionMessage("Your available balance is already tied to a payout request.", "#b00020");
+      return;
+    }
+  }
 
   const duplicateExists =
     await hasActiveDuplicatePayout(payoutLockKey, balanceAtRequest);
 
   if (duplicateExists) {
     await loadPayoutPage();
-    setActionMessage("You already have a payout request being processed.", "#b00020");
+    setActionMessage("This payout has already been requested or processed.", "#b00020");
     return;
   }
-
-  const instantFeeAmount =
-    selectedSpeed === "instant"
-      ? calculateInstantFee(balanceAtRequest)
-      : 0;
-
-  const taskmintGrossAmount =
-    Number((balanceAtRequest / (1 - TASKMINT_SERVICE_FEE_RATE)).toFixed(2));
-
-  const taskmintFeeAmount =
-    Number((taskmintGrossAmount - balanceAtRequest).toFixed(2));
-
-  const netAmount =
-    Math.max(Number((balanceAtRequest - instantFeeAmount).toFixed(2)), 0);
 
   if (selectedSpeed === "instant" && netAmount <= 0) {
     setActionMessage("Instant payout amount is too low after the fee.", "#b00020");
@@ -1976,8 +1927,7 @@ async function requestPayout(payoutSpeed) {
       ? `Request instant payout for ${money(balanceAtRequest)}? Instant fee: ${money(instantFeeAmount)}. You receive: ${money(netAmount)}.`
       : `Request free Friday payout for ${money(balanceAtRequest)}?`;
 
-  const confirmed =
-    confirm(confirmMessage);
+  const confirmed = confirm(confirmMessage);
 
   if (!confirmed) {
     return;
@@ -2007,9 +1957,7 @@ async function requestPayout(payoutSpeed) {
           payout_amount: netAmount,
           payout_lock_key: payoutLockKey,
           status: "requested",
-          payout_status: "requested",
           requested_at: new Date().toISOString(),
-          payout_requested_at: new Date().toISOString(),
           scheduled_payout_day: selectedSpeed === "standard" ? "Friday" : null
         })
         .select("*")
@@ -2025,8 +1973,6 @@ async function requestPayout(payoutSpeed) {
         setActionMessage(insertError.message, "#b00020");
       }
 
-      localReservedPayoutAmount = 0;
-      payoutRequestInProgress = false;
       await loadPayoutPage();
       unlockPayoutButtons(originalStandardText, originalInstantText);
       return;
@@ -2051,37 +1997,32 @@ async function requestPayout(payoutSpeed) {
         ? sessionData.session.access_token
         : "";
 
-    const stripeResponse =
-      await fetch(
-        `${SUPABASE_URL}/functions/v1/request-worker-payout`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${accessToken}`
-          },
-          body: JSON.stringify({
-            worker_id: currentWorkerId,
-            payout_request_id: requestRow.id,
-            amount: balanceAtRequest,
-            gross_amount: taskmintGrossAmount,
-            taskmint_fee_amount: taskmintFeeAmount,
-            taskmint_fee: taskmintFeeAmount,
-            instant_fee: instantFeeAmount,
-            payout_speed: selectedSpeed,
-            payout_type: selectedSpeed === "instant" ? "instant" : "friday",
-            fee_amount: instantFeeAmount,
-            net_amount: netAmount
-          })
-        }
-      );
-
-    const stripeResult =
-      await stripeResponse.json().catch(() => ({}));
+    const stripeResponse = await fetch(
+      `${SUPABASE_URL}/functions/v1/request-worker-payout`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          worker_id: currentWorkerId,
+          payout_request_id: requestRow.id,
+          amount: balanceAtRequest,
+          gross_amount: taskmintGrossAmount,
+          taskmint_fee_amount: taskmintFeeAmount,
+          taskmint_fee: taskmintFeeAmount,
+          instant_fee: instantFeeAmount,
+          payout_speed: selectedSpeed,
+          fee_amount: instantFeeAmount,
+          net_amount: netAmount
+        })
+      }
+    );
 
     if (!stripeResponse.ok) {
       setActionMessage(
-        stripeResult.error || "Payout request saved but Stripe processing failed. TaskMint will review it.",
+        "Payout request saved. Stripe processing backend still needs to be connected.",
         "#8a5300"
       );
       await loadPayoutPage();
@@ -2102,8 +2043,6 @@ async function requestPayout(payoutSpeed) {
       error.message || "Something went wrong requesting payout.",
       "#b00020"
     );
-    localReservedPayoutAmount = 0;
-    payoutRequestInProgress = false;
     await loadPayoutPage();
     unlockPayoutButtons(originalStandardText, originalInstantText);
   }

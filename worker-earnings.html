@@ -1,50 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Worker Dashboard - TaskMint</title>
+  <title>Earnings History - TaskMint</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+ 
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     :root {
-      --bg:           #ffffff;
-      --surface:      #f2f7f4;
-      --surface2:     #e6f4eb;
-      --border:       #e2ebe5;
-      --accent:       #0b7a28;
-      --accent-dark:  #085e1f;
-      --text:         #111111;
-      --muted:        #6b7870;
-      --danger:       #c0392b;
-      --warn-bg:      #fffbeb;
-      --warn-border:  #f0c040;
-      --warn-text:    #7a4f00;
+      --bg: #ffffff;
+      --surface: #f2f7f4;
+      --surface2: #e6f4eb;
+      --border: #e2ebe5;
+      --accent: #0b7a28;
+      --text: #111111;
+      --muted: #6b7870;
+      --danger: #b00020;
+      --warning-bg: #fffbeb;
+      --warning-border: #f0c040;
+      --warning-text: #7a4f00;
+      --blue-bg: #eef5ff;
+      --blue-text: #0b4d91;
     }
 
     body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      min-height: 100vh;
-      padding-bottom: 30px;
+      padding-bottom: 90px;
       overflow-x: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    .top-bar, .page {
+    .container {
       width: 100%;
       max-width: 470px;
+      padding: 20px 16px 30px;
     }
 
-    /* ── TOP BAR ── */
     .top-bar {
       position: sticky;
       top: 0;
       z-index: 40;
+      width: 100%;
+      max-width: 470px;
       background: rgba(255,255,255,0.97);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
@@ -52,869 +61,481 @@
       justify-content: space-between;
       align-items: center;
       padding: 13px 20px;
+      margin: -20px -16px 16px;
     }
 
-    .brand img {
-      width: 130px;
-      height: auto;
-      object-fit: contain;
-    }
-
-    .top-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .icon-btn {
-      width: 42px; height: 42px;
-      border-radius: 12px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      font-size: 19px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.18s;
-      position: relative;
-      color: var(--text);
-    }
-    .icon-btn:hover { background: var(--surface2); }
-
-    .notification-badge {
-      position: absolute;
-      top: -5px; right: -5px;
-      min-width: 19px; height: 19px;
-      background: #d93025;
-      color: #fff;
-      border-radius: 999px;
-      font-size: 10px;
-      font-weight: 700;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #fff;
-      padding: 0 3px;
-    }
-
-    /* ── PAGE ── */
-    .page {
-      padding: 20px 16px 96px;
-    }
-
-    /* ── HERO ── */
-    .hero {
-      margin-bottom: 20px;
-    }
-
-    .hero-label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
+    .back,
+    .refresh-link {
       color: var(--accent);
-      margin-bottom: 5px;
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .refresh-link {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 11px;
+      font-size: 12px;
+    }
+
+    .hero {
+      background: var(--accent);
+      color: white;
+      border-radius: 22px;
+      padding: 24px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(11,122,40,0.22);
+      position: relative;
+      overflow: hidden;
       opacity: 0;
       animation: riseIn 0.35s 0.05s forwards;
     }
 
-    .hero h1 {
-      font-size: 28px;
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -0.5px;
-      color: var(--text);
-      opacity: 0;
-      animation: riseIn 0.35s 0.1s forwards;
-    }
-
-    .hero h1 em {
-      font-style: normal;
-      color: var(--accent);
-    }
-
-    .hero p {
-      margin-top: 7px;
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.55;
-      opacity: 0;
-      animation: riseIn 0.35s 0.15s forwards;
-    }
-
-    /* ── PROFILE CARD ── */
-    .profile-card {
-      background: var(--accent);
-      border-radius: 20px;
-      padding: 18px 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 10px;
-      box-shadow: 0 6px 20px rgba(11,122,40,0.20);
-      opacity: 0;
-      animation: riseIn 0.35s 0.2s forwards;
-    }
-
-    .profile-pic {
-      width: 62px; height: 62px;
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 155px;
+      height: 155px;
       border-radius: 50%;
-      object-fit: cover;
-      background: var(--surface2);
-      border: 3px solid rgba(255,255,255,0.4);
-      flex-shrink: 0;
+      background: rgba(255,255,255,0.10);
+      top: -65px;
+      right: -55px;
     }
 
-    .profile-info { flex: 1; }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      bottom: -45px;
+      left: -35px;
+    }
 
-    .profile-name {
-      font-size: 17px;
+    .hero-title {
+      font-size: 29px;
       font-weight: 800;
-      color: #fff;
-      line-height: 1.2;
+      margin-bottom: 7px;
+      letter-spacing: -0.5px;
+      line-height: 1.08;
+      position: relative;
+      z-index: 2;
     }
 
-    .profile-sub {
-      font-size: 12px;
-      color: rgba(255,255,255,0.72);
-      margin-top: 3px;
-    }
-
-    .profile-btns {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .profile-btn {
-      flex: 1;
-      padding: 9px 10px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      transition: opacity 0.18s;
-      text-align: center;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-    .profile-btn:hover { opacity: 0.88; }
-    .profile-btn.outline {
-      background: rgba(255,255,255,0.18);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.3);
-    }
-    .profile-btn.solid {
-      background: #fff;
-      color: var(--accent);
-    }
-
-    /* ── NOTICE ── */
-    .notice {
-      background: var(--warn-bg);
-      border: 1px solid var(--warn-border);
-      border-radius: 12px;
-      padding: 11px 14px;
-      font-size: 12.5px;
-      color: var(--warn-text);
+    .hero-sub {
+      font-size: 13px;
       line-height: 1.5;
-      margin-bottom: 16px;
+      color: rgba(255,255,255,0.82);
+      position: relative;
+      z-index: 2;
     }
 
-    /* ── SECTION LABEL ── */
-    .section-label {
-      font-size: 10.5px;
-      font-weight: 700;
-      letter-spacing: 1.4px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin: 20px 0 9px;
+    .card {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      opacity: 0;
+      animation: riseIn 0.35s 0.12s forwards;
     }
 
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 20px 0 9px;
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
-    .section-header .section-label { margin: 0; }
-
-    .section-link {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--accent);
-      cursor: pointer;
-    }
-
-    /* ── STATS ROW ── */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      opacity: 0;
-      animation: riseIn 0.35s 0.25s forwards;
-    }
-
-    .stat-box {
-      background: var(--surface);
-      border-radius: 16px;
-      padding: 13px 8px;
-      border: 1px solid var(--border);
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.18s, transform 0.18s;
-    }
-
-    .stat-box:hover {
-      border-color: #a3cfb0;
-      transform: translateY(-1px);
-    }
-
-    .stat-icon {
-      width: 34px; height: 34px;
-      border-radius: 10px;
-      background: var(--surface2);
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .section-title {
       font-size: 16px;
       font-weight: 800;
-      margin: 0 auto 7px;
+      color: var(--text);
+      letter-spacing: -0.1px;
     }
 
-    .stat-number {
-      font-size: 17px;
-      font-weight: 800;
-      color: var(--accent);
-      line-height: 1;
-    }
-
-    .stat-label {
-      font-size: 10px;
+    .section-note {
+      font-size: 12.5px;
       color: var(--muted);
-      margin-top: 4px;
-      line-height: 1.3;
+      line-height: 1.45;
+      margin-bottom: 10px;
     }
 
-    /* ── 2-COL TILE ── */
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      width: 100%;
-    }
-
-    .tile {
-      background: var(--surface);
-      border-radius: 16px;
+    .balance-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 18px;
       padding: 15px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
-      min-height: 116px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      text-align: center;
+      margin-bottom: 12px;
     }
 
-    .tile:hover {
-      border-color: #a3cfb0;
-      box-shadow: 0 4px 14px rgba(11,122,40,0.10);
-      transform: translateY(-1px);
-    }
-
-    .t-icon {
-      width: 40px; height: 40px;
-      border-radius: 12px;
-      background: var(--surface2);
-      font-size: 18px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .t-title {
-      font-size: 13.5px;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1.2;
-    }
-
-    .t-sub {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.45;
-      margin-top: 2px;
-    }
-
-    /* ── ROW CARD ── */
-    .row-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      width: 100%;
-    }
-
-    .row-card {
-      background: var(--surface);
-      border-radius: 14px;
-      padding: 13px 15px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 13px;
-      min-height: 66px;
-      transition: border-color 0.18s, transform 0.18s;
-      position: relative;
-    }
-
-    .row-card:hover {
-      border-color: #a3cfb0;
-      transform: translateY(-1px);
-    }
-
-    .r-icon {
-      width: 40px; height: 40px;
-      border-radius: 11px;
-      background: var(--surface2);
-      font-size: 18px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .r-text { flex: 1; }
-
-    .r-title {
-      font-size: 13.5px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .r-sub {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
-      line-height: 1.4;
-    }
-
-    .r-chev {
-      font-size: 16px;
-      color: #c0ccc4;
-      flex-shrink: 0;
-    }
-
-    .red-dot {
-      width: 9px; height: 9px;
-      background: #d50000;
-      border-radius: 50%;
-      position: absolute;
-      top: 10px; right: 38px;
-      display: none;
-    }
-
-    /* ── SCHEDULE / QUOTE CARDS ── */
-    .schedule-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      margin-top: 8px;
-    }
-
-    .schedule-title {
-      font-size: 13.5px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 5px;
-    }
-
-    .schedule-meta {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .schedule-badge {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: var(--surface2);
-      color: var(--accent);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: capitalize;
-    }
-
-    .quote-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      margin-top: 8px;
-    }
-
-    .small-text {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    .quote-amount {
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--accent);
-      margin-top: 4px;
-    }
-
-    .quote-actions {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-
-    /* ── NEXT ACCEPTED TASK ── */
-    .next-task-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 16px;
-      margin-bottom: 14px;
-      box-shadow: 0 6px 20px rgba(11,122,40,0.10);
-      opacity: 0;
-      animation: riseIn 0.35s 0.22s forwards;
-    }
-
-    .next-task-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .next-task-kicker {
+    .balance-label {
       font-size: 10.5px;
-      font-weight: 800;
-      letter-spacing: 1.1px;
-      text-transform: uppercase;
       color: var(--accent);
-      margin-bottom: 5px;
-    }
-
-    .next-task-title {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1.2;
-      letter-spacing: -0.2px;
-    }
-
-    .next-task-status {
-      background: var(--surface2);
-      color: var(--accent);
-      border: 1px solid #bde8ca;
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 10.5px;
-      font-weight: 800;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-
-    .next-task-body {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-
-    .next-task-icon {
-      width: 54px;
-      height: 54px;
-      border-radius: 17px;
-      background: var(--surface2);
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      flex-shrink: 0;
-    }
-
-    .next-task-main {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .next-task-customer {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-      margin-top: 5px;
-    }
-
-    .next-task-pay {
-      text-align: right;
-      flex-shrink: 0;
-    }
-
-    .next-task-pay-label {
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 700;
-      margin-bottom: 3px;
-    }
-
-    .next-task-pay-amount {
-      color: var(--accent);
-      font-size: 24px;
-      font-weight: 800;
-      line-height: 1;
-    }
-
-    .next-task-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 9px;
-      border-top: 1px solid var(--border);
-      padding-top: 13px;
-      margin-top: 4px;
-    }
-
-    .next-task-info {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 10px;
-      min-height: 72px;
-    }
-
-    .next-task-info-label {
-      color: var(--muted);
-      font-size: 10px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.6px;
       margin-bottom: 6px;
     }
 
-    .next-task-info-value {
-      color: var(--text);
-      font-size: 12.5px;
+    .balance-amount {
+      font-size: 34px;
       font-weight: 800;
-      line-height: 1.35;
-    }
-
-    .next-task-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 9px;
-      margin-top: 13px;
-    }
-
-    .next-task-empty {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 16px;
-      margin-bottom: 14px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .next-task-list {
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
-      margin-top: 8px;
-    }
-
-    .next-task-mini {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 12px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: center;
-      cursor: pointer;
-    }
-
-    .next-task-mini-title {
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1.3;
-    }
-
-    .next-task-mini-meta {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.4;
-      margin-top: 3px;
-    }
-
-    .next-task-mini-pay {
       color: var(--accent);
-      font-size: 14px;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-
-    .dashboard-tools-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      width: 100%;
-    }
-
-    .dashboard-tools-grid .row-card {
-      min-height: 112px;
-      align-items: flex-start;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .dashboard-tools-grid .row-card .r-text {
-      width: 100%;
-    }
-
-    .dashboard-tools-grid .row-card .r-chev {
-      position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-
-    .dashboard-tools-grid .wide-tool {
-      grid-column: 1 / -1;
-      min-height: 66px;
-      flex-direction: row;
-      align-items: center;
-    }
-
-    .dashboard-bottom-nav {
-      position: sticky;
-      bottom: 0;
-      z-index: 35;
-      width: 100%;
-      max-width: 470px;
-      background: rgba(255,255,255,0.97);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--border);
-      border-bottom: none;
-      border-radius: 18px 18px 0 0;
-      padding: 10px 8px 8px;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 4px;
-      box-shadow: 0 -6px 18px rgba(0,0,0,0.07);
-    }
-
-    .bottom-nav-item {
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      padding: 6px 4px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      font-size: 10px;
-      font-weight: 700;
-      cursor: pointer;
-      position: relative;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-
-    .bottom-nav-item.active {
-      color: var(--accent);
-    }
-
-    .bottom-nav-icon {
-      font-size: 18px;
+      letter-spacing: -0.7px;
       line-height: 1;
     }
 
-    .bottom-nav-badge {
-      position: absolute;
-      top: 2px;
-      right: 18px;
-      min-width: 17px;
-      height: 17px;
-      border-radius: 999px;
-      background: #d93025;
-      color: #fff;
-      border: 2px solid #fff;
-      font-size: 9px;
-      font-weight: 800;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 0 3px;
-    }
-
-    /* ── BUTTONS ── */
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 12px;
-      background: var(--accent);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity 0.18s, transform 0.18s;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-
-    button:hover { opacity: 0.88; transform: translateY(-1px); }
-
-    button.secondary {
-      background: var(--surface);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    button.danger {
-      background: var(--danger);
-      color: #fff;
-    }
-
-    /* ── LOGOUT SECTION ── */
-    .logout-row {
-      background: #fff5f5;
-      border: 1px solid #ffd8d8;
-      border-radius: 16px;
-      padding: 16px;
-      margin-top: 20px;
-    }
-
-    .logout {
-      background: var(--danger);
-    }
-
-    /* ── NOTIFICATION PANEL ── */
-    .notification-panel {
-      background: #fff;
-      border-radius: 20px;
-      padding: 14px;
-      margin-bottom: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.10);
-      border: 1px solid var(--border);
-      display: none;
-      animation: riseIn 0.25s ease;
-    }
-
-    .notification-panel.show { display: block; }
-
-    .notification-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .notification-title {
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--text);
-    }
-
-    .notification-refresh {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--accent);
-      cursor: pointer;
-    }
-
-    .notification-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .notification-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 13px;
-      padding: 11px 13px;
-      cursor: pointer;
-      transition: border-color 0.18s, transform 0.18s;
-    }
-
-    .notification-item:hover {
-      border-color: #a3cfb0;
-      transform: translateY(-1px);
-    }
-
-    .notification-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex: 1;
-    }
-
-    .notification-icon {
-      width: 36px; height: 36px;
-      border-radius: 11px;
-      background: var(--surface2);
-      font-size: 17px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .notification-main {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .notification-sub {
-      font-size: 11px;
+    .balance-sub {
       color: var(--muted);
-      margin-top: 2px;
-      line-height: 1.35;
+      font-size: 12px;
+      margin-top: 8px;
+      line-height: 1.4;
+      font-weight: 600;
     }
 
-    .notification-count {
-      min-width: 24px; height: 24px;
-      border-radius: 999px;
-      background: var(--accent);
-      color: #fff;
-      font-size: 11px;
-      font-weight: 800;
-      display: flex; align-items: center; justify-content: center;
-      padding: 0 6px;
-      flex-shrink: 0;
-    }
-
-    /* ── PROFILE ACTIONS (kept for JS compat) ── */
-    .profile-actions {
+    .stats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
-      margin-top: 14px;
+      margin-top: 10px;
     }
 
-    /* ── ANIMATIONS ── */
-    .fade-in {
-      opacity: 0;
-      animation: riseIn 0.35s forwards;
+    .stat-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      min-height: 74px;
+    }
+
+    .stat-label {
+      color: var(--accent);
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 13px;
+      background: var(--accent);
+      color: white;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: opacity 0.18s, transform 0.18s, box-shadow 0.18s;
+      margin-top: 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(11,122,40,0.10);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    button.secondary {
+      background: white;
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: capitalize;
+      white-space: nowrap;
+    }
+
+    .pill-pending {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border: 1px solid var(--warning-border);
+    }
+
+    .pill-approved,
+    .pill-paid {
+      background: var(--surface2);
+      color: var(--accent);
+      border: 1px solid #cfead7;
+    }
+
+    .pill-denied,
+    .pill-failed {
+      background: #ffe5e5;
+      color: var(--danger);
+      border: 1px solid #ffc4c4;
+    }
+
+    .pill-requested,
+    .pill-processing {
+      background: var(--blue-bg);
+      color: var(--blue-text);
+      border: 1px solid #c9def8;
+    }
+
+    .request-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 13px;
+      margin-top: 10px;
+    }
+
+    .request-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .request-amount {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+
+    .request-meta {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .request-note {
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      padding: 18px 10px;
+      font-weight: 600;
+    }
+
+    .loading-spinner {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    .message {
+      min-height: 18px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 800;
+      margin-top: 10px;
+      line-height: 1.35;
+    }
+
+    .payout-options {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .payout-option {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 13px;
+    }
+
+    .payout-option-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .payout-option-text {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .fee-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    .fee-row strong {
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .history-filters {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 9px;
+      margin-bottom: 12px;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .filter-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .filter-field label {
+      color: var(--accent);
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .filter-field input,
+    .filter-field select {
+      width: 100%;
+      min-height: 42px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      padding: 9px 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .earning-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 13px;
+    }
+
+    .earning-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .earning-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+
+    .earning-meta {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .earning-amount {
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 800;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .earning-detail-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 9px;
+    }
+
+    .earning-detail {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 9px;
+      min-height: 52px;
+    }
+
+    .earning-detail-label {
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .earning-detail-value {
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     @keyframes riseIn {
@@ -922,3911 +543,1599 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .loading {
-      text-align: center;
-      margin-top: 100px;
-      color: var(--muted);
-      font-size: 15px;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-
     @media (max-width: 360px) {
-      .stats-row { grid-template-columns: repeat(2, 1fr); }
-      .two-col { gap: 8px; }
-      .tile { padding: 13px; min-height: 104px; }
-      .profile-actions { grid-template-columns: 1fr; }
-      .next-task-grid { grid-template-columns: 1fr; }
-      .next-task-actions { grid-template-columns: 1fr; }
-      .next-task-body { align-items: flex-start; }
-      .next-task-pay { text-align: left; }
-      .dashboard-tools-grid { grid-template-columns: 1fr; }
-      .dashboard-tools-grid .wide-tool { grid-column: auto; }
-    }
-
-    /* ── DASHBOARD VISUAL REFRESH ── */
-    body {
-      background:
-        radial-gradient(circle at top left, rgba(11,122,40,0.10), transparent 260px),
-        linear-gradient(180deg, #ffffff 0%, #f6fbf8 48%, #ffffff 100%);
-    }
-
-    .top-bar {
-      background: rgba(255,255,255,0.94);
-      border-bottom: 1px solid rgba(226,235,229,0.92);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.035);
-    }
-
-    .page {
-      padding-top: 18px;
-    }
-
-    .hero {
-      margin-bottom: 16px;
-      padding: 2px 4px 0;
-    }
-
-    .hero h1 {
-      font-size: 29px;
-      letter-spacing: -0.7px;
-    }
-
-    .hero p {
-      max-width: 370px;
-    }
-
-    #nextAcceptedTaskSection {
-      margin-top: 16px;
-    }
-
-    #nextAcceptedTaskSection .section-label,
-    #quickActionsSection,
-    #todayScheduleSection .section-label {
-      font-size: 11px;
-      letter-spacing: 1.6px;
-    }
-
-    .next-task-card {
-      border-radius: 22px;
-      padding: 18px;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,0.98), rgba(242,247,244,0.95));
-      border: 1px solid #d8e8de;
-      box-shadow: 0 14px 32px rgba(11,122,40,0.12);
-    }
-
-    .next-task-top {
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .next-task-kicker {
-      font-size: 11px;
-      letter-spacing: 1.2px;
-    }
-
-    .next-task-title {
-      font-size: 20px;
-    }
-
-    .next-task-status {
-      padding: 7px 12px;
-      box-shadow: inset 0 0 0 1px rgba(11,122,40,0.06);
-    }
-
-    .next-task-body {
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 0;
-    }
-
-    .next-task-icon {
-      width: 58px;
-      height: 58px;
-      border-radius: 20px;
-      font-size: 25px;
-      box-shadow: inset 0 0 0 1px rgba(11,122,40,0.08);
-    }
-
-    .next-task-customer {
-      font-size: 13.5px;
-    }
-
-    .next-task-pay-label {
-      font-size: 11.5px;
-    }
-
-    .next-task-pay-amount {
-      font-size: 27px;
-    }
-
-    .next-task-grid {
-      border-top: none;
-      margin-top: 14px;
-      padding-top: 0;
-      gap: 10px;
-    }
-
-    .next-task-info {
-      border-radius: 17px;
-      min-height: 78px;
-      background: rgba(242,247,244,0.92);
-    }
-
-    .next-task-actions {
-      margin-top: 14px;
-      gap: 10px;
-    }
-
-    .next-task-actions button {
-      min-height: 48px;
-      border-radius: 14px;
-      font-size: 13.5px;
-    }
-
-    .dashboard-tools-grid {
-      gap: 10px;
-      margin-top: 2px;
-    }
-
-    .dashboard-tools-grid .row-card {
-      border-radius: 17px;
-      min-height: 118px;
-      padding: 16px;
-      background:
-        linear-gradient(145deg, rgba(255,255,255,0.98), rgba(242,247,244,0.96));
-      border: 1px solid #dcebe2;
-      box-shadow: 0 7px 18px rgba(0,0,0,0.045);
-    }
-
-    .dashboard-tools-grid .row-card:hover {
-      box-shadow: 0 9px 22px rgba(11,122,40,0.10);
-    }
-
-    .dashboard-tools-grid .r-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 15px;
-      font-size: 20px;
-      box-shadow: inset 0 0 0 1px rgba(11,122,40,0.07);
-    }
-
-    .dashboard-tools-grid .r-title {
-      font-size: 14.5px;
-      margin-bottom: 4px;
-    }
-
-    .dashboard-tools-grid .r-sub {
-      font-size: 11.5px;
-      line-height: 1.45;
-      max-width: 130px;
-    }
-
-    .dashboard-tools-grid .wide-tool {
-      border-radius: 17px;
-      min-height: 70px;
-      padding: 14px 16px;
-    }
-
-    .dashboard-tools-grid .wide-tool .r-sub {
-      max-width: none;
-    }
-
-    .schedule-card {
-      position: relative;
-      border-radius: 17px;
-      padding: 15px 56px 15px 15px;
-      margin-top: 9px;
-      background:
-        linear-gradient(145deg, rgba(255,255,255,0.98), rgba(242,247,244,0.94));
-      border: 1px solid #dcebe2;
-      box-shadow: 0 7px 18px rgba(0,0,0,0.04);
-      cursor: pointer;
-    }
-
-    .schedule-title {
-      font-size: 14.5px;
-      margin-bottom: 6px;
-    }
-
-    .schedule-meta {
-      font-size: 12px;
-      line-height: 1.55;
-    }
-
-    .schedule-badge {
-      position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      margin-top: 0;
-      background: transparent;
-      border: none;
-      padding: 0;
-      color: var(--accent);
-      font-size: 14px;
-      font-weight: 800;
-    }
-
-    .dashboard-bottom-nav {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 0;
-      border-radius: 22px 22px 0 0;
-      padding: 11px 8px calc(10px + env(safe-area-inset-bottom));
-      background: rgba(255,255,255,0.96);
-      border: 1px solid rgba(226,235,229,0.95);
-      border-bottom: none;
-      box-shadow: 0 -10px 28px rgba(0,0,0,0.10);
-    }
-
-    .bottom-nav-item {
-      border-radius: 14px;
-      min-height: 56px;
-      font-size: 10.5px;
-    }
-
-    .bottom-nav-item:hover {
-      background: var(--surface);
-      transform: none;
-      opacity: 1;
-      box-shadow: none;
-    }
-
-    .bottom-nav-item.active {
-      background: var(--surface2);
-    }
-
-    .bottom-nav-icon {
-      font-size: 19px;
-    }
-
-    @media (max-width: 360px) {
-      .dashboard-tools-grid .row-card {
-        min-height: 86px;
+      .hero-title {
+        font-size: 25px;
       }
 
-      .dashboard-tools-grid .r-sub {
-        max-width: none;
-      }
-
-      .schedule-card {
-        padding-right: 15px;
-      }
-
-      .schedule-badge {
-        position: static;
-        display: inline-block;
-        transform: none;
-        margin-top: 8px;
-      }
-    }
-
-  
-    /* ── FINAL MOBILE REDESIGN TO MATCH REQUESTED MOCKUP STRUCTURE ── */
-    body {
-      background:
-        radial-gradient(circle at 12% 0%, rgba(11,122,40,0.13), transparent 245px),
-        linear-gradient(180deg, #ffffff 0%, #f7fbf8 40%, #ffffff 100%);
-      color: var(--text);
-    }
-
-    .top-bar {
-      position: sticky;
-      top: 0;
-      min-height: 72px;
-      padding: 16px 20px 12px;
-      display: grid;
-      grid-template-columns: 44px 1fr 44px;
-      align-items: center;
-      gap: 12px;
-      background: rgba(255,255,255,0.96);
-      border-bottom: none;
-      box-shadow: 0 8px 26px rgba(0,0,0,0.045);
-    }
-
-    .menu-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      background: var(--surface);
-      color: var(--accent);
-      border: 1px solid var(--border);
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      line-height: 1;
-      box-shadow: none;
-    }
-
-    .menu-btn:hover {
-      transform: none;
-      opacity: 1;
-      background: var(--surface2);
-    }
-
-    .brand {
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-    }
-
-    .brand img {
-      width: 142px;
-      max-height: 42px;
-      object-fit: contain;
-    }
-
-    .top-actions {
-      justify-content: flex-end;
-    }
-
-    .icon-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      box-shadow: none;
-    }
-
-    .page {
-      max-width: 470px;
-      padding: 18px 16px 104px;
-    }
-
-    .hero {
-      padding: 2px 4px 0;
-      margin-bottom: 18px;
-    }
-
-    .hero-label {
-      display: none;
-    }
-
-    .hero h1 {
-      font-size: 30px;
-      line-height: 1.08;
-      letter-spacing: -0.8px;
-      margin-bottom: 8px;
-    }
-
-    .hero p {
-      max-width: 390px;
-      font-size: 15px;
-      line-height: 1.45;
-      margin-top: 0;
-    }
-
-    #nextAcceptedTaskSection {
-      display: none;
-    }
-
-    #nextAcceptedTaskCard.next-task-empty,
-    .next-task-card {
-      margin-top: 4px;
-      margin-bottom: 20px;
-      border-radius: 22px;
-      padding: 20px 18px;
-      background:
-        linear-gradient(145deg, rgba(255,255,255,0.98), rgba(242,247,244,0.98));
-      border: 1px solid #d7e7dd;
-      box-shadow: 0 14px 34px rgba(11,122,40,0.14);
-      color: var(--text);
-    }
-
-    .next-task-empty {
-      font-weight: 700;
-      color: var(--muted);
-    }
-
-    .next-task-top {
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .next-task-kicker {
-      position: relative;
-      padding-left: 38px;
-      font-size: 15px;
-      letter-spacing: 0;
-      text-transform: none;
-      color: var(--text);
-      margin-bottom: 0;
-    }
-
-    .next-task-kicker::before {
-      content: "☑";
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 28px;
-      height: 28px;
-      border-radius: 9px;
-      background: var(--surface2);
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-    }
-
-    .next-task-title {
-      font-size: 22px;
-      line-height: 1.2;
-      margin-bottom: 5px;
-    }
-
-    .next-task-status {
-      padding: 8px 13px;
-      background: var(--surface2);
-      color: var(--accent);
-      border: 1px solid #bde8ca;
-      border-radius: 999px;
-      font-size: 11px;
-    }
-
-    .next-task-body {
-      display: grid;
-      grid-template-columns: 62px 1fr auto;
-      gap: 14px;
-      align-items: center;
-      padding-bottom: 18px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 0;
-    }
-
-    .next-task-icon {
-      width: 62px;
-      height: 62px;
-      border-radius: 23px;
-      background: var(--surface2);
-      color: var(--accent);
-      font-size: 28px;
-      box-shadow: inset 0 0 0 1px rgba(11,122,40,0.08);
-    }
-
-    .next-task-customer {
-      font-size: 15px;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .next-task-pay-label {
-      font-size: 13px;
-      text-align: right;
-    }
-
-    .next-task-pay-amount {
-      font-size: 29px;
-      color: var(--accent);
-    }
-
-    .next-task-grid {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0;
-      border-top: none;
-      padding-top: 18px;
-      margin-top: 0;
-    }
-
-    .next-task-info {
-      background: transparent;
-      border: none;
-      border-right: 1px solid var(--border);
-      border-radius: 0;
-      min-height: 70px;
-      padding: 0 12px;
-    }
-
-    .next-task-info:first-child {
-      padding-left: 0;
-    }
-
-    .next-task-info:last-child {
-      border-right: none;
-      padding-right: 0;
-    }
-
-    .next-task-info-label {
-      font-size: 13px;
-      letter-spacing: 0;
-      text-transform: none;
-      color: var(--muted);
-      margin-bottom: 7px;
-    }
-
-    .next-task-info-label::before {
-      margin-right: 6px;
-    }
-
-    .next-task-info:nth-child(1) .next-task-info-label::before { content: "📅"; }
-    .next-task-info:nth-child(2) .next-task-info-label::before { content: "🕒"; }
-    .next-task-info:nth-child(3) .next-task-info-label::before { content: "📍"; }
-
-    .next-task-info-value {
-      font-size: 15px;
-      line-height: 1.35;
-    }
-
-    .next-task-actions {
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 18px;
-    }
-
-    .next-task-actions button {
-      min-height: 50px;
-      border-radius: 14px;
-      font-size: 14px;
-    }
-
-    .next-task-actions button.secondary {
-      background: transparent;
-      border: 1px solid #bfdccc;
-      color: var(--accent);
-    }
-
-    #quickActionsSection {
-      display: none;
-    }
-
-    .dashboard-tools-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 0;
-      margin-bottom: 22px;
-    }
-
-    .dashboard-tools-grid .row-card {
-      min-height: 116px;
-      padding: 16px 44px 15px 15px;
-      border-radius: 18px;
-      background:
-        linear-gradient(145deg, rgba(255,255,255,0.99), rgba(242,247,244,0.98));
-      border: 1px solid #dcebe2;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.055);
-      align-items: flex-start;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .dashboard-tools-grid .row-card:hover {
-      border-color: #b9dcc4;
-      box-shadow: 0 10px 24px rgba(11,122,40,0.12);
-      transform: translateY(-1px);
-    }
-
-    .dashboard-tools-grid .r-icon {
-      width: 46px;
-      height: 46px;
-      border-radius: 16px;
-      background: var(--surface2);
-      color: var(--accent);
-      font-size: 21px;
-      box-shadow: inset 0 0 0 1px rgba(11,122,40,0.08);
-    }
-
-    .dashboard-tools-grid .r-title {
-      font-size: 15px;
-      margin-bottom: 4px;
-    }
-
-    .dashboard-tools-grid .r-sub {
-      font-size: 12px;
-      line-height: 1.42;
-      max-width: 145px;
-      color: var(--muted);
-    }
-
-    .dashboard-tools-grid .r-chev {
-      right: 14px;
-      color: #9bafa3;
-      font-size: 25px;
-    }
-
-    .dashboard-tools-grid .wide-tool {
-      grid-column: 1 / -1;
-      min-height: 78px;
-      flex-direction: row;
-      align-items: center;
-      padding: 15px 48px 15px 15px;
-    }
-
-    .dashboard-tools-grid .wide-tool .r-sub {
-      max-width: none;
-    }
-
-    #todayScheduleSection {
-      margin: 4px 2px 10px;
-    }
-
-    #todayScheduleSection .section-label {
-      font-size: 18px;
-      text-transform: none;
-      letter-spacing: -0.2px;
-      color: var(--text);
-      font-weight: 800;
-    }
-
-    #todayScheduleSection .section-link {
-      font-size: 13px;
-    }
-
-    #todayScheduleList {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      border: 1px solid #dcebe2;
-      border-radius: 18px;
-      overflow: hidden;
-      background: rgba(255,255,255,0.96);
-      box-shadow: 0 9px 22px rgba(0,0,0,0.045);
-      margin-bottom: 12px;
-    }
-
-    #todayScheduleList.small-text {
-      padding: 15px;
-    }
-
-    #todayScheduleList .schedule-card {
-      margin: 0;
-      border: none;
-      border-bottom: 1px solid var(--border);
-      border-radius: 0;
-      background: transparent;
-      box-shadow: none;
-      padding: 16px 70px 16px 70px;
-      min-height: 82px;
-    }
-
-    #todayScheduleList .schedule-card:last-child {
-      border-bottom: none;
-    }
-
-    #todayScheduleList .schedule-card::before {
-      content: "JOB";
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 42px;
-      height: 52px;
-      border-radius: 13px;
-      background: var(--surface);
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.6px;
-    }
-
-    .schedule-title {
-      font-size: 15px;
-      margin-bottom: 5px;
-    }
-
-    .schedule-meta {
-      font-size: 12.5px;
-      line-height: 1.5;
-    }
-
-    .schedule-badge {
-      position: absolute;
-      top: 50%;
-      right: 15px;
-      transform: translateY(-50%);
-      margin: 0;
-      padding: 0;
-      background: transparent;
-      color: var(--accent);
-      border: none;
-      font-size: 14px;
-    }
-
-    .dashboard-bottom-nav {
-      position: fixed;
-      left: 50%;
-      bottom: 0;
-      transform: translateX(-50%);
-      max-width: 470px;
-      border-radius: 22px 22px 0 0;
-      background: rgba(255,255,255,0.97);
-      backdrop-filter: blur(18px);
-      border: 1px solid rgba(226,235,229,0.96);
-      border-bottom: none;
-      box-shadow: 0 -12px 30px rgba(0,0,0,0.12);
-      padding: 11px 8px calc(10px + env(safe-area-inset-bottom));
-    }
-
-    .bottom-nav-item {
-      min-height: 58px;
-      border-radius: 16px;
-      font-size: 10.5px;
-      color: var(--muted);
-      background: transparent;
-    }
-
-    .bottom-nav-item.active {
-      color: var(--accent);
-      background: var(--surface2);
-    }
-
-    .bottom-nav-icon {
-      font-size: 20px;
-    }
-
-    @media (max-width: 360px) {
-      .next-task-body {
-        grid-template-columns: 56px 1fr;
-      }
-
-      .next-task-pay {
-        grid-column: 1 / -1;
-        text-align: left;
-      }
-
-      .next-task-pay-label {
-        text-align: left;
-      }
-
-      .next-task-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-
-      .next-task-info,
-      .next-task-info:first-child,
-      .next-task-info:last-child {
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-        padding: 0 0 10px;
-      }
-
-      .next-task-info:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-      }
-
-      .dashboard-tools-grid {
+      .stats-grid {
         grid-template-columns: 1fr;
       }
 
-      .dashboard-tools-grid .row-card {
-        min-height: 88px;
+      .filter-row,
+      .earning-detail-row {
+        grid-template-columns: 1fr;
       }
 
-      #todayScheduleList .schedule-card {
-        padding-right: 16px;
-      }
-
-      .schedule-badge {
-        position: static;
+      .request-top {
         display: block;
-        transform: none;
+      }
+
+      .status-pill {
         margin-top: 8px;
       }
     }
-
-
-    /* ── FINAL COMPACT SIZE FIXES ── */
-    .top-bar {
-      min-height: 92px !important;
-      padding: 10px 16px !important;
-      grid-template-columns: 1fr 42px !important;
-      gap: 10px !important;
-    }
-
-    .brand img {
-      width: 260px !important;
-      max-height: 82px !important;
-    }
-
-    .icon-btn {
-      width: 40px !important;
-      height: 40px !important;
-      border-radius: 12px !important;
-      font-size: 18px !important;
-    }
-
-    .page {
-      padding: 12px 14px 92px !important;
-    }
-
-    .hero {
-      margin-bottom: 12px !important;
-      padding: 0 2px !important;
-    }
-
-    .hero h1 {
-      font-size: 25px !important;
-      line-height: 1.08 !important;
-      margin-bottom: 5px !important;
-    }
-
-    .hero p {
-      font-size: 12.5px !important;
-      line-height: 1.35 !important;
-    }
-
-    #nextAcceptedTaskCard.next-task-empty,
-    .next-task-card {
-      padding: 13px 13px !important;
-      border-radius: 16px !important;
-      margin-top: 0 !important;
-      margin-bottom: 13px !important;
-      box-shadow: 0 7px 18px rgba(11,122,40,0.09) !important;
-    }
-
-    .next-task-top {
-      margin-bottom: 10px !important;
-      gap: 8px !important;
-    }
-
-    .next-task-kicker {
-      font-size: 12.5px !important;
-      padding-left: 30px !important;
-    }
-
-    .next-task-kicker::before {
-      width: 23px !important;
-      height: 23px !important;
-      border-radius: 8px !important;
-      font-size: 13px !important;
-    }
-
-    .next-task-title {
-      font-size: 17px !important;
-      margin-bottom: 3px !important;
-    }
-
-    .next-task-status {
-      padding: 5px 9px !important;
-      font-size: 9.5px !important;
-    }
-
-    .next-task-body {
-      grid-template-columns: 44px 1fr auto !important;
-      gap: 10px !important;
-      padding-bottom: 10px !important;
-    }
-
-    .next-task-icon {
-      width: 44px !important;
-      height: 44px !important;
-      border-radius: 15px !important;
-      font-size: 20px !important;
-    }
-
-    .next-task-customer {
-      font-size: 12px !important;
-      margin-top: 2px !important;
-    }
-
-    .next-task-pay-label {
-      font-size: 10.5px !important;
-    }
-
-    .next-task-pay-amount {
-      font-size: 21px !important;
-    }
-
-    .next-task-grid {
-      padding-top: 10px !important;
-    }
-
-    .next-task-info {
-      min-height: 48px !important;
-      padding: 0 8px !important;
-    }
-
-    .next-task-info-label {
-      font-size: 10.5px !important;
-      margin-bottom: 4px !important;
-    }
-
-    .next-task-info-value {
-      font-size: 12px !important;
-      line-height: 1.25 !important;
-    }
-
-    .next-task-actions {
-      margin-top: 10px !important;
-      gap: 8px !important;
-    }
-
-    .next-task-actions button {
-      min-height: 38px !important;
-      padding: 9px !important;
-      border-radius: 11px !important;
-      font-size: 12px !important;
-    }
-
-    .dashboard-tools-grid {
-      gap: 8px !important;
-      margin-bottom: 14px !important;
-    }
-
-    .dashboard-tools-grid .row-card {
-      min-height: 86px !important;
-      padding: 11px 34px 11px 11px !important;
-      border-radius: 14px !important;
-      gap: 7px !important;
-      box-shadow: 0 5px 14px rgba(0,0,0,0.04) !important;
-    }
-
-    .dashboard-tools-grid .r-icon {
-      width: 34px !important;
-      height: 34px !important;
-      border-radius: 12px !important;
-      font-size: 16px !important;
-    }
-
-    .dashboard-tools-grid .r-title {
-      font-size: 12.5px !important;
-      margin-bottom: 2px !important;
-    }
-
-    .dashboard-tools-grid .r-sub {
-      font-size: 10px !important;
-      line-height: 1.28 !important;
-      max-width: 130px !important;
-    }
-
-    .dashboard-tools-grid .r-chev {
-      right: 10px !important;
-      font-size: 19px !important;
-    }
-
-    .dashboard-tools-grid .wide-tool {
-      min-height: 58px !important;
-      padding: 10px 36px 10px 11px !important;
-    }
-
-    #todayScheduleSection {
-      margin: 0 2px 7px !important;
-    }
-
-    #todayScheduleSection .section-label {
-      font-size: 15px !important;
-    }
-
-    #todayScheduleSection .section-link {
-      font-size: 11.5px !important;
-    }
-
-    #todayScheduleList {
-      border-radius: 14px !important;
-      box-shadow: 0 5px 14px rgba(0,0,0,0.035) !important;
-      margin-bottom: 8px !important;
-    }
-
-    #todayScheduleList .schedule-card {
-      min-height: 62px !important;
-      padding: 11px 58px 11px 56px !important;
-    }
-
-    #todayScheduleList .schedule-card::before {
-      left: 11px !important;
-      width: 34px !important;
-      height: 42px !important;
-      border-radius: 10px !important;
-      font-size: 8.5px !important;
-    }
-
-    .schedule-title {
-      font-size: 12.5px !important;
-      margin-bottom: 3px !important;
-    }
-
-    .schedule-meta {
-      font-size: 10.5px !important;
-      line-height: 1.32 !important;
-    }
-
-    .schedule-badge {
-      right: 11px !important;
-      font-size: 12px !important;
-    }
-
-    .dashboard-bottom-nav {
-      padding: 7px 8px calc(7px + env(safe-area-inset-bottom)) !important;
-      border-radius: 18px 18px 0 0 !important;
-    }
-
-    .bottom-nav-item {
-      min-height: 48px !important;
-      border-radius: 12px !important;
-      font-size: 9.5px !important;
-    }
-
-    .bottom-nav-icon {
-      font-size: 17px !important;
-    }
-
-    @media (max-width: 360px) {
-      .next-task-body {
-        grid-template-columns: 40px 1fr !important;
-      }
-
-      .next-task-pay {
-        grid-column: 1 / -1 !important;
-        text-align: left !important;
-      }
-
-      .next-task-pay-label {
-        text-align: left !important;
-      }
-
-      #todayScheduleList .schedule-card {
-        padding: 10px 12px 10px 50px !important;
-      }
-    }
-
-  
-    /* ── EARNINGS BUBBLE + UPCOMING TASK FIX VISUALS ── */
-    .earnings-bubble {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      background: linear-gradient(145deg, rgba(255,255,255,0.99), rgba(242,247,244,0.96));
-      border: 1px solid #dcebe2;
-      border-radius: 15px;
-      padding: 11px 12px;
-      margin: 4px 0 10px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.045);
-      cursor: pointer;
-    }
-
-    .earnings-bubble-left {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      min-width: 0;
-    }
-
-    .earnings-bubble-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
-      background: var(--surface2);
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 16px;
-      flex-shrink: 0;
-    }
-
-    .earnings-bubble-label {
-      font-size: 12.5px;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1.2;
-    }
-
-    .earnings-bubble-sub {
-      font-size: 10.5px;
-      font-weight: 600;
-      color: var(--muted);
-      margin-top: 2px;
-      line-height: 1.2;
-    }
-
-    .earnings-bubble-amount {
-      color: var(--accent);
-      font-size: 18px;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-</style>
+  </style>
 </head>
-<body>
 
-<!-- TOP BAR -->
-<div class="top-bar">
-  <div class="brand">
-    <img src="https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true" alt="TaskMint Logo">
+<body>
+ 
+<div class="container">
+ 
+  <div class="top-bar">
+    <a class="back" href="worker-dashboard.html">&larr; Back</a>
+    <div class="refresh-link" onclick="loadPayoutPage()">Refresh</div>
+  </div>
+ 
+  <div class="hero">
+    <div class="hero-title">Earnings History</div>
+    <div class="hero-sub">
+      View your completed task earnings, filter by date or task type, and track payout activity.
+    </div>
   </div>
 
-  <div class="top-actions">
-    <div style="position:relative;">
-      <button
-        type="button"
-        class="icon-btn"
-        onclick="toggleNotificationPanel()"
-        aria-label="Worker notifications">
-        🔔
-        <span class="notification-badge" id="notificationBadge">0</span>
+  <!-- EARNINGS HISTORY CARD (moved to top) -->
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">Earnings History</div>
+    </div>
+
+    <div class="section-note">
+      Filter completed task earnings by completed date or task type.
+    </div>
+
+    <div class="history-filters">
+      <div class="filter-row">
+        <div class="filter-field">
+          <label for="earningStartDate">From</label>
+          <input id="earningStartDate" type="date" onchange="renderEarningsHistory()">
+        </div>
+
+        <div class="filter-field">
+          <label for="earningEndDate">To</label>
+          <input id="earningEndDate" type="date" onchange="renderEarningsHistory()">
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label for="earningTypeFilter">Task Type</label>
+        <select id="earningTypeFilter" onchange="renderEarningsHistory()">
+          <option value="">All task types</option>
+        </select>
+      </div>
+
+      <button class="secondary" onclick="clearEarningsFilters()">
+        Clear Filters
       </button>
     </div>
+
+    <div id="earningsHistoryList" class="history-list">
+      <div class="empty">
+        <div class="loading-spinner"></div>
+        Loading earnings history...
+      </div>
+    </div>
   </div>
+
+  <!-- AVAILABLE FOR PAYOUT CARD -->
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">Available for Payout</div>
+    </div>
+ 
+    <div class="balance-box">
+      <div class="balance-label">Current available balance</div>
+      <div class="balance-amount" id="availableBalance">$0.00</div>
+      <div class="balance-sub" id="balanceSubtext">
+        Completed and released jobs will show here.
+      </div>
+    </div>
+
+    <div class="payout-options">
+      <div class="payout-option">
+        <div class="payout-option-title">Free Friday Payout</div>
+        <div class="payout-option-text">
+          Request your available balance with no payout fee. Standard payouts are reviewed and processed during the Friday payout run.
+        </div>
+        <button id="standardPayoutButton" onclick="requestPayout('standard')" disabled>
+          Request Free Friday Payout
+        </button>
+      </div>
+
+      <div class="payout-option">
+        <div class="payout-option-title">Instant Payout</div>
+        <div class="payout-option-text">
+          Request faster payout processing for a small instant payout fee.
+        </div>
+        <div class="fee-row">
+          <span>Instant fee</span>
+          <strong id="instantFeeAmount">$0.00</strong>
+        </div>
+        <div class="fee-row">
+          <span>You receive</span>
+          <strong id="instantNetAmount">$0.00</strong>
+        </div>
+        <button id="instantPayoutButton" onclick="requestPayout('instant')" disabled>
+          Request Instant Payout
+        </button>
+      </div>
+    </div>
+
+    <button class="secondary" onclick="window.location.href='worker-payout-info.html'">
+      Update Payout Information
+    </button>
+ 
+    <div id="actionMessage" class="message"></div>
+  </div>
+
+  <!-- EARNINGS SUMMARY CARD -->
+  <div class="card">
+    <div class="section-title">Earnings Summary</div>
+ 
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">Pending</div>
+        <div class="stat-value" id="pendingAmount">$0.00</div>
+      </div>
+ 
+      <div class="stat-box">
+        <div class="stat-label">Approved</div>
+        <div class="stat-value" id="approvedAmount">$0.00</div>
+      </div>
+ 
+      <div class="stat-box">
+        <div class="stat-label">Paid</div>
+        <div class="stat-value" id="paidAmount">$0.00</div>
+      </div>
+ 
+      <div class="stat-box">
+        <div class="stat-label">Last Request</div>
+        <div class="stat-value" id="lastRequestDate">None</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYOUT REQUESTS CARD -->
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">Payout Requests</div>
+    </div>
+ 
+    <div class="section-note">
+      Each request shows when it was submitted and whether it is pending, approved, denied, processing, or paid.
+    </div>
+ 
+    <div id="payoutRequestsList">
+      <div class="empty">
+        <div class="loading-spinner"></div>
+        Loading payout requests...
+      </div>
+    </div>
+  </div>
+ 
 </div>
-
-<!-- LOADING -->
-<div class="loading" id="loading">Loading worker dashboard...</div>
-
-<!-- DASHBOARD -->
-<div class="page" id="dashboard" style="display:none;">
-
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-label">Worker Dashboard</div>
-    <h1>Hello, <em id="workerFirstName">Worker</em></h1>
-    <p>Manage quotes, accepted jobs, earnings, messages, disputes, and payouts from one clean workspace.</p>
-  </div>
-
-  <!-- NOTIFICATION PANEL -->
-  <div id="notificationPanel" class="notification-panel">
-    <div class="notification-header">
-      <div class="notification-title">Notifications</div>
-      <div class="notification-refresh" onclick="refreshWorkerNotifications(event)">Refresh</div>
-    </div>
-    <div class="notification-list" id="notificationList">
-
-      <div class="notification-item" onclick="openWorkerNotification('directRequests','quickActionsSection')">
-        <div class="notification-left">
-          <div class="notification-icon">📩</div>
-          <div>
-            <div class="notification-main">Direct Requests</div>
-            <div class="notification-sub">Customers requesting a quote from you directly.</div>
-          </div>
-        </div>
-        <div class="notification-count" id="directRequestNotificationCount">0</div>
-      </div>
-
-      <div class="notification-item" onclick="openWorkerNotification('accepted','todayScheduleSection')">
-        <div class="notification-left">
-          <div class="notification-icon">✅</div>
-          <div>
-            <div class="notification-main">Accepted Tasks / Quotes</div>
-            <div class="notification-sub">Quotes accepted by customers or active accepted tasks.</div>
-          </div>
-        </div>
-        <div class="notification-count" id="acceptedNotificationCount">0</div>
-      </div>
-
-      <div class="notification-item" onclick="openWorkerNotification('messages','quickActionsSection')">
-        <div class="notification-left">
-          <div class="notification-icon">💬</div>
-          <div>
-            <div class="notification-main">Messages</div>
-            <div class="notification-sub">Unread task or customer messages.</div>
-          </div>
-        </div>
-        <div class="notification-count" id="messageNotificationCount">0</div>
-      </div>
-
-      <div class="notification-item" onclick="openWorkerNotification('disputes','disputesToolRow')">
-        <div class="notification-left">
-          <div class="notification-icon">⚠️</div>
-          <div>
-            <div class="notification-main">Disputes</div>
-            <div class="notification-sub">Open disputes or TaskMint replies.</div>
-          </div>
-        </div>
-        <div class="notification-count" id="disputeNotificationCount">0</div>
-      </div>
-
-      <div class="notification-item" onclick="openWorkerNotification('reviews','reviewsToolRow')">
-        <div class="notification-left">
-          <div class="notification-icon">⭐</div>
-          <div>
-            <div class="notification-main">New Ratings / Reviews</div>
-            <div class="notification-sub">Recent customer ratings and written reviews.</div>
-          </div>
-        </div>
-        <div class="notification-count" id="reviewNotificationCount">0</div>
-      </div>
-
-      <div class="notification-item" onclick="openWorkerNotification('payouts','overviewSection')">
-        <div class="notification-left">
-          <div class="notification-icon">💵</div>
-          <div>
-            <div class="notification-main">Payouts</div>
-            <div class="notification-sub">Pending, processing, or recently paid payouts.</div>
-          </div>
-        </div>
-        <div class="notification-count" id="payoutNotificationCount">0</div>
-      </div>
-
-      <div class="notification-item" onclick="openWorkerNotification('schedule','todayScheduleSection')">
-        <div class="notification-left">
-          <div class="notification-icon">📅</div>
-          <div>
-            <div class="notification-main">Upcoming Tasks</div>
-            <div class="notification-sub">Accepted jobs with upcoming dates.</div>
-          </div>
-        </div>
-        <div class="notification-count" id="todayScheduleNotificationCount">0</div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- EARNINGS BUBBLE -->
-  <div class="earnings-bubble" onclick="window.location.href='worker-earnings.html'">
-    <div class="earnings-bubble-left">
-      <div class="earnings-bubble-icon">$</div>
-      <div>
-        <div class="earnings-bubble-label">Worker Earnings</div>
-        <div class="earnings-bubble-sub">Tap to view earnings history</div>
-      </div>
-    </div>
-    <div class="earnings-bubble-amount" id="workerEarningsBubbleAmount">$0.00</div>
-  </div>
-
-  <!-- NEXT ACCEPTED TASK -->
-  <div class="section-header" id="nextAcceptedTaskSection">
-    <div class="section-label" style="margin:0;">Next Accepted Task</div>
-    <span class="section-link" onclick="window.location.href='my-jobs.html'">Open My Jobs</span>
-  </div>
-  <div id="nextAcceptedTaskCard" class="next-task-empty">
-    Loading your next accepted task...
-  </div>
-
-  <!-- PROFILE COMPATIBILITY ELEMENTS -->
-  <div style="display:none;" aria-hidden="true">
-    <img
-      id="profilePic"
-      src="https://github.com/businessappemail-bt/task-app/blob/main/taskmintlogo.png?raw=true"
-      alt="Worker Profile">
-    <div id="workerName">Worker Profile</div>
-    <div id="profileNotice"></div>
-    <div id="overviewSection"></div>
-    <div id="earningsAmount">$0.00</div>
-    <div id="completedTasks">0</div>
-    <div id="ratingScore">0.0</div>
-  </div>
-
-  <!-- PENDING QUOTES COMPATIBILITY ELEMENTS -->
-  <div style="display:none;" aria-hidden="true">
-    <div id="pendingQuotesCard"></div>
-    <div id="pendingQuotesList"></div>
-    <div id="pendingQuotes">0</div>
-  </div>
-
-  <!-- QUICK ACTIONS -->
-  <div class="section-label" id="quickActionsSection">Quick Actions</div>
-
-  <div class="dashboard-tools-grid fade-in" style="animation-delay:0.28s;">
-    <div class="row-card" onclick="window.location.href='worker-open-task.html'">
-      <div class="r-icon">🔎</div>
-      <div class="r-text">
-        <div class="r-title">Find Work</div>
-        <div class="r-sub">Browse open tasks near you.</div>
-      </div>
-      <div class="r-chev">›</div>
-    </div>
-
-    <div class="row-card" onclick="window.location.href='view-pending-quotes.html'">
-      <div class="r-icon">💬</div>
-      <div class="r-text">
-        <div class="r-title">Pending Quotes</div>
-        <div class="r-sub">View and manage quotes waiting on customers.</div>
-      </div>
-      <div class="r-chev">›</div>
-    </div>
-
-    <div class="row-card" onclick="window.location.href='worker-availability.html'">
-      <div class="r-icon">🕒</div>
-      <div class="r-text">
-        <div class="r-title">Availability</div>
-        <div class="r-sub">Set your work availability.</div>
-      </div>
-      <div class="r-chev">›</div>
-    </div>
-
-    <div class="row-card" onclick="window.location.href='worker-payout-info.html'">
-      <div class="r-icon">🏦</div>
-      <div class="r-text">
-        <div class="r-title">Payout Information</div>
-        <div class="r-sub">View your earnings and payment status.</div>
-      </div>
-      <div class="r-chev">›</div>
-    </div>
-
-    <div class="row-card" onclick="window.location.href='worker-tax-center.html'">
-      <div class="r-icon">📄</div>
-      <div class="r-text">
-        <div class="r-title">Tax Center</div>
-        <div class="r-sub">Get tax documents and 1099s.</div>
-      </div>
-      <div class="r-chev">›</div>
-    </div>
-
-    <div class="row-card" id="reviewsToolRow" onclick="window.location.href='worker-reviews.html'">
-      <div class="r-icon">⭐</div>
-      <div class="r-text">
-        <div class="r-title">Ratings &amp; Reviews</div>
-        <div class="r-sub">See your ratings and feedback.</div>
-      </div>
-      <div class="r-chev">›</div>
-    </div>
-
-    <div class="row-card" id="disputesToolRow" onclick="window.location.href='worker-disputes.html'">
-      <div class="red-dot" id="disputeDot"></div>
-      <div class="r-icon">⚠️</div>
-      <div class="r-text">
-        <div class="r-title">Dispute Center</div>
-        <div class="r-sub">View and manage disputes.</div>
-      </div>
-      <div class="r-chev">›</div>
-    </div>
-
-    <div class="row-card" onclick="window.location.href='worker-settings.html'">
-      <div class="r-icon">⚙️</div>
-      <div class="r-text">
-        <div class="r-title">Settings</div>
-        <div class="r-sub">Manage your account and preferences.</div>
-      </div>
-      <div class="r-chev">›</div>
-    </div>
-  </div>
-
-  <!-- UPCOMING TASKS -->
-  <div class="section-header" id="todayScheduleSection">
-    <div class="section-label" style="margin:0;">Upcoming Tasks</div>
-    <span class="section-link" onclick="window.location.href='worker-calendar.html'">View All</span>
-  </div>
-  <div id="todayScheduleList" class="small-text">Loading upcoming work...</div>
-
-  <div class="dashboard-bottom-nav">
-    <div class="bottom-nav-item active" onclick="window.location.href='worker-dashboard.html'">
-      <div class="bottom-nav-icon">⌂</div>
-      <div>Dashboard</div>
-    </div>
-    <div class="bottom-nav-item" onclick="window.location.href='my-jobs.html'">
-      <div class="bottom-nav-icon">🧰</div>
-      <div>My Jobs</div>
-    </div>
-    <div class="bottom-nav-item" onclick="window.location.href='worker-calendar.html'">
-      <div class="bottom-nav-icon">📅</div>
-      <div>Calendar</div>
-    </div>
-    <div class="bottom-nav-item" onclick="window.location.href='worker-message-center.html'">
-      <span class="bottom-nav-badge" id="bottomMessageBadge">0</span>
-      <div class="bottom-nav-icon">💬</div>
-      <div>Messages</div>
-    </div>
-    <div class="bottom-nav-item" onclick="window.location.href='worker-settings.html'">
-      <div class="bottom-nav-icon">👤</div>
-      <div>Profile</div>
-    </div>
-  </div>
-
-</div><!-- end #dashboard -->
-
+ 
 <script>
-
 const SUPABASE_URL =
   "https://dbcthtjmtlumidpbucrc.supabase.co";
-
+ 
 const SUPABASE_ANON_KEY =
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ";
-
+ 
 const supabaseClient =
-  supabase.createClient(
+  window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_ANON_KEY
   );
-
+ 
 let currentUser = null;
 let currentWorkerId = null;
 let currentWorkerIds = [];
-
-let rawNotificationCounts = {
-  directRequests: 0,
-  accepted: 0,
-  messages: 0,
-  disputes: 0,
-  reviews: 0,
-  payouts: 0,
-  schedule: 0
-};
-
-function getNotificationDismissedCount(category) {
-  return Number(localStorage.getItem(`taskmintWorkerNotificationDismissed_${category}`) || 0);
-}
-
-function getAdjustedNotificationCount(category, count) {
-  if (category === "messages") {
-    return Number(count || 0);
-  }
-
-  const adjusted =
-    Number(count || 0) - getNotificationDismissedCount(category);
-
-  return adjusted > 0 ? adjusted : 0;
-}
-
-function markWorkerNotificationsViewed() {
-  localStorage.setItem("taskmintWorkerNotificationDismissed_directRequests", String(rawNotificationCounts.directRequests || 0));
-  localStorage.setItem("taskmintWorkerNotificationDismissed_accepted", String(rawNotificationCounts.accepted || 0));
-  localStorage.setItem("taskmintWorkerNotificationDismissed_messages", String(rawNotificationCounts.messages || 0));
-  localStorage.setItem("taskmintWorkerNotificationDismissed_disputes", String(rawNotificationCounts.disputes || 0));
-  localStorage.setItem("taskmintWorkerNotificationDismissed_reviews", String(rawNotificationCounts.reviews || 0));
-  localStorage.setItem("taskmintWorkerNotificationDismissed_payouts", String(rawNotificationCounts.payouts || 0));
-  localStorage.setItem("taskmintWorkerNotificationDismissed_schedule", String(rawNotificationCounts.schedule || 0));
-}
-
-function markWorkerNotificationCategoryViewed(category) {
-  localStorage.setItem(
-    `taskmintWorkerNotificationDismissed_${category}`,
-    String(rawNotificationCounts[category] || 0)
-  );
-
-  updateWorkerNotificationDisplay();
-}
-
-function openWorkerNotification(category, targetId) {
-  if (category === "messages") {
-    window.location.href =
-      "worker-message-center.html";
-    return;
-  }
-
-  markWorkerNotificationCategoryViewed(category);
-
-  const panel =
-    document.getElementById("notificationPanel");
-
-  if (panel) {
-    panel.classList.remove("show");
-  }
-
-  const target =
-    document.getElementById(targetId);
-
-  if (target) {
-    target.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-  }
-}
-
-async function refreshWorkerNotifications(event) {
-  if (event) {
-    event.stopPropagation();
-  }
-
-  await loadWorkerNotifications();
-}
-
-function updateWorkerNotificationDisplay() {
-  const directRequestCount =
-    getAdjustedNotificationCount("directRequests", rawNotificationCounts.directRequests);
-
-  const acceptedCount =
-    getAdjustedNotificationCount("accepted", rawNotificationCounts.accepted);
-
-  const messageCount =
-    getAdjustedNotificationCount("messages", rawNotificationCounts.messages);
-
-  const disputeCount =
-    getAdjustedNotificationCount("disputes", rawNotificationCounts.disputes);
-
-  const reviewCount =
-    getAdjustedNotificationCount("reviews", rawNotificationCounts.reviews);
-
-  const payoutCount =
-    getAdjustedNotificationCount("payouts", rawNotificationCounts.payouts);
-
-  const todayScheduleCount =
-    getAdjustedNotificationCount("schedule", rawNotificationCounts.schedule);
-
-  const total =
-    directRequestCount + acceptedCount + messageCount + disputeCount + reviewCount + payoutCount + todayScheduleCount;
-
-  setNotificationCount("directRequestNotificationCount", directRequestCount);
-  setNotificationCount("acceptedNotificationCount", acceptedCount);
-  setNotificationCount("messageNotificationCount", messageCount);
-  setNotificationCount("disputeNotificationCount", disputeCount);
-  setNotificationCount("reviewNotificationCount", reviewCount);
-  setNotificationCount("payoutNotificationCount", payoutCount);
-  setNotificationCount("todayScheduleNotificationCount", todayScheduleCount);
-  setNotificationCount("bottomMessageBadge", messageCount);
-
-  updateNotificationBadge(total);
-}
-
-async function loadDashboard() {
-
-  const { data, error } =
-    await supabaseClient.auth.getSession();
-
-  if (error || !data.session) {
-    document.getElementById("loading").innerText =
-      "No active worker session found. Log in again from the worker login page.";
-    return;
-  }
-
-  const user =
-    data.session.user;
-
-  currentUser = user;
-
-  const { data: profile } =
-    await supabaseClient
-      .from("profiles")
-      .select("*")
-      .eq("email", user.email)
-      .maybeSingle();
-
-  const { data: workerRecord } =
-    await supabaseClient
-      .from("worker_profiles")
-      .select("*")
-      .eq("email", user.email)
-      .maybeSingle();
-
-  if (workerRecord && workerRecord.id) {
-    currentWorkerId = workerRecord.id;
-  } else if (profile && profile.id) {
-    currentWorkerId = profile.id;
-  } else {
-    currentWorkerId = user.id;
-  }
-
-  currentWorkerIds = [
-    user.id,
-    profile?.id,
-    workerRecord?.id
-  ]
-    .filter(Boolean)
-    .map(String);
-
-  currentWorkerIds = [...new Set(currentWorkerIds)];
-
-  if (profile) {
-
-    const fullName =
-      workerRecord?.full_name ||
-      `${workerRecord?.first_name || ""} ${workerRecord?.last_name || ""}`.trim() ||
-      profile?.full_name ||
-      `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
-      "Worker Profile";
-
-    document.getElementById("workerName").innerText = fullName;
-
-    const firstName =
-      workerRecord?.first_name ||
-      profile?.first_name ||
-      fullName.split(" ")[0] ||
-      "Worker";
-
-    document.getElementById("workerFirstName").innerText = firstName;
-
-    if (
-      profile.profile_photo_url &&
-      profile.profile_photo_url.trim() !== ""
-    ) {
-      document.getElementById("profilePic").src =
-        profile.profile_photo_url;
-    }
-
-    const hasPhoto =
-      profile.profile_photo_url &&
-      profile.profile_photo_url.trim() !== "";
-
-    const hasExperience =
-      profile.experience &&
-      profile.experience.trim() !== "";
-
-    const profileNotice =
-      document.getElementById("profileNotice");
-
-    if (!hasPhoto || !hasExperience) {
-      profileNotice.innerHTML = `
-        <div class="notice">
-          ⚠️ Complete your worker profile before sending quotes.
-        </div>
-      `;
-    } else {
-      profileNotice.innerHTML = "";
-    }
-
-  }
-
-  await loadPendingQuotesByEmail(user.email);
-  await loadWorkerRating(currentWorkerId);
-  await loadWorkerEarnings(currentWorkerId);
-  await loadCompletedTaskCount(currentWorkerId);
-  await loadNextAcceptedTask(currentWorkerId);
-  await loadTodaySchedule(currentWorkerId);
-  await loadUnreadDisputeDot(currentWorkerId);
-  await loadWorkerNotifications();
-
-  document.getElementById("loading").style.display =
-    "none";
-
-  document.getElementById("dashboard").style.display =
-    "block";
-
-}
-
-async function logout() {
-
-  await supabaseClient.auth.signOut();
-
-  localStorage.removeItem("taskmintUserId");
-  localStorage.removeItem("selectedQuoteId");
-  localStorage.removeItem("selectedJobId");
-  localStorage.removeItem("stripeAccountId");
-
-  window.location.href =
-    "worker-login.html";
-
-}
-
-async function loadWorkerRating(workerId) {
-
-  const workerIds =
-    getWorkerIdList(workerId);
-
-  if (workerIds.length === 0) {
-    document.getElementById("ratingScore").innerText =
-      "0.0";
-    return;
-  }
-
-  const { data: completedTasks, error: taskError } =
-    await supabaseClient
-      .from("tasks")
-      .select("id")
-      .or(
-        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
-      )
-      .eq("status", "completed")
-      .eq("customer_completed", true);
-
-  if (taskError || !completedTasks || completedTasks.length === 0) {
-    document.getElementById("ratingScore").innerText =
-      "0.0";
-    return;
-  }
-
-  const taskIds =
-    completedTasks
-      .map((task) => task.id)
-      .filter(Boolean);
-
-  if (taskIds.length === 0) {
-    document.getElementById("ratingScore").innerText =
-      "0.0";
-    return;
-  }
-
-  const { data: reviews, error } =
-    await supabaseClient
-      .from("reviews")
-      .select("rating")
-      .in("task_id", taskIds);
-
-  if (error || !reviews || reviews.length === 0) {
-    document.getElementById("ratingScore").innerText =
-      "0.0";
-    return;
-  }
-
-  let total = 0;
-
-  reviews.forEach((review) => {
-    total += Number(review.rating || 0);
+let availableBalance = 0;
+let payoutRequests = [];
+let earningsHistory = [];
+let payoutRequestInProgress = false;
+let localReservedPayoutAmount = 0;
+
+const INSTANT_PAYOUT_FEE_RATE = 0.015;
+const INSTANT_PAYOUT_MIN_FEE = 1.00;
+const TASKMINT_SERVICE_FEE_RATE = 0.15;
+ 
+function money(value) {
+  const amount = Number(value || 0);
+ 
+  return amount.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD"
   });
-
-  const average =
-    total / reviews.length;
-
-  document.getElementById("ratingScore").innerText =
-    average.toFixed(1);
-
 }
-
-async function loadPendingQuotesByEmail(email) {
-
-  const container =
-    document.getElementById("pendingQuotesList");
-
-  const pendingQuotesCount =
-    document.getElementById("pendingQuotes");
-
-  pendingQuotesCount.innerText =
-    "0";
-
-  const workerIds =
-    [];
-
-  if (currentUser && currentUser.id) {
-    workerIds.push(currentUser.id);
-  }
-
-  if (currentWorkerId) {
-    workerIds.push(currentWorkerId);
-  }
-
-  const { data: workerProfile } =
-    await supabaseClient
-      .from("worker_profiles")
-      .select("id")
-      .eq("email", email)
-      .maybeSingle();
-
-  if (workerProfile && workerProfile.id) {
-    workerIds.push(workerProfile.id);
-  }
-
-  const uniqueWorkerIds =
-    [...new Set(workerIds.filter(Boolean).map(String))];
-
-  if (uniqueWorkerIds.length === 0) {
-    document.getElementById("pendingQuotesCard").innerHTML = `
-      <div class="small-text">
-        Worker record not found for pending quotes.
-      </div>
-    `;
-    return;
-  }
-
-  const { data: quotes, error } =
-    await supabaseClient
-      .from("worker_quotes")
-      .select("*")
-      .in("worker_id", uniqueWorkerIds)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
-
-  if (error) {
-    document.getElementById("pendingQuotesCard").innerHTML = `
-      <div class="small-text">
-        Error loading quotes.
-      </div>
-    `;
-    return;
-  }
-
-  if (!quotes || quotes.length === 0) {
-    pendingQuotesCount.innerText =
-      "0";
-
-    document.getElementById("pendingQuotesCard").innerHTML = `
-      <div class="small-text">
-        No pending quotes yet. Browse available tasks to send your next quote.
-      </div>
-    `;
-
-    container.innerHTML = "";
-    return;
-  }
-
-  pendingQuotesCount.innerText =
-    quotes.length;
-
-  document.getElementById("pendingQuotesCard").innerHTML = `
-    <div class="next-task-mini-title">
-      ${quotes.length} pending quote${quotes.length === 1 ? "" : "s"}
-    </div>
-    <div class="next-task-mini-meta">
-      Quotes waiting on customer action. Tap to view, manage, or cancel pending quotes.
-    </div>
-  `;
-
-  container.innerHTML = "";
-
-  quotes.forEach((quote) => {
-
-    container.innerHTML += `
-      <div class="quote-card">
-
-        <div class="small-text">
-          Quote Amount
-        </div>
-
-        <div class="quote-amount">
-          $${quote.quote_amount || "0.00"}
-        </div>
-
-        <div class="small-text" style="margin-top:8px;">
-          Status: Pending
-        </div>
-
-        <div class="quote-actions">
-
-          <button
-            class="secondary"
-            onclick="messageCustomerFromQuote('${quote.id}', '${quote.task_id || ""}', '${quote.customer_id || ""}')">
-            Message
-          </button>
-
-          <button
-            class="danger"
-            onclick="cancelQuote('${quote.id}')">
-            Cancel
-          </button>
-
-        </div>
-
-      </div>
-    `;
-
-  });
-
-}
-
-async function cancelQuote(quoteId) {
-
-  const confirmed =
-    confirm(
-      "Are you sure you want to cancel this quote?"
-    );
-
-  if (!confirmed) {
-    return;
-  }
-
-  const { error } =
-    await supabaseClient
-      .from("worker_quotes")
-      .update({ status: "canceled" })
-      .eq("id", quoteId);
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  alert("Quote canceled.");
-
-  location.reload();
-
-}
-
-function editQuote(quoteId, taskId = "", customerId = "") {
-
-  localStorage.setItem(
-    "selectedQuoteId",
-    quoteId
-  );
-
-  if (taskId) {
-    localStorage.setItem(
-      "selectedQuoteTaskId",
-      taskId
-    );
-
-    localStorage.setItem(
-      "selectedTaskId",
-      taskId
-    );
-  }
-
-  if (customerId) {
-    localStorage.setItem(
-      "selectedCustomerId",
-      customerId
-    );
-  }
-
-  window.location.href =
-    "edit-quote.html";
-
-}
-
-function messageCustomerFromQuote(quoteId, taskId = "", customerId = "") {
-
-  localStorage.setItem(
-    "selectedQuoteId",
-    quoteId
-  );
-
-  if (taskId) {
-    localStorage.setItem(
-      "selectedMessageTaskId",
-      taskId
-    );
-
-    localStorage.setItem(
-      "selectedTaskId",
-      taskId
-    );
-  }
-
-  if (customerId) {
-    localStorage.setItem(
-      "selectedCustomerId",
-      customerId
-    );
-  }
-
-  localStorage.setItem(
-    "messageContext",
-    "quote"
-  );
-
-  window.location.href =
-    "worker-task-message.html";
-
-}
-
-function getWorkerIdList(workerId) {
-
-  const ids = [];
-
-  if (currentUser && currentUser.id) {
-    ids.push(currentUser.id);
-  }
-
-  if (Array.isArray(currentWorkerIds)) {
-    currentWorkerIds.forEach((id) => ids.push(id));
-  }
-
-  if (workerId) {
-    ids.push(workerId);
-  }
-
-  if (currentWorkerId) {
-    ids.push(currentWorkerId);
-  }
-
-  return [...new Set(ids.filter(Boolean).map(String))];
-
-}
-
-function isFlexibleScheduleValue(value) {
-
+ 
+function cleanText(value, fallback = "Not listed") {
   if (value === null || value === undefined) {
-    return true;
+    return fallback;
   }
-
-  const text =
-    String(value).trim();
-
-  return (
-    text === "" ||
-    text.toLowerCase() === "flexible" ||
-    text.toLowerCase() === "date flexible" ||
-    text.toLowerCase() === "time flexible"
-  );
-
+ 
+  const text = String(value).trim();
+ 
+  return text === "" ? fallback : text;
 }
-
-function getScheduleFieldValue(record, keys) {
-
-  if (!record || typeof record !== "object") {
-    return "";
-  }
-
-  const loweredKeys =
-    keys.map((key) => String(key).toLowerCase());
-
-  for (const key of keys) {
-    if (!isFlexibleScheduleValue(record[key])) {
-      return record[key];
-    }
-  }
-
-  for (const [key, value] of Object.entries(record)) {
-    const loweredKey =
-      String(key || "").toLowerCase();
-
-    if (loweredKeys.includes(loweredKey) && !isFlexibleScheduleValue(value)) {
-      return value;
-    }
-  }
-
-  for (const value of Object.values(record)) {
-    if (!value || typeof value !== "object") {
-      continue;
-    }
-
-    const nestedValue =
-      getScheduleFieldValue(value, keys);
-
-    if (!isFlexibleScheduleValue(nestedValue)) {
-      return nestedValue;
-    }
-  }
-
-  return "";
-
-}
-
-function getFirstScheduledValue(records, keys) {
-
-  for (const record of records) {
-    const scheduledValue =
-      getScheduleFieldValue(record, keys);
-
-    if (!isFlexibleScheduleValue(scheduledValue)) {
-      return scheduledValue;
-    }
-  }
-
-  return "";
-
-}
-
-function getTaskScheduleDate(task, quote = null) {
-
-  return getFirstScheduledValue([quote, task], [
-    "selected_flexible_date",
-    "flexible_date_selected",
-    "worker_selected_date",
-    "selected_date",
-    "proposed_date",
-    "scheduled_date",
-    "task_date",
-    "scheduled_start",
-    "scheduledStart",
-    "scheduled_for",
-    "scheduledFor",
-    "scheduled_at",
-    "scheduledAt",
-    "scheduled_datetime",
-    "scheduledDateTime",
-    "scheduled_date_time",
-    "scheduledDateAndTime",
-    "schedule_date",
-    "scheduleDate",
-    "schedule_datetime",
-    "scheduleDateTime",
-    "starts_at",
-    "start_date",
-    "startDate",
-    "service_date",
-    "serviceDate",
-    "booking_date",
-    "bookingDate",
-    "job_date",
-    "jobDate",
-    "appointment_date",
-    "appointmentDate",
-    "move_date",
-    "moveDate",
-    "moving_date",
-    "movingDate",
-    "pickup_date",
-    "pickupDate",
-    "dropoff_date",
-    "dropoffDate",
-    "date_needed",
-    "dateNeeded",
-    "needed_by",
-    "neededBy",
-    "due_date",
-    "dueDate",
-    "selectedTaskDate",
-    "selected_task_date",
-    "task_date_selected",
-    "taskDateSelected",
-    "preferred_date",
-    "preferredDate",
-    "requested_date",
-    "requestedDate",
-    "actual_date",
-    "actualDate",
-    "task_start",
-    "taskStart",
-    "task_start_at",
-    "taskStartAt",
-    "task_start_date",
-    "taskStartDate",
-    "requested_start",
-    "requestedStart",
-    "requested_start_date",
-    "requestedStartDate",
-    "confirmed_date",
-    "confirmedDate",
-    "confirmed_at",
-    "confirmedAt",
-    "date"
-  ]);
-
-}
-
-function getTaskScheduleTime(task, quote = null) {
-
-  return getFirstScheduledValue([quote, task], [
-    "selected_flexible_time",
-    "flexible_time_selected",
-    "worker_selected_time",
-    "selected_time",
-    "proposed_time",
-    "scheduled_time",
-    "task_time",
-    "schedule_preference",
-    "scheduled_start_time",
-    "scheduledStartTime",
-    "scheduledTime",
-    "start_time",
-    "startTime",
-    "service_time",
-    "serviceTime",
-    "booking_time",
-    "bookingTime",
-    "job_time",
-    "jobTime",
-    "appointment_time",
-    "appointmentTime",
-    "move_time",
-    "moveTime",
-    "moving_time",
-    "movingTime",
-    "pickup_time",
-    "pickupTime",
-    "dropoff_time",
-    "dropoffTime",
-    "arrival_time",
-    "arrivalTime",
-    "time_needed",
-    "timeNeeded",
-    "needed_time",
-    "neededTime",
-    "selectedTaskTime",
-    "selected_task_time",
-    "task_time_selected",
-    "taskTimeSelected",
-    "preferred_time",
-    "preferredTime",
-    "requested_time",
-    "requestedTime",
-    "actual_time",
-    "actualTime",
-    "task_start_time",
-    "taskStartTime",
-    "requested_start_time",
-    "requestedStartTime",
-    "confirmed_time",
-    "confirmedTime",
-    "time"
-  ]);
-
-}
-
-function getDateOnlyKey(value) {
-
+ 
+function formatDate(value) {
   if (!value) {
-    return "";
+    return "Not listed";
   }
-
-  const rawValue =
-    String(value).trim();
-
-  const dateOnlyMatch =
-    rawValue.match(/^\d{4}-\d{2}-\d{2}/);
-
-  if (dateOnlyMatch) {
-    return dateOnlyMatch[0];
-  }
-
-  const date =
-    new Date(rawValue);
-
+ 
+  const date = new Date(value);
+ 
   if (Number.isNaN(date.getTime())) {
-    return "";
+    return value;
   }
-
-  const year =
-    date.getFullYear();
-
-  const month =
-    String(date.getMonth() + 1).padStart(2, "0");
-
-  const day =
-    String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-
+ 
+  return date.toLocaleDateString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
 }
-
-async function loadCompletedTaskCount(workerId) {
-
-  const workerIds =
-    getWorkerIdList(workerId);
-
-  if (workerIds.length === 0) {
-    document.getElementById("completedTasks").innerText =
-      "0";
-    return;
+ 
+function formatDateTime(value) {
+  if (!value) {
+    return "Not listed";
   }
-
-  const { count, error } =
-    await supabaseClient
-      .from("tasks")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .or(
-        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
-      )
-      .eq("status", "completed")
-      .eq("customer_completed", true);
-
-  if (error || count === null || count === undefined) {
-    document.getElementById("completedTasks").innerText =
-      "0";
-    return;
-  }
-
-  document.getElementById("completedTasks").innerText =
-    count;
-
-}
-
-async function loadWorkerEarnings(workerId) {
-
-  const workerIds =
-    getWorkerIdList(workerId);
-
-  function setEarningsDisplay(amount) {
-    const formattedAmount =
-      `$${Number(amount || 0).toFixed(2)}`;
-
-    const dashboardAmount =
-      document.getElementById("earningsAmount");
-
-    const bubbleAmount =
-      document.getElementById("workerEarningsBubbleAmount");
-
-    if (dashboardAmount) {
-      dashboardAmount.innerText =
-        formattedAmount;
-    }
-
-    if (bubbleAmount) {
-      bubbleAmount.innerText =
-        formattedAmount;
-    }
-  }
-
-  function getFirstAmount(record, keys) {
-    if (!record || typeof record !== "object") {
-      return null;
-    }
-
-    for (const key of keys) {
-      if (
-        record[key] !== null &&
-        record[key] !== undefined &&
-        String(record[key]).trim() !== ""
-      ) {
-        const numericAmount =
-          Number(record[key]);
-
-        if (!Number.isNaN(numericAmount)) {
-          return numericAmount;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  function calculateNetAmount(record) {
-    const directNet =
-      getFirstAmount(record, [
-        "worker_payout",
-        "net_amount",
-        "payout_amount",
-        "worker_pay",
-        "amount_earned",
-        "earnings_amount",
-        "worker_amount",
-        "net_worker_amount"
-      ]);
-
-    if (directNet !== null) {
-      return directNet;
-    }
-
-    const grossAmount =
-      getFirstAmount(record, [
-        "quote_amount",
-        "accepted_quote_amount",
-        "final_price",
-        "final_amount",
-        "task_amount",
-        "total_amount",
-        "amount",
-        "price",
-        "budget"
-      ]);
-
-    if (grossAmount === null) {
-      return 0;
-    }
-
-    return grossAmount * 0.85;
-  }
-
-  async function loadCompletedTaskFallback() {
-    const { data: completedTasks, error: completedTasksError } =
-      await supabaseClient
-        .from("tasks")
-        .select("*")
-        .or(
-          `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
-        )
-        .eq("status", "completed")
-        .eq("customer_completed", true);
-
-    if (completedTasksError || !completedTasks || completedTasks.length === 0) {
-      return 0;
-    }
-
-    const taskIds =
-      completedTasks
-        .map((task) => task.id)
-        .filter(Boolean);
-
-    let quoteMap = {};
-
-    if (taskIds.length > 0) {
-      const { data: acceptedQuotes } =
-        await supabaseClient
-          .from("worker_quotes")
-          .select("*")
-          .in("worker_id", workerIds)
-          .in("task_id", taskIds)
-          .in("status", [
-            "accepted",
-            "approved",
-            "completed",
-            "paid"
-          ]);
-
-      (acceptedQuotes || []).forEach((quote) => {
-        if (quote.task_id) {
-          quoteMap[String(quote.task_id)] = quote;
-        }
-      });
-    }
-
-    let fallbackTotal = 0;
-
-    completedTasks.forEach((task) => {
-      const relatedQuote =
-        quoteMap[String(task.id)] || null;
-
-      const amountFromQuote =
-        calculateNetAmount(relatedQuote);
-
-      const amountFromTask =
-        calculateNetAmount(task);
-
-      fallbackTotal +=
-        amountFromQuote > 0 ? amountFromQuote : amountFromTask;
-    });
-
-    return fallbackTotal;
-  }
-
-
-  async function loadReservedPayoutTotal() {
-    const { data: payoutRows, error: payoutError } =
-      await supabaseClient
-        .from("worker_payouts")
-        .select("*")
-        .in("worker_id", workerIds);
-
-    if (payoutError || !payoutRows || payoutRows.length === 0) {
-      return 0;
-    }
-
-    const reservedStatuses = [
-      "requested",
-      "pending",
-      "processing",
-      "approved",
-      "flagged",
-      "blocked"
-    ];
-
-    return payoutRows.reduce((total, payout) => {
-      const status = String(
-        payout.status ||
-        payout.payout_status ||
-        payout.request_status ||
-        ""
-      ).toLowerCase();
-
-      if (!reservedStatuses.includes(status)) {
-        return total;
-      }
-
-      const payoutAmount =
-        getFirstAmount(payout, [
-          "amount",
-          "payout_amount",
-          "requested_amount",
-          "net_amount"
-        ]) || 0;
-
-      return total + payoutAmount;
-    }, 0);
-  }
-
-  if (workerIds.length === 0) {
-    setEarningsDisplay(0);
-    return;
-  }
-
-  const { data, error } =
-    await supabaseClient
-      .from("worker_earnings")
-      .select("*")
-      .in("worker_id", workerIds);
-
-  const reservedPayoutTotal =
-    await loadReservedPayoutTotal();
-
-  if (!error && data && data.length > 0) {
-    let total = 0;
-
-    data.forEach((item) => {
-      total += calculateNetAmount(item);
-    });
-
-    if (total > 0) {
-      setEarningsDisplay(Math.max(total - reservedPayoutTotal, 0));
-      return;
-    }
-  }
-
-  const fallbackTotal =
-    await loadCompletedTaskFallback();
-
-  setEarningsDisplay(Math.max(fallbackTotal - reservedPayoutTotal, 0));
-
-}
-
-
-function formatScheduleTime(value) {
-
-  if (isFlexibleScheduleValue(value)) {
-    return "Time not set";
-  }
-
-  const rawValue =
-    String(value).trim();
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(rawValue)) {
-    return "Time not set";
-  }
-
-  const timeOnlyMatch =
-    rawValue.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-
-  if (timeOnlyMatch) {
-    const dateForTime =
-      new Date();
-
-    dateForTime.setHours(
-      Number(timeOnlyMatch[1]),
-      Number(timeOnlyMatch[2]),
-      0,
-      0
-    );
-
-    return dateForTime.toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit"
-    });
-  }
-
-  const amPmMatch =
-    rawValue.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/i);
-
-  if (amPmMatch) {
-    let hour = Number(amPmMatch[1]);
-    const minute = Number(amPmMatch[2] || 0);
-    const period = amPmMatch[3].toLowerCase();
-
-    if (period === "pm" && hour < 12) {
-      hour += 12;
-    }
-
-    if (period === "am" && hour === 12) {
-      hour = 0;
-    }
-
-    const dateForTime =
-      new Date();
-
-    dateForTime.setHours(hour, minute, 0, 0);
-
-    return dateForTime.toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit"
-    });
-  }
-
-  const date = new Date(rawValue);
-
+ 
+  const date = new Date(value);
+ 
   if (Number.isNaN(date.getTime())) {
-    return rawValue;
+    return value;
   }
-
-  return date.toLocaleTimeString([], {
+ 
+  return date.toLocaleString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
     hour: "numeric",
     minute: "2-digit"
   });
-
 }
-
-function getTaskTitle(task) {
-
-  return (
-    task.title ||
-    task.task_title ||
-    task.job_title ||
-    task.category ||
-    task.service_type ||
-    "Scheduled Task"
-  );
-
+ 
+function setActionMessage(message, color = "#666") {
+  const box = document.getElementById("actionMessage");
+  box.style.color = color;
+  box.innerText = message;
 }
-
-function getTaskLocation(task) {
-
-  const cityState =
-    [
-      task.city || task.task_city || task.service_city || "",
-      task.state || task.task_state || task.service_state || ""
-    ]
-      .filter(Boolean)
-      .join(", ");
-
-  return (
-    cityState ||
-    task.location ||
-    task.address ||
-    task.task_address ||
-    "Location not listed"
-  );
-
-}
-
-
-function dashboardEscapeHTML(value) {
-
-  return String(value ?? "")
+ 
+function escapeHTML(value) {
+  return cleanText(value, "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-
 }
 
-function getTaskDateDisplay(value, task = null, quote = null) {
-
-  let displayValue =
-    value;
-
-  if (isFlexibleScheduleValue(displayValue) && (task || quote)) {
-    displayValue =
-      getFirstScheduledValue([quote, task], [
-        "confirmed_date",
-        "confirmedDate",
-        "scheduled_start",
-        "scheduledStart",
-        "scheduled_at",
-        "scheduledAt",
-        "scheduled_date",
-        "task_date",
-        "date_needed",
-        "needed_by",
-        "due_date",
-        "date"
-      ]);
-  }
-
-  if (isFlexibleScheduleValue(displayValue)) {
-    return "Date not set";
-  }
-
-  const rawValue =
-    String(displayValue).trim();
-
-  const match =
-    rawValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
-
-  let date = null;
-
-  if (match) {
-    date =
-      new Date(
-        Number(match[1]),
-        Number(match[2]) - 1,
-        Number(match[3])
-      );
-  } else {
-    date =
-      new Date(rawValue);
-  }
-
-  if (!date || Number.isNaN(date.getTime())) {
-    return rawValue;
-  }
-
-  return date.toLocaleDateString([], {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  });
-
+function getEarningDate(row) {
+  return getFirstAvailable(row, [
+    "completed_at",
+    "task_completed_at",
+    "released_at",
+    "earned_at",
+    "paid_at",
+    "created_at"
+  ], "");
 }
 
-function getTaskCityState(task) {
-
-  const city =
-    task.city ||
-    task.task_city ||
-    task.service_city ||
-    "";
-
-  const state =
-    task.state ||
-    task.task_state ||
-    task.service_state ||
-    "";
-
-  const cityState =
-    [city, state]
-      .filter(Boolean)
-      .join(", ");
-
-  return cityState || getTaskLocation(task);
-
+function getEarningTaskType(row) {
+  return cleanText(
+    getFirstAvailable(row, [
+      "task_type",
+      "task_category",
+      "category",
+      "service_type",
+      "job_type",
+      "type"
+    ], "Task"),
+    "Task"
+  );
 }
 
-function getWorkerPayAmount(task, quote) {
-
-  const directWorkerAmount =
-    quote?.worker_payout ||
-    quote?.worker_pay ||
-    quote?.net_payout ||
-    quote?.worker_amount ||
-    task?.worker_payout ||
-    task?.worker_pay ||
-    task?.worker_payout_amount ||
-    task?.net_payout ||
-    task?.worker_amount ||
-    0;
-
-  const directNumericAmount =
-    Number(directWorkerAmount || 0);
-
-  if (!Number.isNaN(directNumericAmount) && directNumericAmount > 0) {
-    return `$${directNumericAmount.toFixed(2)}`;
-  }
-
-  const grossAmount =
-    quote?.quote_amount ||
-    quote?.accepted_quote_amount ||
-    quote?.amount ||
-    quote?.total_amount ||
-    quote?.price ||
-    task?.quote_amount ||
-    task?.accepted_amount ||
-    task?.task_amount ||
-    task?.amount_paid ||
-    task?.paid_amount ||
-    task?.amount ||
-    task?.total_amount ||
-    task?.price ||
-    0;
-
-  const grossNumericAmount =
-    Number(grossAmount || 0);
-
-  if (Number.isNaN(grossNumericAmount)) {
-    return String(grossAmount || "$0.00");
-  }
-
-  const workerNetAmount =
-    grossNumericAmount * 0.85;
-
-  return `$${workerNetAmount.toFixed(2)}`;
-
+function getEarningTaskTitle(row) {
+  return cleanText(
+    getFirstAvailable(row, [
+      "task_title",
+      "job_title",
+      "title",
+      "task_name",
+      "description"
+    ], getEarningTaskType(row)),
+    getEarningTaskType(row)
+  );
 }
 
-function getTaskGrossAmount(task, quote) {
-
-  const amount =
-    quote?.quote_amount ||
-    quote?.accepted_quote_amount ||
-    quote?.amount ||
-    quote?.total_amount ||
-    quote?.price ||
-    task?.quote_amount ||
-    task?.accepted_amount ||
-    task?.task_amount ||
-    task?.amount_paid ||
-    task?.paid_amount ||
-    task?.amount ||
-    task?.total_amount ||
-    task?.price ||
-    0;
-
-  const numericAmount =
-    Number(amount || 0);
-
-  return Number.isNaN(numericAmount) ? 0 : numericAmount;
-
+function getEarningStatus(row) {
+  return cleanText(
+    getFirstAvailable(row, [
+      "payout_status",
+      "status",
+      "payment_status"
+    ], "available"),
+    "available"
+  );
 }
 
-function getWorkerPayBreakdown(task, quote) {
+function dateInputToTime(value, endOfDay = false) {
+  if (!value) return null;
 
-  const grossAmount =
-    getTaskGrossAmount(task, quote);
+  const parts = String(value).split("-");
 
-  const workerPayText =
-    getWorkerPayAmount(task, quote);
+  if (parts.length !== 3) return null;
 
-  const workerPayAmount =
-    Number(String(workerPayText).replace(/[^0-9.-]/g, "")) || 0;
-
-  const taskmintFee =
-    Math.max(grossAmount - workerPayAmount, 0);
-
-  return {
-    grossAmount,
-    taskmintFee,
-    workerPayAmount
-  };
-
-}
-
-function saveAcceptedJobBreakdown(task, quote) {
-
-  const breakdown =
-    getWorkerPayBreakdown(task, quote);
-
-  localStorage.setItem("selectedTaskId", task?.id || quote?.task_id || "");
-  localStorage.setItem("selectedAcceptedTaskId", task?.id || quote?.task_id || "");
-  localStorage.setItem("selectedAcceptedTaskGrossAmount", String(breakdown.grossAmount));
-  localStorage.setItem("selectedAcceptedTaskTaskmintFee", String(breakdown.taskmintFee));
-  localStorage.setItem("selectedAcceptedTaskWorkerPay", String(breakdown.workerPayAmount));
-
-}
-
-function getCustomerIdForDashboard(task, quote) {
-
-  return (
-    quote?.customer_id ||
-    quote?.customer_user_id ||
-    quote?.client_id ||
-    task?.customer_id ||
-    task?.customer_user_id ||
-    task?.client_id ||
-    task?.posted_by ||
-    task?.created_by ||
-    task?.user_id ||
-    task?.profile_id ||
-    ""
+  const date = new Date(
+    Number(parts[0]),
+    Number(parts[1]) - 1,
+    Number(parts[2]),
+    endOfDay ? 23 : 0,
+    endOfDay ? 59 : 0,
+    endOfDay ? 59 : 0,
+    endOfDay ? 999 : 0
   );
 
+  return Number.isNaN(date.getTime()) ? null : date.getTime();
 }
 
-function getCustomerFallbackNameForDashboard(task, quote) {
+function earningDateToTime(value) {
+  if (!value) return null;
 
-  return (
-    quote?.customer_name ||
-    quote?.customer_full_name ||
-    quote?.client_name ||
-    quote?.client_full_name ||
-    task?.customer_name ||
-    task?.customer_full_name ||
-    task?.client_name ||
-    task?.client_full_name ||
-    task?.posted_by_name ||
-    task?.created_by_name ||
-    "Customer"
-  );
+  const date = new Date(value);
 
+  return Number.isNaN(date.getTime()) ? null : date.getTime();
 }
 
-function getCustomerShortName(profile, fallbackName = "Customer") {
+function populateEarningsTypeFilter() {
+  const select = document.getElementById("earningTypeFilter");
 
-  const directName =
-    profile?.full_name ||
-    profile?.name ||
-    profile?.display_name ||
-    profile?.customer_name ||
-    profile?.customer_full_name ||
-    fallbackName ||
-    "Customer";
+  if (!select) return;
 
-  const firstName =
-    profile?.first_name ||
-    profile?.firstName ||
-    String(directName).trim().split(/\s+/)[0] ||
-    "Customer";
+  const currentValue = select.value;
 
-  const lastName =
-    profile?.last_name ||
-    profile?.lastName ||
-    String(directName).trim().split(/\s+/).slice(1).join(" ");
+  const types =
+    [...new Set(
+      earningsHistory
+        .map(row => getEarningTaskType(row))
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
 
-  const lastInitial =
-    lastName ? `${String(lastName).trim().charAt(0).toUpperCase()}.` : "";
+  select.innerHTML =
+    `<option value="">All task types</option>` +
+    types
+      .map(type => `<option value="${escapeHTML(type)}">${escapeHTML(type)}</option>`)
+      .join("");
 
-  return `${firstName}${lastInitial ? " " + lastInitial : ""}`;
-
+  if (types.includes(currentValue)) {
+    select.value = currentValue;
+  }
 }
 
-async function getDashboardCustomerProfile(customerId) {
+function clearEarningsFilters() {
+  const start = document.getElementById("earningStartDate");
+  const end = document.getElementById("earningEndDate");
+  const type = document.getElementById("earningTypeFilter");
 
-  if (!customerId) {
-    return null;
-  }
+  if (start) start.value = "";
+  if (end) end.value = "";
+  if (type) type.value = "";
 
-  const id =
-    String(customerId);
-
-  const idAttempt =
-    await supabaseClient
-      .from("profiles")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
-
-  if (!idAttempt.error && idAttempt.data) {
-    return idAttempt.data;
-  }
-
-  const userIdAttempt =
-    await supabaseClient
-      .from("profiles")
-      .select("*")
-      .eq("user_id", id)
-      .maybeSingle();
-
-  if (!userIdAttempt.error && userIdAttempt.data) {
-    return userIdAttempt.data;
-  }
-
-  return null;
-
+  renderEarningsHistory();
 }
 
-function getAcceptedTaskSortValue(job) {
+function renderEarningsHistory() {
+  const list = document.getElementById("earningsHistoryList");
 
-  const scheduleDate =
-    getTaskScheduleDate(job.task, job.quote);
+  if (!list) return;
 
-  const date =
-    scheduleDate ? new Date(scheduleDate) : null;
+  const startValue = document.getElementById("earningStartDate")?.value || "";
+  const endValue = document.getElementById("earningEndDate")?.value || "";
+  const typeValue = document.getElementById("earningTypeFilter")?.value || "";
 
-  if (date && !Number.isNaN(date.getTime())) {
-    return date.getTime();
-  }
+  const startTime = dateInputToTime(startValue, false);
+  const endTime = dateInputToTime(endValue, true);
 
-  return Number.MAX_SAFE_INTEGER;
+  const rows =
+    earningsHistory
+      .filter(row => {
+        const rowType = getEarningTaskType(row);
+        const rowTime = earningDateToTime(getEarningDate(row));
 
-}
+        if (typeValue && rowType !== typeValue) {
+          return false;
+        }
 
-function renderNextAcceptedTask(jobs) {
+        if (startTime !== null && (rowTime === null || rowTime < startTime)) {
+          return false;
+        }
 
-  const container =
-    document.getElementById("nextAcceptedTaskCard");
+        if (endTime !== null && (rowTime === null || rowTime > endTime)) {
+          return false;
+        }
 
-  if (!container) {
-    return;
-  }
-
-  if (!jobs || jobs.length === 0) {
-    container.className = "next-task-empty";
-    container.innerHTML = `
-      No accepted tasks yet. When a customer accepts your quote or assigns you a task, the next job will show here first.
-    `;
-    return;
-  }
-
-  const nextJob =
-    jobs[0];
-
-  const task =
-    nextJob.task;
-
-  const quote =
-    nextJob.quote;
-
-  const scheduleValue =
-    getTaskScheduleDate(task, quote);
-
-  const title =
-    getTaskTitle(task);
-
-  const customerName =
-    getCustomerShortName(
-      nextJob.customerProfile,
-      getCustomerFallbackNameForDashboard(task, quote)
-    );
-
-  const dateDisplay =
-    getTaskDateDisplay(scheduleValue, task, quote);
-
-  const timeDisplay =
-    formatScheduleTime(getTaskScheduleTime(task, quote) || scheduleValue);
-
-  const locationDisplay =
-    getTaskCityState(task);
-
-  const payAmount =
-    getWorkerPayAmount(task, quote);
-
-  const status =
-    String(quote?.status || task?.status || "accepted").replaceAll("_", " ");
-
-  const upcomingJobs =
-    jobs.slice(1, 4);
-
-  const upcomingHtml =
-    upcomingJobs.length > 0
-      ? `
-        <div class="section-label" style="margin:14px 0 8px;">More Accepted Jobs</div>
-        <div class="next-task-list">
-          ${upcomingJobs.map((job) => {
-            const miniTask =
-              job.task;
-
-            const miniQuote =
-              job.quote;
-
-            const miniSchedule =
-              getTaskScheduleDate(miniTask, miniQuote);
-
-            const miniCustomer =
-              getCustomerShortName(
-                job.customerProfile,
-                getCustomerFallbackNameForDashboard(miniTask, miniQuote)
-              );
-
-            return `
-              <div class="next-task-mini" onclick="saveAcceptedJobBreakdown(miniTask, miniQuote); window.location.href='my-jobs.html'">
-                <div>
-                  <div class="next-task-mini-title">${dashboardEscapeHTML(getTaskTitle(miniTask))}</div>
-                  <div class="next-task-mini-meta">
-                    ${dashboardEscapeHTML(getTaskDateDisplay(miniSchedule, miniTask, miniQuote))} • ${dashboardEscapeHTML(formatScheduleTime(getTaskScheduleTime(miniTask, miniQuote) || miniSchedule))}<br>
-                    ${dashboardEscapeHTML(getTaskCityState(miniTask))} • ${dashboardEscapeHTML(miniCustomer)}
-                  </div>
-                </div>
-                <div class="next-task-mini-pay">${dashboardEscapeHTML(getWorkerPayAmount(miniTask, miniQuote))}</div>
-              </div>
-            `;
-          }).join("")}
-        </div>
-      `
-      : "";
-
-  container.className = "next-task-card";
-  container.innerHTML = `
-    <div class="next-task-top">
-      <div>
-        <div class="next-task-kicker">Your Next Accepted Task</div>
-        <div class="next-task-title">${dashboardEscapeHTML(title)}</div>
-      </div>
-      <div class="next-task-status">${dashboardEscapeHTML(status)}</div>
-    </div>
-
-    <div class="next-task-body">
-      <div class="next-task-icon">🧰</div>
-
-      <div class="next-task-main">
-        <div class="next-task-customer">Customer: ${dashboardEscapeHTML(customerName)}</div>
-      </div>
-
-      <div class="next-task-pay">
-        <div class="next-task-pay-label">You'll earn</div>
-        <div class="next-task-pay-amount">${dashboardEscapeHTML(payAmount)}</div>
-      </div>
-    </div>
-
-    <div class="next-task-grid">
-      <div class="next-task-info">
-        <div class="next-task-info-label">Date</div>
-        <div class="next-task-info-value">${dashboardEscapeHTML(dateDisplay)}</div>
-      </div>
-
-      <div class="next-task-info">
-        <div class="next-task-info-label">Time</div>
-        <div class="next-task-info-value">${dashboardEscapeHTML(timeDisplay)}</div>
-      </div>
-
-      <div class="next-task-info">
-        <div class="next-task-info-label">City / State</div>
-        <div class="next-task-info-value">${dashboardEscapeHTML(locationDisplay)}</div>
-      </div>
-    </div>
-
-    <div class="next-task-actions">
-      <button type="button" onclick="window.location.href='my-jobs.html'">
-        Open My Jobs
-      </button>
-
-      <button type="button" class="secondary" onclick="window.location.href='worker-calendar.html'">
-        View It On Your Calendar
-      </button>
-    </div>
-
-    ${upcomingHtml}
-  `;
-
-}
-
-async function loadNextAcceptedTask(workerId) {
-
-  const container =
-    document.getElementById("nextAcceptedTaskCard");
-
-  if (!container) {
-    return;
-  }
-
-  const workerIds =
-    getWorkerIdList(workerId);
-
-  if (workerIds.length === 0) {
-    container.className = "next-task-empty";
-    container.innerHTML = "Worker record not found for accepted tasks.";
-    return;
-  }
-
-  const acceptedJobs =
-    [];
-
-  const { data: taskRows } =
-    await supabaseClient
-      .from("tasks")
-      .select("*")
-      .or(
-        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
-      )
-      .in("status", [
-        "accepted",
-        "scheduled",
-        "in_progress"
-      ])
-      .order("created_at", { ascending: false });
-
-  (taskRows || []).forEach((task) => {
-    acceptedJobs.push({
-      task,
-      quote: {
-        status: task.status || "accepted"
-      },
-      customerProfile: null
-    });
-  });
-
-  const { data: quoteRows } =
-    await supabaseClient
-      .from("worker_quotes")
-      .select("*")
-      .in("worker_id", workerIds)
-      .in("status", [
-        "accepted",
-        "approved",
-        "in_progress"
-      ])
-      .order("created_at", { ascending: false });
-
-  const quoteTaskIds =
-    [
-      ...new Set(
-        (quoteRows || [])
-          .map((quote) => quote.task_id)
-          .filter(Boolean)
-      )
-    ];
-
-  const taskMap =
-    {};
-
-  if (quoteTaskIds.length > 0) {
-    const { data: quoteTasks } =
-      await supabaseClient
-        .from("tasks")
-        .select("*")
-        .in("id", quoteTaskIds);
-
-    (quoteTasks || []).forEach((task) => {
-      taskMap[task.id] = task;
-    });
-  }
-
-  (quoteRows || []).forEach((quote) => {
-    const task =
-      taskMap[quote.task_id];
-
-    if (!task) {
-      return;
-    }
-
-    const alreadyAdded =
-      acceptedJobs.some((job) => String(job.task.id) === String(task.id));
-
-    if (alreadyAdded) {
-      return;
-    }
-
-    acceptedJobs.push({
-      task,
-      quote,
-      customerProfile: null
-    });
-  });
-
-  const customerIds =
-    [
-      ...new Set(
-        acceptedJobs
-          .map((job) => getCustomerIdForDashboard(job.task, job.quote))
-          .filter(Boolean)
-          .map(String)
-      )
-    ];
-
-  const customerProfiles =
-    {};
-
-  for (const customerId of customerIds) {
-    const profile =
-      await getDashboardCustomerProfile(customerId);
-
-    if (profile) {
-      customerProfiles[customerId] = profile;
-    }
-  }
-
-  const jobsWithProfiles =
-    acceptedJobs
-      .map((job) => {
-        const customerId =
-          String(getCustomerIdForDashboard(job.task, job.quote) || "");
-
-        job.customerProfile =
-          customerProfiles[customerId] || null;
-
-        return job;
+        return true;
       })
-      .sort((a, b) => getAcceptedTaskSortValue(a) - getAcceptedTaskSortValue(b));
+      .sort((a, b) => {
+        const aTime = earningDateToTime(getEarningDate(a)) || 0;
+        const bTime = earningDateToTime(getEarningDate(b)) || 0;
+        return bTime - aTime;
+      });
 
-  renderNextAcceptedTask(jobsWithProfiles);
-
-}
-
-async function loadTodaySchedule(workerId) {
-
-  const container =
-    document.getElementById("todayScheduleList");
-
-  const workerIds =
-    getWorkerIdList(workerId);
-
-  if (!container) {
-    return;
-  }
-
-  if (workerIds.length === 0) {
-    container.innerHTML = `
-      <div class="small-text">
-        Worker record not found for upcoming tasks.
+  if (rows.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        No earnings found for the selected filters.
       </div>
     `;
     return;
   }
 
-  const loadedJobs = [];
-  const addedTaskIds = new Set();
+  list.innerHTML = "";
 
-  const activeStatuses = [
-    "accepted",
-    "scheduled",
-    "in_progress",
-    "worker_completed",
+  rows.forEach(row => {
+    const card = document.createElement("div");
+    card.className = "earning-card";
+
+    card.innerHTML = `
+      <div class="earning-top">
+        <div>
+          <div class="earning-title">
+            ${escapeHTML(getEarningTaskTitle(row))}
+          </div>
+
+          <div class="earning-meta">
+            ${escapeHTML(getEarningTaskType(row))}<br>
+            Completed: ${escapeHTML(formatDate(getEarningDate(row)))}
+          </div>
+        </div>
+
+        <div class="earning-amount">
+          ${money(getEarningAmount(row))}
+        </div>
+      </div>
+
+      <div class="earning-detail-row">
+        <div class="earning-detail">
+          <div class="earning-detail-label">Status</div>
+          <div class="earning-detail-value">
+            ${escapeHTML(getEarningStatus(row).replaceAll("_", " "))}
+          </div>
+        </div>
+
+        <div class="earning-detail">
+          <div class="earning-detail-label">Task ID</div>
+          <div class="earning-detail-value">
+            ${escapeHTML(getFirstAvailable(row, ["task_id", "job_id", "assignment_id"], "Not listed"))}
+          </div>
+        </div>
+      </div>
+    `;
+
+    list.appendChild(card);
+  });
+}
+
+function getFirstAvailable(record, keys, fallback = "") {
+  if (!record) {
+    return fallback;
+  }
+ 
+  for (const key of keys) {
+    if (
+      record[key] !== null &&
+      record[key] !== undefined &&
+      String(record[key]).trim() !== ""
+    ) {
+      return record[key];
+    }
+  }
+ 
+  return fallback;
+}
+ 
+async function getCurrentWorker() {
+  const { data: sessionData, error: sessionError } =
+    await supabaseClient.auth.getSession();
+
+  if (
+    sessionError ||
+    !sessionData ||
+    !sessionData.session ||
+    !sessionData.session.user
+  ) {
+    window.location.href = "worker-login.html";
+    return false;
+  }
+
+  currentUser = sessionData.session.user;
+
+  const ids = [currentUser.id];
+
+  const { data: profile } =
+    await supabaseClient
+      .from("profiles")
+      .select("id, email")
+      .eq("email", currentUser.email)
+      .maybeSingle();
+
+  if (profile && profile.id) {
+    ids.push(profile.id);
+  }
+
+  let workerProfile = null;
+
+  const { data: workerProfileByAuth } =
+    await supabaseClient
+      .from("worker_profiles")
+      .select("id, auth_user_id, email, stripe_account_id, payout_status")
+      .eq("auth_user_id", currentUser.id)
+      .maybeSingle();
+
+  if (workerProfileByAuth) {
+    workerProfile = workerProfileByAuth;
+  }
+
+  if (!workerProfile) {
+    const { data: workerProfileByEmail } =
+      await supabaseClient
+        .from("worker_profiles")
+        .select("id, auth_user_id, email, stripe_account_id, payout_status")
+        .eq("email", currentUser.email)
+        .maybeSingle();
+
+    if (workerProfileByEmail) {
+      workerProfile = workerProfileByEmail;
+    }
+  }
+
+  if (workerProfile && workerProfile.id) {
+    ids.push(workerProfile.id);
+  }
+
+  if (workerProfile && workerProfile.auth_user_id) {
+    ids.push(workerProfile.auth_user_id);
+  }
+
+  currentWorkerIds =
+    [...new Set(ids.filter(Boolean).map(String))];
+
+  currentWorkerId =
+    workerProfile && workerProfile.id
+      ? workerProfile.id
+      : currentWorkerIds[0];
+
+  return currentWorkerIds.length > 0;
+}
+
+function getEarningAmount(row) {
+  return Number(
+    getFirstAvailable(row, [
+      "worker_payout",
+      "net_payout",
+      "amount",
+      "payout_amount"
+    ], 0)
+  );
+}
+ 
+function isAvailableEarning(row) {
+  const status = String(
+    getFirstAvailable(row, [
+      "payout_status",
+      "status",
+      "payment_status"
+    ], "available")
+  ).toLowerCase();
+
+  return [
+    "available",
+    "released",
+    "ready",
     "completed",
-    "paid"
-  ];
-
-  const addJob = (task, quote = null) => {
-    if (!task || !task.id) {
-      return;
-    }
-
-    const scheduleValue =
-      getTaskScheduleDate(task, quote);
-
-    const dateKey =
-      getDateOnlyKey(scheduleValue);
-
-    if (!dateKey) {
-      return;
-    }
-
-    if (addedTaskIds.has(String(task.id))) {
-      return;
-    }
-
-    addedTaskIds.add(String(task.id));
-
-    loadedJobs.push({
-      task,
-      quote: quote || {
-        status: task.status || "scheduled",
-        quote_amount:
-          task.paid_amount ||
-          task.amount_paid ||
-          task.task_amount ||
-          task.worker_payout_amount ||
-          0
-      }
-    });
-  };
-
-  const { data: quoteRows, error: quoteError } =
-    await supabaseClient
-      .from("worker_quotes")
-      .select("*")
-      .in("worker_id", workerIds)
-      .in("status", activeStatuses)
-      .order("created_at", { ascending: false });
-
-  const quoteTaskIds =
-    [
-      ...new Set(
-        (quoteRows || [])
-          .map((quote) => quote.task_id)
-          .filter(Boolean)
-          .map(String)
-      )
-    ];
-
-  const quoteTaskMap = {};
-
-  if (!quoteError && quoteTaskIds.length > 0) {
-    const { data: quoteTasks } =
-      await supabaseClient
-        .from("tasks")
-        .select("*")
-        .in("id", quoteTaskIds);
-
-    (quoteTasks || []).forEach((task) => {
-      quoteTaskMap[String(task.id)] = task;
-    });
-
-    (quoteRows || []).forEach((quote) => {
-      const task = quoteTaskMap[String(quote.task_id)];
-
-      if (task) {
-        addJob(task, quote);
-      }
-    });
-  }
-
-  const { data: scheduledTasks, error: taskError } =
-    await supabaseClient
-      .from("tasks")
-      .select("*")
-      .or(
-        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
-      )
-      .in("status", activeStatuses)
-      .order("created_at", { ascending: false });
-
-  if (!taskError) {
-    (scheduledTasks || []).forEach((task) => {
-      addJob(task, {
-        status: task.status || "scheduled",
-        quote_amount:
-          task.paid_amount ||
-          task.amount_paid ||
-          task.task_amount ||
-          task.worker_payout_amount ||
-          0
-      });
-    });
-  }
-
-  const idFilter =
-    workerIds
-      .map((id) => `worker_id.eq.${id},accepted_worker_id.eq.${id},assigned_worker_id.eq.${id}`)
-      .join(",");
-
-  if (idFilter) {
-    const { data: directRequests, error: directRequestError } =
-      await supabaseClient
-        .from("direct_task_requests")
-        .select("*")
-        .or(idFilter)
-        .in("status", activeStatuses)
-        .order("created_at", { ascending: false });
-
-    if (!directRequestError) {
-      (directRequests || []).forEach((request) => {
-        addJob(
-          {
-            ...request,
-            source_type: "direct_quote",
-            is_direct_request: true,
-            task_date:
-              request.task_date ||
-              request.scheduled_date ||
-              request.date_needed ||
-              "",
-            task_time:
-              request.task_time ||
-              request.scheduled_time ||
-              request.time_needed ||
-              "",
-            payment_status:
-              request.payment_status ||
-              request.escrow_status ||
-              "Not listed"
-          },
-          {
-            status: request.status || "accepted",
-            quote_amount:
-              request.quote_amount ||
-              request.amount ||
-              request.price ||
-              request.accepted_amount ||
-              0
-          }
-        );
-      });
-    }
-  }
-
-  const today =
-    new Date();
-
-  today.setHours(0, 0, 0, 0);
-
-  const todayKey =
-    getDateOnlyKey(today);
-
-  const upcomingJobs =
-    loadedJobs
-      .filter((job) => {
-        const dateKey =
-          getDateOnlyKey(getTaskScheduleDate(job.task, job.quote));
-
-        return dateKey && dateKey >= todayKey;
-      })
-      .sort((a, b) => getAcceptedTaskSortValue(a) - getAcceptedTaskSortValue(b));
-
-  if (!upcomingJobs || upcomingJobs.length === 0) {
-    container.innerHTML = `
-      <div class="small-text">
-        No upcoming tasks yet. Scheduled accepted tasks will show here.
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = "";
-
-  upcomingJobs.forEach((job) => {
-    const task = job.task;
-    const quote = job.quote;
-    const scheduleValue = getTaskScheduleDate(task, quote);
-    const date = getTaskDateDisplay(scheduleValue, task, quote);
-    const time = formatScheduleTime(getTaskScheduleTime(task, quote) || scheduleValue);
-    const payAmount = getWorkerPayAmount(task, quote);
-
-    container.innerHTML += `
-      <div class="schedule-card" onclick="saveAcceptedJobBreakdown(task, quote); window.location.href='my-jobs.html'">
-        <div class="schedule-title">
-          ${dashboardEscapeHTML(getTaskTitle(task))}
-        </div>
-
-        <div class="schedule-meta">
-          ${dashboardEscapeHTML(date)} • ${dashboardEscapeHTML(time)}<br>
-          ${dashboardEscapeHTML(getTaskCityState(task))}
-        </div>
-
-        <div class="schedule-badge">
-          ${dashboardEscapeHTML(payAmount)}
-        </div>
-      </div>
-    `;
-  });
-
+    "unpaid",
+    "pending"
+  ].includes(status);
 }
 
-async function loadUnreadDisputeDot(workerId) {
+function calculateInstantFee(amount) {
+  const balance = Number(amount || 0);
 
-  const dot =
-    document.getElementById("disputeDot");
-
-  if (!dot || !workerId) {
-    return;
-  }
-
-  const { count, error } =
-    await supabaseClient
-      .from("disputes")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("worker_id", workerId)
-      .in("status", [
-        "open",
-        "reviewing"
-      ]);
-
-  if (!error && count && count > 0) {
-    dot.style.display = "block";
-  } else {
-    dot.style.display = "none";
-  }
-
-}
-
-function toggleNotificationPanel() {
-
-  const panel =
-    document.getElementById("notificationPanel");
-
-  if (!panel) {
-    return;
-  }
-
-  panel.classList.toggle("show");
-
-}
-
-function setNotificationCount(elementId, count) {
-
-  const element =
-    document.getElementById(elementId);
-
-  if (element) {
-    element.innerText = count || 0;
-
-    if (element.classList && element.classList.contains("bottom-nav-badge")) {
-      element.style.display = count > 0 ? "flex" : "none";
-    }
-  }
-
-}
-
-function updateNotificationBadge(total) {
-
-  const badge =
-    document.getElementById("notificationBadge");
-
-  if (!badge) {
-    return;
-  }
-
-  if (total > 0) {
-    badge.style.display = "flex";
-    badge.innerText = total > 99 ? "99+" : total;
-  } else {
-    badge.style.display = "none";
-    badge.innerText = "0";
-  }
-
-}
-
-function getWorkerNotificationIds() {
-  const ids = [];
-
-  if (currentUser && currentUser.id) {
-    ids.push(currentUser.id);
-  }
-
-  if (currentWorkerId) {
-    ids.push(currentWorkerId);
-  }
-
-  return [...new Set(ids.filter(Boolean).map(String))];
-}
-
-async function safeCount(query) {
-  const { count, error } =
-    await query;
-
-  if (error || count === null || count === undefined) {
+  if (balance <= 0) {
     return 0;
   }
 
-  return count;
-}
-
-async function countByColumn(tableName, columnName, values, extraBuilder) {
-  if (!values || values.length === 0) {
-    return 0;
-  }
-
-  let query =
-    supabaseClient
-      .from(tableName)
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .in(columnName, values);
-
-  if (typeof extraBuilder === "function") {
-    query = extraBuilder(query);
-  }
-
-  return await safeCount(query);
-}
-
-async function countUnreadMessages() {
-
-  const ids =
-    getWorkerNotificationIds();
-
-  if (ids.length === 0) {
-    return 0;
-  }
-
-  let total = 0;
-
-  total += await countByColumn(
-    "task_messages",
-    "receiver_id",
-    ids,
-    (query) => query.eq("is_read", false)
+  return Math.max(
+    Number((balance * INSTANT_PAYOUT_FEE_RATE).toFixed(2)),
+    INSTANT_PAYOUT_MIN_FEE
   );
+}
 
-  total += await countByColumn(
-    "customer_worker_messages",
-    "worker_id",
-    ids,
-    (query) => query.eq("sender_type", "customer")
+function updatePayoutButtons() {
+  const standardButton = document.getElementById("standardPayoutButton");
+  const instantButton = document.getElementById("instantPayoutButton");
+  const instantFeeBox = document.getElementById("instantFeeAmount");
+  const instantNetBox = document.getElementById("instantNetAmount");
+
+  if (payoutRequestInProgress) {
+    if (standardButton) standardButton.disabled = true;
+    if (instantButton) instantButton.disabled = true;
+    return;
+  }
+
+  const instantFee = calculateInstantFee(availableBalance);
+  const instantNet = Math.max(availableBalance - instantFee, 0);
+
+  if (instantFeeBox) {
+    instantFeeBox.innerText = money(instantFee);
+  }
+
+  if (instantNetBox) {
+    instantNetBox.innerText = money(instantNet);
+  }
+
+  if (standardButton) {
+    standardButton.disabled = availableBalance <= 0;
+  }
+
+  if (instantButton) {
+    instantButton.disabled = availableBalance <= 0 || instantNet <= 0;
+  }
+}
+ 
+
+function getNumericFirstAvailable(record, keys, fallback = 0) {
+  const rawValue =
+    getFirstAvailable(record, keys, fallback);
+
+  const numericValue =
+    Number(rawValue || 0);
+
+  return Number.isNaN(numericValue)
+    ? Number(fallback || 0)
+    : numericValue;
+}
+
+function getCompletedTaskDate(task) {
+  return getFirstAvailable(task, [
+    "completed_at",
+    "customer_completed_at",
+    "task_completed_at",
+    "completion_date",
+    "completed_date",
+    "updated_at",
+    "created_at"
+  ], "");
+}
+
+function getCompletedTaskTitle(task) {
+  return cleanText(
+    getFirstAvailable(task, [
+      "title",
+      "task_title",
+      "job_title",
+      "category",
+      "service_type"
+    ], "Completed Task"),
+    "Completed Task"
   );
-
-  return total;
-
 }
 
-async function countDisputeNotifications() {
-
-  if (!currentWorkerId) {
-    return 0;
-  }
-
-  let activeDisputeCount = 0;
-  let taskMintReplyCount = 0;
-
-  const { count: activeCount, error: activeError } =
-    await supabaseClient
-      .from("disputes")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("worker_id", currentWorkerId)
-      .in("status", [
-        "open",
-        "reviewing"
-      ]);
-
-  if (!activeError && activeCount) {
-    activeDisputeCount = activeCount;
-  }
-
-  const { data: workerDisputes, error: disputeError } =
-    await supabaseClient
-      .from("disputes")
-      .select("id")
-      .eq("worker_id", currentWorkerId);
-
-  if (!disputeError && workerDisputes && workerDisputes.length > 0) {
-
-    const disputeIds =
-      workerDisputes.map(dispute => dispute.id);
-
-    const { count: replyCount, error: replyError } =
-      await supabaseClient
-        .from("dispute_messages")
-        .select("id", {
-          count: "exact",
-          head: true
-        })
-        .in("dispute_id", disputeIds)
-        .eq("visible_to", "worker")
-        .eq("sender_type", "admin");
-
-    if (!replyError && replyCount) {
-      taskMintReplyCount = replyCount;
-    }
-
-  }
-
-  return activeDisputeCount + taskMintReplyCount;
-
+function getCompletedTaskType(task) {
+  return cleanText(
+    getFirstAvailable(task, [
+      "category",
+      "task_category",
+      "service_type",
+      "job_type",
+      "type"
+    ], "Task"),
+    "Task"
+  );
 }
 
-async function countDirectRequests() {
-
-  if (!currentWorkerId) {
-    return 0;
-  }
-
-  const { count, error } =
-    await supabaseClient
-      .from("direct_task_requests")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("worker_id", currentWorkerId)
-      .in("status", [
-        "new",
-        "pending",
-        "requested"
-      ]);
-
-  if (error || count === null || count === undefined) {
-    return 0;
-  }
-
-  return count;
-
+function getGrossTaskAmount(task, quote) {
+  return getNumericFirstAvailable(quote, [
+    "worker_payout",
+    "worker_pay",
+    "net_payout",
+    "quote_amount",
+    "amount",
+    "total_amount",
+    "price",
+    "accepted_amount"
+  ], 0) ||
+  getNumericFirstAvailable(task, [
+    "worker_payout",
+    "worker_pay",
+    "worker_payout_amount",
+    "quote_amount",
+    "accepted_amount",
+    "task_amount",
+    "amount_paid",
+    "paid_amount",
+    "amount",
+    "price",
+    "total_amount"
+  ], 0);
 }
 
-async function countAcceptedTasksAndQuotes() {
+function getNetWorkerAmount(task, quote) {
+  const directWorkerAmount =
+    getNumericFirstAvailable(quote, [
+      "worker_payout",
+      "worker_pay",
+      "net_payout"
+    ], 0) ||
+    getNumericFirstAvailable(task, [
+      "worker_payout",
+      "worker_pay",
+      "worker_payout_amount",
+      "net_payout"
+    ], 0);
 
-  if (!currentWorkerId) {
+  if (directWorkerAmount > 0) {
+    return directWorkerAmount;
+  }
+
+  const grossAmount =
+    getGrossTaskAmount(task, quote);
+
+  if (grossAmount <= 0) {
     return 0;
   }
 
-  let acceptedTaskCount = 0;
-  let acceptedQuoteCount = 0;
-
-  const { count: taskCount, error: taskError } =
-    await supabaseClient
-      .from("tasks")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .or(`worker_id.eq.${currentWorkerId},accepted_worker_id.eq.${currentWorkerId}`)
-      .in("status", [
-        "accepted",
-        "scheduled",
-        "in_progress"
-      ]);
-
-  if (!taskError && taskCount) {
-    acceptedTaskCount = taskCount;
-  }
-
-  const { count: quoteCount, error: quoteError } =
-    await supabaseClient
-      .from("worker_quotes")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("worker_id", currentWorkerId)
-      .in("status", [
-        "accepted",
-        "approved"
-      ]);
-
-  if (!quoteError && quoteCount) {
-    acceptedQuoteCount = quoteCount;
-  }
-
-  return acceptedTaskCount + acceptedQuoteCount;
-
+  return Number((grossAmount * (1 - TASKMINT_SERVICE_FEE_RATE)).toFixed(2));
 }
 
-async function countNewReviews() {
-
-  const workerIds =
-    getWorkerNotificationIds();
-
-  if (workerIds.length === 0) {
-    return 0;
+async function loadCompletedTaskDerivedEarnings(existingTaskIds = []) {
+  if (!currentWorkerIds || currentWorkerIds.length === 0) {
+    return [];
   }
-
-  const since = new Date();
-  since.setDate(since.getDate() - 14);
 
   const { data: completedTasks, error: taskError } =
     await supabaseClient
       .from("tasks")
-      .select("id")
+      .select("*")
       .or(
-        `worker_id.in.(${workerIds.join(",")}),accepted_worker_id.in.(${workerIds.join(",")}),assigned_worker_id.in.(${workerIds.join(",")})`
+        `worker_id.in.(${currentWorkerIds.join(",")}),accepted_worker_id.in.(${currentWorkerIds.join(",")}),assigned_worker_id.in.(${currentWorkerIds.join(",")})`
       )
       .eq("status", "completed")
       .eq("customer_completed", true);
 
   if (taskError || !completedTasks || completedTasks.length === 0) {
-    return 0;
+    return [];
   }
+
+  const existingTaskIdSet =
+    new Set(
+      (existingTaskIds || [])
+        .filter(Boolean)
+        .map(String)
+    );
 
   const taskIds =
     completedTasks
       .map((task) => task.id)
-      .filter(Boolean);
+      .filter(Boolean)
+      .map(String);
 
-  if (taskIds.length === 0) {
-    return 0;
+  const quoteMap = {};
+
+  if (taskIds.length > 0) {
+    const { data: quoteRows } =
+      await supabaseClient
+        .from("worker_quotes")
+        .select("*")
+        .in("task_id", taskIds)
+        .in("worker_id", currentWorkerIds);
+
+    (quoteRows || []).forEach((quote) => {
+      if (quote.task_id) {
+        quoteMap[String(quote.task_id)] = quote;
+      }
+    });
   }
 
-  const { count, error } =
-    await supabaseClient
-      .from("reviews")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .in("task_id", taskIds)
-      .gte("created_at", since.toISOString());
+  return completedTasks
+    .filter((task) => task.id && !existingTaskIdSet.has(String(task.id)))
+    .map((task) => {
+      const quote =
+        quoteMap[String(task.id)] || null;
 
-  if (error || count === null || count === undefined) {
-    return 0;
-  }
+      const grossAmount =
+        getGrossTaskAmount(task, quote);
 
-  return count;
+      const workerAmount =
+        getNetWorkerAmount(task, quote);
 
+      return {
+        id: `completed-task-${task.id}`,
+        task_id: task.id,
+        worker_id: currentWorkerId || currentWorkerIds[0],
+        task_title: getCompletedTaskTitle(task),
+        task_type: getCompletedTaskType(task),
+        category: getCompletedTaskType(task),
+        gross_amount: grossAmount,
+        taskmint_fee: Number((grossAmount - workerAmount).toFixed(2)),
+        amount: workerAmount,
+        worker_payout: workerAmount,
+        payout_status: "available",
+        status: "available",
+        completed_at: getCompletedTaskDate(task),
+        created_at: getCompletedTaskDate(task),
+        source_type: "completed_task"
+      };
+    })
+    .filter((row) => Number(row.amount || 0) > 0);
 }
 
-async function countPayoutNotifications() {
-
-  if (!currentWorkerId) {
-    return 0;
-  }
-
-  const { count, error } =
+async function loadAvailableBalance() {
+  const { data, error } =
     await supabaseClient
       .from("worker_earnings")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("worker_id", currentWorkerId)
-      .in("payout_status", [
-        "pending",
-        "processing",
-        "paid"
-      ]);
+      .select("*")
+      .in("worker_id", currentWorkerIds);
 
-  if (error || count === null || count === undefined) {
-    return 0;
-  }
+  const earningsRows =
+    error || !data
+      ? []
+      : data;
 
-  return count;
+  const existingTaskIds =
+    earningsRows
+      .map(row => row.task_id || row.job_id || row.assignment_id)
+      .filter(Boolean);
 
+  const derivedRows =
+    await loadCompletedTaskDerivedEarnings(existingTaskIds);
+
+  const allRows =
+    [
+      ...earningsRows,
+      ...derivedRows
+    ];
+
+  const totalAvailableEarnings =
+    allRows
+      .filter(row => isAvailableEarning(row))
+      .reduce((total, row) => total + getEarningAmount(row), 0);
+
+  const reservedPayouts =
+    await loadReservedPayoutAmount();
+
+  const totalReservedPayouts =
+    Number(reservedPayouts || 0) + Number(localReservedPayoutAmount || 0);
+
+  availableBalance =
+    Math.max(Number((totalAvailableEarnings - totalReservedPayouts).toFixed(2)), 0);
+
+  document.getElementById("availableBalance").innerText =
+    money(availableBalance);
+
+  document.getElementById("balanceSubtext").innerText =
+    totalReservedPayouts > 0 && availableBalance <= 0
+      ? "Your available balance is already tied to a payout request."
+      : availableBalance > 0
+        ? "You can request this available amount for payout."
+        : "Completed and released jobs will show here.";
+
+  updatePayoutButtons();
 }
 
-async function countTodayScheduledJobs() {
+async function loadEarningsHistory() {
+  const list = document.getElementById("earningsHistoryList");
 
-  if (!currentWorkerId) {
-    return 0;
-  }
-
-  const today = new Date();
-  const start = new Date(today);
-  start.setHours(0, 0, 0, 0);
-
-  const end = new Date(today);
-  end.setHours(23, 59, 59, 999);
-
-  const startIso = start.toISOString();
-  const endIso = end.toISOString();
-
-  const { count, error } =
+  const { data, error } =
     await supabaseClient
-      .from("tasks")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .or(`worker_id.eq.${currentWorkerId},accepted_worker_id.eq.${currentWorkerId},assigned_worker_id.eq.${currentWorkerId}`)
-      .gte("scheduled_start", startIso)
-      .lte("scheduled_start", endIso)
-      .in("status", [
-        "accepted",
-        "in_progress",
-        "worker_completed",
-        "scheduled",
-        "paid",
-        "completed"
-      ]);
+      .from("worker_earnings")
+      .select("*")
+      .in("worker_id", currentWorkerIds)
+      .order("created_at", { ascending: false });
 
-  if (error || count === null || count === undefined) {
+  const earningsRows =
+    error || !data
+      ? []
+      : data;
+
+  const existingTaskIds =
+    earningsRows
+      .map(row => row.task_id || row.job_id || row.assignment_id)
+      .filter(Boolean);
+
+  const derivedRows =
+    await loadCompletedTaskDerivedEarnings(existingTaskIds);
+
+  earningsHistory =
+    [
+      ...earningsRows,
+      ...derivedRows
+    ];
+
+  if (!earningsHistory || earningsHistory.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        No earnings history found yet.
+      </div>
+    `;
+    return;
+  }
+
+  populateEarningsTypeFilter();
+  renderEarningsHistory();
+}
+
+function requestAmount(row) {
+  return Number(
+    getFirstAvailable(row, [
+      "amount",
+      "payout_amount",
+      "requested_amount"
+    ], 0)
+  );
+}
+ 
+function requestStatus(row) {
+  return String(
+    getFirstAvailable(row, [
+      "status",
+      "payout_status",
+      "request_status"
+    ], "pending")
+  ).toLowerCase();
+}
+ 
+function requestCreatedAt(row) {
+  return getFirstAvailable(row, [
+    "requested_at",
+    "created_at",
+    "submitted_at"
+  ], "");
+}
+
+function isReservedPayoutStatus(status) {
+  return [
+    "requested",
+    "pending",
+    "processing",
+    "approved",
+    "flagged",
+    "blocked"
+  ].includes(String(status || "").toLowerCase());
+}
+
+function reservedPayoutAmount(row) {
+  return Number(
+    getFirstAvailable(row, [
+      "amount",
+      "payout_amount",
+      "requested_amount",
+      "net_amount"
+    ], 0)
+  );
+}
+
+async function loadReservedPayoutAmount() {
+  if (!currentWorkerIds || currentWorkerIds.length === 0) {
     return 0;
   }
 
-  return count;
+  const { data, error } =
+    await supabaseClient
+      .from("worker_payouts")
+      .select("*")
+      .in("worker_id", currentWorkerIds);
 
+  if (error || !data) {
+    return 0;
+  }
+
+  return data
+    .filter(row => isReservedPayoutStatus(requestStatus(row)))
+    .reduce((total, row) => total + reservedPayoutAmount(row), 0);
+}
+ 
+async function loadPayoutRequests() {
+  const list = document.getElementById("payoutRequestsList");
+ 
+  const { data, error } =
+    await supabaseClient
+      .from("worker_payouts")
+      .select("*")
+      .in("worker_id", currentWorkerIds)
+      .order("created_at", { ascending: false });
+ 
+  if (error) {
+    payoutRequests = [];
+    list.innerHTML = `
+      <div class="empty">
+        No payout requests found yet.
+      </div>
+    `;
+    await updateSummary();
+    return;
+  }
+ 
+  payoutRequests = data || [];
+
+  const serverReservedAmount =
+    payoutRequests
+      .filter(row => isReservedPayoutStatus(requestStatus(row)))
+      .reduce((total, row) => total + reservedPayoutAmount(row), 0);
+
+  if (serverReservedAmount > 0) {
+    localReservedPayoutAmount = 0;
+    payoutRequestInProgress = false;
+  }
+
+  renderPayoutRequests();
+  await updateSummary();
+}
+ 
+async function updateSummary() {
+  let pending = 0;
+  let approved = 0;
+  let paid = 0;
+
+  payoutRequests.forEach(row => {
+    const status = requestStatus(row);
+    const amount = requestAmount(row);
+
+    if (["requested", "pending", "processing"].includes(status)) {
+      pending += amount;
+    }
+
+    if (status === "approved") {
+      approved += amount;
+    }
+
+    if (["paid", "completed"].includes(status)) {
+      paid += amount;
+    }
+  });
+
+  const { data: earningsData } =
+    await supabaseClient
+      .from("worker_earnings")
+      .select("*")
+      .in("worker_id", currentWorkerIds);
+
+  (earningsData || []).forEach(row => {
+    const status = String(row.payout_status || "").toLowerCase();
+    const amount = getEarningAmount(row);
+
+    if (["pending", "available", "released", "ready", "completed", "unpaid"].includes(status)) {
+      pending += amount;
+    }
+
+    if (status === "approved") {
+      approved += amount;
+    }
+
+    if (status === "paid") {
+      paid += amount;
+    }
+  });
+
+  document.getElementById("pendingAmount").innerText = money(pending);
+  document.getElementById("approvedAmount").innerText = money(approved);
+  document.getElementById("paidAmount").innerText = money(paid);
+
+  document.getElementById("lastRequestDate").innerText =
+    payoutRequests.length > 0
+      ? formatDate(requestCreatedAt(payoutRequests[0]))
+      : "None";
+}
+ 
+function getPillClass(status) {
+  if (["approved"].includes(status)) {
+    return "pill-approved";
+  }
+
+  if (["paid", "completed"].includes(status)) {
+    return "pill-paid";
+  }
+
+  if (["denied", "failed", "rejected"].includes(status)) {
+    return "pill-denied";
+  }
+
+  if (["requested", "processing", "blocked"].includes(status)) {
+    return "pill-processing";
+  }
+
+  return "pill-pending";
 }
 
-async function loadWorkerNotifications() {
+function getWorkerVisiblePayoutStatus(status, payoutSpeed) {
+  const normalizedStatus = String(status || "").toLowerCase();
+  const normalizedSpeed = String(payoutSpeed || "").toLowerCase();
 
-  const directRequestCount =
-    await countDirectRequests();
+  if (normalizedStatus === "blocked" && normalizedSpeed === "instant") {
+    return "Processing — please wait 3–5 minutes";
+  }
 
-  const acceptedCount =
-    await countAcceptedTasksAndQuotes();
-
-  const messageCount =
-    await countUnreadMessages();
-
-  const disputeCount =
-    await countDisputeNotifications();
-
-  const reviewCount =
-    await countNewReviews();
-
-  const payoutCount =
-    await countPayoutNotifications();
-
-  const todayScheduleCount =
-    await countTodayScheduledJobs();
-
-  rawNotificationCounts = {
-    directRequests: directRequestCount,
-    accepted: acceptedCount,
-    messages: messageCount,
-    disputes: disputeCount,
-    reviews: reviewCount,
-    payouts: payoutCount,
-    schedule: todayScheduleCount
-  };
-
-  updateWorkerNotificationDisplay();
-
+  return normalizedStatus.replaceAll("_", " ");
 }
 
-function openPendingQuotesPage() {
+function renderPayoutRequests() {
+  const list = document.getElementById("payoutRequestsList");
 
-  window.location.href =
-    "view-pending-quotes.html";
+  if (!payoutRequests || payoutRequests.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        No payout requests yet. Once you request a payout, it will show here with its status.
+      </div>
+    `;
+    return;
+  }
 
+  list.innerHTML = "";
+
+  payoutRequests.forEach(row => {
+    const status = requestStatus(row);
+    const submitted = requestCreatedAt(row);
+    const processedAt = getFirstAvailable(row, [
+      "processed_at",
+      "approved_at",
+      "paid_at",
+      "updated_at"
+    ], "");
+
+    const denialReason = getFirstAvailable(row, [
+      "denial_reason",
+      "rejection_reason",
+      "failure_reason",
+      "stripe_processing_error"
+    ], "");
+
+    const stripeReference = getFirstAvailable(row, [
+      "stripe_transfer_id",
+      "stripe_payout_id",
+      "stripe_payment_intent_id",
+      "stripe_reference"
+    ], "");
+
+    const payoutSpeed = getFirstAvailable(row, [
+      "payout_speed",
+      "payout_type",
+      "speed"
+    ], "standard");
+
+    const requestTotal = requestAmount(row);
+
+    const grossAmount = Number(getFirstAvailable(row, [
+      "gross_amount",
+      "task_amount",
+      "paid_amount",
+      "amount_paid"
+    ], 0));
+
+    const taskmintFeeAmount = Number(getFirstAvailable(row, [
+      "taskmint_fee_amount",
+      "taskmint_fee",
+      "platform_fee"
+    ], 0));
+
+    const instantFeeAmount = Number(getFirstAvailable(row, [
+      "instant_fee",
+      "fee_amount",
+      "processing_fee"
+    ], 0));
+
+    const netAmount = Number(getFirstAvailable(row, [
+      "net_amount",
+      "payout_amount",
+      "net_payout_amount",
+      "amount_after_fee"
+    ], requestTotal));
+
+    const shownGross =
+      grossAmount > 0
+        ? grossAmount
+        : Number((requestTotal / (1 - TASKMINT_SERVICE_FEE_RATE)).toFixed(2));
+
+    const shownTaskmintFee =
+      taskmintFeeAmount > 0
+        ? taskmintFeeAmount
+        : Number((shownGross * TASKMINT_SERVICE_FEE_RATE).toFixed(2));
+
+    const shownAfterTaskmintFee =
+      Number((shownGross - shownTaskmintFee).toFixed(2));
+
+    const shownWorkerReceives =
+      netAmount > 0
+        ? netAmount
+        : Number((shownAfterTaskmintFee - instantFeeAmount).toFixed(2));
+
+    const note =
+      status === "denied" || status === "failed" || status === "rejected"
+        ? `Reason: ${cleanText(denialReason, "No reason listed")}`
+        : stripeReference
+          ? `Stripe reference: ${stripeReference}`
+          : status === "blocked"
+            ? "This payout is being held for review."
+            : "Payout submitted. Stripe status will update after processing.";
+
+    list.innerHTML += `
+      <div class="request-card">
+        <div class="request-top">
+          <div>
+            <div class="request-amount">${money(requestTotal)}</div>
+            <div class="request-meta">
+              Type: ${cleanText(payoutSpeed).replaceAll("_", " ")}<br>
+              Submitted: ${formatDateTime(submitted)}<br>
+              Last Update: ${formatDateTime(processedAt)}
+            </div>
+          </div>
+
+          <div class="status-pill ${getPillClass(status)}">
+            ${escapeHTML(getWorkerVisiblePayoutStatus(status, payoutSpeed))}
+          </div>
+        </div>
+
+        <div class="request-note">
+          <div><strong>Customer paid / gross:</strong> ${money(shownGross)}</div>
+          <div><strong>TaskMint fee:</strong> ${money(shownTaskmintFee)}</div>
+          <div><strong>After TaskMint fee:</strong> ${money(shownAfterTaskmintFee)}</div>
+          <div><strong>Instant fee:</strong> ${money(instantFeeAmount)}</div>
+          <div><strong>Worker receives:</strong> ${money(shownWorkerReceives)}</div>
+          <div style="margin-top:8px;">${escapeHTML(note)}</div>
+        </div>
+      </div>
+    `;
+  });
 }
 
-function scrollToPendingQuotes() {
-
-  document.getElementById("pendingQuotesCard")
-    .scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-
+function buildPayoutLockKey(amount, selectedSpeed) {
+  return [
+    currentWorkerId,
+    "available-balance",
+    selectedSpeed,
+    Number(amount || 0).toFixed(2)
+  ].join(":");
 }
 
-function viewPublicProfile() {
+async function hasActiveDuplicatePayout(lockKey, requestedAmount) {
+  const activeStatuses = [
+    "requested",
+    "pending",
+    "approved",
+    "processing",
+    "flagged",
+    "blocked"
+  ];
 
-  localStorage.setItem(
-    "selectedWorkerId",
-    currentWorkerId
-  );
+  const { data, error } =
+    await supabaseClient
+      .from("worker_payouts")
+      .select("id,status,payout_status,payout_lock_key,amount,net_amount,payout_amount,created_at")
+      .in("worker_id", currentWorkerIds)
+      .in("status", activeStatuses)
+      .order("created_at", { ascending: false })
+      .limit(25);
 
-  window.location.href =
-    "worker-public-profile.html";
+  if (error || !data || data.length === 0) {
+    return false;
+  }
 
+  const requested =
+    Number(requestedAmount || 0).toFixed(2);
+
+  return data.some(row => {
+    const status =
+      requestStatus(row);
+
+    const existingAmount =
+      Number(
+        getFirstAvailable(row, [
+          "amount",
+          "payout_amount",
+          "net_amount"
+        ], 0)
+      ).toFixed(2);
+
+    return (
+      activeStatuses.includes(status) &&
+      (
+        row.payout_lock_key === lockKey ||
+        existingAmount === requested
+      )
+    );
+  });
 }
 
-loadDashboard();
+function lockPayoutButtons(message = "Submitting...", reservedAmount = 0) {
+  payoutRequestInProgress = true;
+  localReservedPayoutAmount =
+    Math.max(Number(localReservedPayoutAmount || 0), Number(reservedAmount || 0));
 
+  availableBalance = 0;
+
+  const balanceBox =
+    document.getElementById("availableBalance");
+
+  const balanceSubtext =
+    document.getElementById("balanceSubtext");
+
+  if (balanceBox) {
+    balanceBox.innerText = money(0);
+  }
+
+  if (balanceSubtext) {
+    balanceSubtext.innerText = "Your available balance is already tied to a payout request.";
+  }
+
+  const standardButton =
+    document.getElementById("standardPayoutButton");
+
+  const instantButton =
+    document.getElementById("instantPayoutButton");
+
+  if (standardButton) {
+    standardButton.disabled = true;
+    standardButton.innerText = message;
+  }
+
+  if (instantButton) {
+    instantButton.disabled = true;
+    instantButton.innerText = message;
+  }
+
+  updatePayoutButtons();
+}
+
+function unlockPayoutButtons(standardText = "Request Free Friday Payout", instantText = "Request Instant Payout") {
+  payoutRequestInProgress = false;
+  localReservedPayoutAmount = 0;
+
+  const standardButton =
+    document.getElementById("standardPayoutButton");
+
+  const instantButton =
+    document.getElementById("instantPayoutButton");
+
+  if (standardButton) {
+    standardButton.innerText = standardText;
+  }
+
+  if (instantButton) {
+    instantButton.innerText = instantText;
+  }
+
+  updatePayoutButtons();
+}
+
+async function requestPayout(payoutSpeed) {
+  if (payoutRequestInProgress) {
+    setActionMessage("A payout request is already being submitted. Please wait.", "#b00020");
+    return;
+  }
+
+  await loadAvailableBalance();
+
+  const standardButton = document.getElementById("standardPayoutButton");
+  const instantButton = document.getElementById("instantPayoutButton");
+  const selectedSpeed = payoutSpeed === "instant" ? "instant" : "standard";
+  const originalStandardText = standardButton ? standardButton.innerText : "Request Free Friday Payout";
+  const originalInstantText = instantButton ? instantButton.innerText : "Request Instant Payout";
+  const balanceAtRequest = Number(availableBalance || 0);
+
+  if (balanceAtRequest <= 0) {
+    setActionMessage("No available balance to request.", "#b00020");
+    updatePayoutButtons();
+    return;
+  }
+
+  const payoutLockKey =
+    buildPayoutLockKey(balanceAtRequest, selectedSpeed);
+
+  const duplicateExists =
+    await hasActiveDuplicatePayout(payoutLockKey, balanceAtRequest);
+
+  if (duplicateExists) {
+    await loadPayoutPage();
+    setActionMessage("You already have a payout request being processed.", "#b00020");
+    return;
+  }
+
+  const instantFeeAmount =
+    selectedSpeed === "instant"
+      ? calculateInstantFee(balanceAtRequest)
+      : 0;
+
+  const taskmintGrossAmount =
+    Number((balanceAtRequest / (1 - TASKMINT_SERVICE_FEE_RATE)).toFixed(2));
+
+  const taskmintFeeAmount =
+    Number((taskmintGrossAmount - balanceAtRequest).toFixed(2));
+
+  const netAmount =
+    Math.max(Number((balanceAtRequest - instantFeeAmount).toFixed(2)), 0);
+
+  if (selectedSpeed === "instant" && netAmount <= 0) {
+    setActionMessage("Instant payout amount is too low after the fee.", "#b00020");
+    return;
+  }
+
+  const confirmMessage =
+    selectedSpeed === "instant"
+      ? `Request instant payout for ${money(balanceAtRequest)}? Instant fee: ${money(instantFeeAmount)}. You receive: ${money(netAmount)}.`
+      : `Request free Friday payout for ${money(balanceAtRequest)}?`;
+
+  const confirmed =
+    confirm(confirmMessage);
+
+  if (!confirmed) {
+    return;
+  }
+
+  lockPayoutButtons("Submitting...", balanceAtRequest);
+  setActionMessage("Submitting payout request...", "#666");
+
+  try {
+    const { data: requestRow, error: insertError } =
+      await supabaseClient
+        .from("worker_payouts")
+        .insert({
+          worker_id: currentWorkerId,
+          worker_email: currentUser.email,
+          amount: balanceAtRequest,
+          gross_amount: taskmintGrossAmount,
+          platform_fee: taskmintFeeAmount,
+          taskmint_fee: taskmintFeeAmount,
+          taskmint_fee_amount: taskmintFeeAmount,
+          instant_fee: instantFeeAmount,
+          payout_speed: selectedSpeed,
+          payout_type: selectedSpeed === "instant" ? "instant" : "friday",
+          payment_type: selectedSpeed === "instant" ? "instant" : "free_friday",
+          fee_amount: instantFeeAmount,
+          net_amount: netAmount,
+          payout_amount: netAmount,
+          payout_lock_key: payoutLockKey,
+          status: "requested",
+          payout_status: "requested",
+          requested_at: new Date().toISOString(),
+          payout_requested_at: new Date().toISOString(),
+          scheduled_payout_day: selectedSpeed === "standard" ? "Friday" : null
+        })
+        .select("*")
+        .single();
+
+    if (insertError) {
+      if (
+        String(insertError.message || "").toLowerCase().includes("duplicate") ||
+        String(insertError.message || "").toLowerCase().includes("unique")
+      ) {
+        setActionMessage("This payout has already been requested.", "#b00020");
+      } else {
+        setActionMessage(insertError.message, "#b00020");
+      }
+
+      localReservedPayoutAmount = 0;
+      payoutRequestInProgress = false;
+      await loadPayoutPage();
+      unlockPayoutButtons(originalStandardText, originalInstantText);
+      return;
+    }
+
+    payoutRequests =
+      [requestRow, ...payoutRequests];
+
+    renderPayoutRequests();
+
+    document.getElementById("availableBalance").innerText =
+      money(0);
+
+    document.getElementById("balanceSubtext").innerText =
+      "Your available balance is already tied to a payout request.";
+
+    const { data: sessionData } =
+      await supabaseClient.auth.getSession();
+
+    const accessToken =
+      sessionData && sessionData.session
+        ? sessionData.session.access_token
+        : "";
+
+    const stripeResponse =
+      await fetch(
+        `${SUPABASE_URL}/functions/v1/request-worker-payout`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({
+            worker_id: currentWorkerId,
+            payout_request_id: requestRow.id,
+            amount: balanceAtRequest,
+            gross_amount: taskmintGrossAmount,
+            taskmint_fee_amount: taskmintFeeAmount,
+            taskmint_fee: taskmintFeeAmount,
+            instant_fee: instantFeeAmount,
+            payout_speed: selectedSpeed,
+            payout_type: selectedSpeed === "instant" ? "instant" : "friday",
+            fee_amount: instantFeeAmount,
+            net_amount: netAmount
+          })
+        }
+      );
+
+    const stripeResult =
+      await stripeResponse.json().catch(() => ({}));
+
+    if (!stripeResponse.ok) {
+      setActionMessage(
+        stripeResult.error || "Payout request saved but Stripe processing failed. TaskMint will review it.",
+        "#8a5300"
+      );
+      await loadPayoutPage();
+      return;
+    }
+
+    setActionMessage(
+      selectedSpeed === "instant"
+        ? "Instant payout request submitted for processing."
+        : "Free Friday payout request submitted for processing.",
+      "#0b7a28"
+    );
+
+    await loadPayoutPage();
+
+  } catch (error) {
+    setActionMessage(
+      error.message || "Something went wrong requesting payout.",
+      "#b00020"
+    );
+    localReservedPayoutAmount = 0;
+    payoutRequestInProgress = false;
+    await loadPayoutPage();
+    unlockPayoutButtons(originalStandardText, originalInstantText);
+  }
+}
+
+async function loadPayoutPage() {
+  payoutRequestInProgress = false;
+  setActionMessage("", "#666");
+ 
+  const ready = await getCurrentWorker();
+ 
+  if (!ready) {
+    document.getElementById("payoutRequestsList").innerHTML = `
+      <div class="empty">
+        Worker profile not found. Complete your worker profile before requesting payouts.
+      </div>
+    `;
+    document.getElementById("earningsHistoryList").innerHTML = `
+      <div class="empty">
+        Worker profile not found.
+      </div>
+    `;
+    return;
+  }
+ 
+  await loadAvailableBalance();
+  await loadEarningsHistory();
+  await loadPayoutRequests();
+}
+ 
+loadPayoutPage();
 </script>
+ 
 </body>
 </html>

@@ -316,12 +316,15 @@ function payoutIsComplete(profile) {
     return false;
   }
 
+  const payoutStatus =
+    String(profile.payout_status || "").toLowerCase();
+
   return (
     profile.stripe_onboarding_complete === true ||
     profile.payout_setup_complete === true ||
-    profile.payout_status === "completed" ||
-    profile.payout_status === "verified" ||
-    profile.payout_status === "connected" ||
+    payoutStatus === "completed" ||
+    payoutStatus === "verified" ||
+    payoutStatus === "connected" ||
     !!profile.stripe_account_id
   );
 }
@@ -346,7 +349,7 @@ async function loadPayoutStatus() {
   const { data, error } =
     await supabaseClient
       .from("worker_profiles")
-      .select("id, auth_user_id, email, stripe_account_id, stripe_onboarding_complete, payout_status")
+      .select("id, auth_user_id, email, stripe_account_id, stripe_onboarding_complete, payout_setup_complete, payout_status")
       .or(`id.eq.${currentUser.id},auth_user_id.eq.${currentUser.id}`)
       .maybeSingle();
 
@@ -360,6 +363,39 @@ async function loadPayoutStatus() {
   }
 
   currentWorkerProfile = data || null;
+
+  const { data: mainProfile, error: mainProfileError } =
+    await supabaseClient
+      .from("profiles")
+      .select("id, email, stripe_account_id, stripe_onboarding_complete, payout_setup_complete, payout_status")
+      .eq("id", currentUser.id)
+      .maybeSingle();
+
+  if (mainProfileError) {
+    console.error(mainProfileError);
+  }
+
+  if (mainProfile) {
+    currentWorkerProfile =
+      {
+        ...(mainProfile || {}),
+        ...(currentWorkerProfile || {}),
+        stripe_account_id:
+          currentWorkerProfile?.stripe_account_id ||
+          mainProfile.stripe_account_id ||
+          null,
+        stripe_onboarding_complete:
+          currentWorkerProfile?.stripe_onboarding_complete === true ||
+          mainProfile.stripe_onboarding_complete === true,
+        payout_setup_complete:
+          currentWorkerProfile?.payout_setup_complete === true ||
+          mainProfile.payout_setup_complete === true,
+        payout_status:
+          currentWorkerProfile?.payout_status ||
+          mainProfile.payout_status ||
+          null
+      };
+  }
 
   const localStripeAccountId =
     localStorage.getItem("stripeAccountId");
@@ -407,7 +443,8 @@ async function saveStripeAccountId(stripeAccountId) {
     email: currentUser.email,
     stripe_account_id: stripeAccountId,
     payout_status: "connected",
-    stripe_onboarding_complete: true
+    stripe_onboarding_complete: true,
+    payout_setup_complete: true
   };
 
   const { error: workerProfileError } =

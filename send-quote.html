@@ -512,28 +512,6 @@ async function getCurrentWorkerUser() {
 }
 
 
-async function isApprovedFromProfiles(workerUser) {
-  if (!workerUser || !workerUser.id) {
-    return false;
-  }
-
-  const { data: profile, error } =
-    await supabaseClient
-      .from("profiles")
-      .select("is_worker_approved, can_send_quotes, worker_verification_status")
-      .eq("id", workerUser.id)
-      .maybeSingle();
-
-  if (error || !profile) {
-    return false;
-  }
-
-  return (
-    profile.is_worker_approved === true &&
-    profile.can_send_quotes === true
-  );
-}
-
 async function fetchSingleByColumn(tableName, columnName, value) {
   if (!value) {
     return null;
@@ -676,10 +654,7 @@ async function loadTask() {
   currentWorkerProfile =
     await getWorkerProfile(currentWorkerUser);
 
-  const approvedFromProfiles =
-    await isApprovedFromProfiles(currentWorkerUser);
-
-  if (!approvedFromProfiles) {
+  if (!isWorkerApprovedForQuotes(currentWorkerProfile)) {
     showError("Your worker profile is pending TaskMint approval. You can submit quotes after TaskMint approves your account.");
     document.getElementById("submitQuoteBtn").disabled = true;
   }
@@ -737,10 +712,7 @@ async function submitQuote() {
     return;
   }
 
-  const approvedFromProfiles =
-    await isApprovedFromProfiles(currentWorkerUser);
-
-  if (!approvedFromProfiles) {
+  if (!isWorkerApprovedForQuotes(currentWorkerProfile)) {
     showError("Your worker profile is pending TaskMint approval. You can submit quotes after TaskMint approves your account.");
     return;
   }

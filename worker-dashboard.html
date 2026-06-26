@@ -2630,18 +2630,19 @@ function getWorkerSetupSteps(profile) {
       href: "worker-tax-center.html",
       complete: profile.tax_setup_complete === true || ["complete", "completed", "verified"].includes(String(profile.tax_status || "").toLowerCase())
     },
+
+     {
+      label: "ID verification",
+      note: "Submit your ID so TaskMint can review your account.",
+      href: "worker-tax-center.html",
+      complete: idVerificationComplete
+    }
     {
       label: "Payout setup",
       note: "Add payout details so you can get paid.",
       href: "worker-payout-info.html",
       complete: profile.payout_setup_complete === true || setupHasValue(profile.stripe_account_id) || ["complete", "completed", "verified"].includes(String(profile.payout_status || "").toLowerCase())
     },
-    {
-      label: "ID verification",
-      note: "Submit your ID so TaskMint can review your account.",
-      href: "worker-tax-center.html",
-      complete: idVerificationComplete
-    }
   ];
 }
 

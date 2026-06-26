@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -382,6 +383,53 @@ const supabaseClient = window.supabase.createClient(
   "sb_publishable_3h7cO2Z8CDxZyEKDLRzvtg_1UJCLldJ"
 );
 
+async function redirectToLogin(message) {
+  await supabaseClient.auth.signOut();
+  localStorage.clear();
+  sessionStorage.clear();
+
+  if (message) {
+    alert(message);
+  }
+
+  window.location.href = "worker-login.html";
+}
+
+async function requireValidWorkerSession() {
+  const { data: sessionData, error: sessionError } =
+    await supabaseClient.auth.getSession();
+
+  if (sessionError || !sessionData.session || !sessionData.session.user) {
+    await redirectToLogin("You must be logged in.");
+    return null;
+  }
+
+  const user =
+    sessionData.session.user;
+
+  const { data: profile, error: profileError } =
+    await supabaseClient
+      .from("profiles")
+      .select("id, account_type")
+      .eq("id", user.id)
+      .maybeSingle();
+
+  if (profileError || !profile) {
+    await redirectToLogin("This account no longer exists.");
+    return null;
+  }
+
+  if (profile.account_type && profile.account_type !== "worker") {
+    await redirectToLogin("This page is for worker accounts only.");
+    return null;
+  }
+
+  localStorage.setItem("taskmintWorkerId", user.id);
+  localStorage.setItem("taskmintUserId", user.id);
+
+  return user;
+}
+
 let currentUser = null;
 
 const blockedWords = [
@@ -402,14 +450,14 @@ function escapeHTML(value) {
 }
 
 async function loadReviewsPage() {
-  const { data: userData } = await supabaseClient.auth.getUser();
+  const validUser =
+    await requireValidWorkerSession();
 
-  if (!userData || !userData.user) {
-    window.location.href = "worker-login.html";
+  if (!validUser) {
     return;
   }
 
-  currentUser = userData.user;
+  currentUser = validUser;
 
   let workerId = currentUser.id;
 
@@ -758,7 +806,11 @@ async function submitWorkerResponse(reviewId) {
   loadReviewsPage();
 }
 
-loadReviewsPage();
+async function startPage() {
+  await loadReviewsPage();
+}
+
+startPage();
 </script>
 
 </body>

@@ -2320,6 +2320,53 @@ const supabaseClient =
     SUPABASE_ANON_KEY
   );
 
+async function redirectToLogin(message) {
+  await supabaseClient.auth.signOut();
+  localStorage.clear();
+  sessionStorage.clear();
+
+  if (message) {
+    alert(message);
+  }
+
+  window.location.href = "worker-login.html";
+}
+
+async function requireValidWorkerSession() {
+  const { data: sessionData, error: sessionError } =
+    await supabaseClient.auth.getSession();
+
+  if (sessionError || !sessionData.session || !sessionData.session.user) {
+    await redirectToLogin("You must be logged in.");
+    return null;
+  }
+
+  const user =
+    sessionData.session.user;
+
+  const { data: profile, error: profileError } =
+    await supabaseClient
+      .from("profiles")
+      .select("id, account_type")
+      .eq("id", user.id)
+      .maybeSingle();
+
+  if (profileError || !profile) {
+    await redirectToLogin("This account no longer exists.");
+    return null;
+  }
+
+  if (profile.account_type && profile.account_type !== "worker") {
+    await redirectToLogin("This page is for worker accounts only.");
+    return null;
+  }
+
+  localStorage.setItem("taskmintWorkerId", user.id);
+  localStorage.setItem("taskmintUserId", user.id);
+
+  return user;
+}
+
 let currentUser = null;
 let currentWorkerId = null;
 let currentWorkerIds = [];
@@ -4829,6 +4876,11 @@ function viewPublicProfile() {
 
 loadDashboard();
 
+async function startPageSecurityCheck() {
+  await requireValidWorkerSession();
+}
+
+startPageSecurityCheck();
 </script>
 </body>
 </html>

@@ -2630,19 +2630,18 @@ function getWorkerSetupSteps(profile) {
       href: "worker-tax-center.html",
       complete: profile.tax_setup_complete === true || ["complete", "completed", "verified"].includes(String(profile.tax_status || "").toLowerCase())
     },
-
-     {
-      label: "ID verification",
-      note: "Submit your ID so TaskMint can review your account.",
-      href: "worker-tax-center.html",
-      complete: idVerificationComplete
-    }
     {
       label: "Payout setup",
       note: "Add payout details so you can get paid.",
       href: "worker-payout-info.html",
       complete: profile.payout_setup_complete === true || setupHasValue(profile.stripe_account_id) || ["complete", "completed", "verified"].includes(String(profile.payout_status || "").toLowerCase())
     },
+    {
+      label: "ID verification",
+      note: "Submit your ID so TaskMint can review your account.",
+      href: "worker-tax-center.html",
+      complete: idVerificationComplete
+    }
   ];
 }
 
@@ -2808,26 +2807,21 @@ function updateWorkerNotificationDisplay() {
 }
 
 async function loadDashboard() {
+  try {
+    const user =
+      await requireValidWorkerSession();
 
-  const { data, error } =
-    await supabaseClient.auth.getSession();
+    if (!user) {
+      return;
+    }
 
-  if (error || !data.session) {
-    document.getElementById("loading").innerText =
-      "No active worker session found. Log in again from the worker login page.";
-    return;
-  }
-
-  const user =
-    data.session.user;
-
-  currentUser = user;
+    currentUser = user;
 
   const { data: profile } =
     await supabaseClient
       .from("profiles")
       .select("*")
-      .eq("email", user.email)
+      .eq("id", user.id)
       .maybeSingle();
 
   const { data: workerRecord } =
@@ -2925,6 +2919,13 @@ async function loadDashboard() {
   document.getElementById("dashboard").style.display =
     "block";
 
+  } catch (dashboardError) {
+    console.error(dashboardError);
+    const loading = document.getElementById("loading");
+    if (loading) {
+      loading.innerText = "Dashboard could not load. Please refresh or log in again.";
+    }
+  }
 }
 
 async function logout() {
@@ -5200,12 +5201,6 @@ function viewPublicProfile() {
 }
 
 loadDashboard();
-
-async function startPageSecurityCheck() {
-  await requireValidWorkerSession();
-}
-
-startPageSecurityCheck();
 </script>
 </body>
 </html>

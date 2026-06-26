@@ -2028,6 +2028,169 @@
       white-space: nowrap;
     }
 
+
+    /* ── WORKER SETUP GUIDE ── */
+    .worker-setup-card {
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.99), rgba(242,247,244,0.98));
+      border: 1px solid #d7e7dd;
+      border-radius: 16px;
+      padding: 13px;
+      margin: 0 0 11px;
+      box-shadow: 0 7px 18px rgba(11,122,40,0.09);
+      display: none;
+      opacity: 0;
+      animation: riseIn 0.35s 0.18s forwards;
+    }
+
+    .worker-setup-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .worker-setup-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 3px;
+    }
+
+    .worker-setup-sub {
+      font-size: 10.8px;
+      color: var(--muted);
+      line-height: 1.35;
+      font-weight: 600;
+    }
+
+    .worker-setup-percent {
+      min-width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: var(--surface2);
+      color: var(--accent);
+      border: 1px solid #bde8ca;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .worker-setup-percent strong {
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    .worker-setup-percent span {
+      font-size: 8.5px;
+      margin-top: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .worker-setup-progress {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: #e8efe9;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .worker-setup-progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: var(--accent);
+      transition: width 0.25s ease;
+    }
+
+    .worker-setup-status {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+      font-weight: 700;
+      margin-bottom: 9px;
+    }
+
+    .worker-setup-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .worker-setup-item {
+      width: 100%;
+      min-height: 46px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 9px 10px;
+      display: grid;
+      grid-template-columns: 28px 1fr 18px;
+      gap: 9px;
+      align-items: center;
+      cursor: pointer;
+      transition: border-color 0.18s, transform 0.18s, background 0.18s;
+    }
+
+    .worker-setup-item:hover {
+      border-color: #a3cfb0;
+      transform: translateY(-1px);
+      background: #fbfffc;
+    }
+
+    .worker-setup-check {
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
+      background: var(--warn-bg);
+      color: var(--warn-text);
+      border: 1px solid var(--warn-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .worker-setup-item.complete .worker-setup-check {
+      background: var(--surface2);
+      color: var(--accent);
+      border-color: #bde8ca;
+    }
+
+    .worker-setup-main {
+      min-width: 0;
+    }
+
+    .worker-setup-name {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .worker-setup-note {
+      font-size: 9.8px;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.25;
+      font-weight: 600;
+    }
+
+    .worker-setup-arrow {
+      color: #9bafa3;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
 </style>
 </head>
 <body>
@@ -2063,6 +2226,28 @@
     <div class="hero-label">Worker Dashboard</div>
     <h1>Hello, <em id="workerFirstName">Worker</em></h1>
     <p>Manage quotes, accepted jobs, earnings, messages, disputes, and payouts from one clean workspace.</p>
+  </div>
+
+
+  <!-- WORKER SETUP GUIDE -->
+  <div id="workerSetupGuide" class="worker-setup-card">
+    <div class="worker-setup-top">
+      <div>
+        <div class="worker-setup-title" id="workerSetupTitle">Finish setting up your worker account</div>
+        <div class="worker-setup-sub" id="workerSetupSubtitle">Complete these steps to unlock quoting and start accepting jobs.</div>
+      </div>
+      <div class="worker-setup-percent">
+        <strong id="workerSetupPercent">0%</strong>
+        <span>Complete</span>
+      </div>
+    </div>
+
+    <div class="worker-setup-progress">
+      <div class="worker-setup-progress-fill" id="workerSetupProgressFill"></div>
+    </div>
+
+    <div class="worker-setup-status" id="workerSetupStatus">Checking your setup...</div>
+    <div class="worker-setup-list" id="workerSetupList"></div>
   </div>
 
   <!-- NOTIFICATION PANEL -->
@@ -2381,6 +2566,140 @@ let rawNotificationCounts = {
   schedule: 0
 };
 
+
+function setupHasValue(value) {
+  if (value === null || value === undefined) return false;
+  if (Array.isArray(value)) return value.length > 0;
+  return String(value).trim() !== "";
+}
+
+function setupEscapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function getWorkerSetupSteps(profile) {
+  const servicesValue =
+    profile.services_offered ||
+    profile.services ||
+    profile.skills ||
+    profile.worker_services ||
+    "";
+
+  const idVerificationComplete =
+    profile.identity_verified === true ||
+    profile.submitted_for_verification === true ||
+    ["pending", "under_review", "reviewing", "approved"].includes(String(profile.worker_verification_status || "").toLowerCase()) ||
+    ["pending", "under_review", "reviewing", "approved"].includes(String(profile.verification_status || "").toLowerCase()) ||
+    setupHasValue(profile.government_id_url) ||
+    setupHasValue(profile.government_id_photo_url) ||
+    setupHasValue(profile.id_document_url);
+
+  return [
+    {
+      label: "Upload profile picture",
+      note: "Add a clear photo so customers know who is coming.",
+      href: "worker-profile-edit.html",
+      complete: setupHasValue(profile.profile_photo_url)
+    },
+    {
+      label: "Add work experience",
+      note: "Tell customers what kind of work you have done.",
+      href: "worker-profile-edit.html",
+      complete: setupHasValue(profile.experience)
+    },
+    {
+      label: "Save service area",
+      note: "Set where you want to receive task opportunities.",
+      href: "worker-profile-edit.html",
+      complete: setupHasValue(profile.service_area) || setupHasValue(profile.worker_city) || setupHasValue(profile.worker_state)
+    },
+    {
+      label: "Add services offered",
+      note: "Choose the services you want customers to request.",
+      href: "add-services-offered.html",
+      complete: setupHasValue(servicesValue)
+    },
+    {
+      label: "Tax setup",
+      note: "Complete your tax information before payouts.",
+      href: "worker-tax-center.html",
+      complete: profile.tax_setup_complete === true || ["complete", "completed", "verified"].includes(String(profile.tax_status || "").toLowerCase())
+    },
+    {
+      label: "Payout setup",
+      note: "Add payout details so you can get paid.",
+      href: "worker-payout-info.html",
+      complete: profile.payout_setup_complete === true || setupHasValue(profile.stripe_account_id) || ["complete", "completed", "verified"].includes(String(profile.payout_status || "").toLowerCase())
+    },
+    {
+      label: "ID verification",
+      note: "Submit your ID so TaskMint can review your account.",
+      href: "worker-tax-center.html",
+      complete: idVerificationComplete
+    }
+  ];
+}
+
+function renderWorkerSetupGuide(profile) {
+  const guide = document.getElementById("workerSetupGuide");
+  const list = document.getElementById("workerSetupList");
+  const percentEl = document.getElementById("workerSetupPercent");
+  const fill = document.getElementById("workerSetupProgressFill");
+  const status = document.getElementById("workerSetupStatus");
+  const title = document.getElementById("workerSetupTitle");
+  const subtitle = document.getElementById("workerSetupSubtitle");
+
+  if (!guide || !list || !percentEl || !fill || !status || !title || !subtitle) {
+    return;
+  }
+
+  const steps = getWorkerSetupSteps(profile || {});
+  const completed = steps.filter(step => step.complete).length;
+  const total = steps.length;
+  const percent = Math.round((completed / total) * 100);
+  const approved =
+    profile.is_worker_approved === true ||
+    profile.can_send_quotes === true ||
+    String(profile.worker_approval_status || "").toLowerCase() === "approved";
+
+  if (approved && completed === total) {
+    guide.style.display = "none";
+    return;
+  }
+
+  guide.style.display = "block";
+  percentEl.innerText = percent + "%";
+  fill.style.width = percent + "%";
+
+  if (completed === total) {
+    title.innerText = "Your setup is complete";
+    subtitle.innerText = "TaskMint is reviewing your worker account.";
+    status.innerText = "Verification: " + (profile.worker_approval_status || profile.worker_verification_status || "Pending Approval");
+  } else {
+    title.innerText = "Finish setting up your worker account";
+    subtitle.innerText = "Complete these steps to unlock quoting and start accepting jobs.";
+    status.innerText = completed + " of " + total + " completed";
+  }
+
+  list.innerHTML =
+    steps.map(step => `
+      <div class="worker-setup-item ${step.complete ? "complete" : ""}" onclick="window.location.href='${step.href}'">
+        <div class="worker-setup-check">${step.complete ? "✓" : "!"}</div>
+        <div class="worker-setup-main">
+          <div class="worker-setup-name">${setupEscapeHtml(step.label)}</div>
+          <div class="worker-setup-note">${setupEscapeHtml(step.note)}</div>
+        </div>
+        <div class="worker-setup-arrow">›</div>
+      </div>
+    `).join("");
+}
+
+
 function getNotificationDismissedCount(category) {
   return Number(localStorage.getItem(`taskmintWorkerNotificationDismissed_${category}`) || 0);
 }
@@ -2584,6 +2903,11 @@ async function loadDashboard() {
     }
 
   }
+
+  renderWorkerSetupGuide({
+    ...(profile || {}),
+    ...(workerRecord || {})
+  });
 
   await loadPendingQuotesByEmail(user.email);
   await loadWorkerRating(currentWorkerId);
